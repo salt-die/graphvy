@@ -49,6 +49,9 @@ class GraphCanvas(Widget):
 
     _mouse_pos_disabled = False
     _highlighted = None
+    _selected = [] # List of selected nodes for dragging multiple nodes.
+    _pinned = [] # List of nodes that won't be moved by layout algorithm.
+
     _touches = []
 
     offset_x = .25
