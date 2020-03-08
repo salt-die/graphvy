@@ -26,7 +26,7 @@ NODE_WIDTH = 3
 EDGE_WIDTH = 2
 
 def collides(mx, my, x, y):
-    """Return true if x, y in coords bounding box."""
+    """Return true if mx, my (mouse x, y) in (x, y)'s bounding box."""
     return x - BOUNDS <= mx <= x + BOUNDS and y - BOUNDS <= my <= y + BOUNDS
 
 
