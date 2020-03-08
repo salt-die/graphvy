@@ -32,13 +32,13 @@ def collides(mx, my, x, y):
 
 class Node(Line):
     def __init__(self, pos, x, y):
-        self.pos = pos
-        self.frozen_pos = (*pos,)
+        self.pos = pos # pos is a reference to the mutable vertex position
+        self.frozen_pos = (*pos,) # if a node is frozen, this will be its position
         self.color = Color(*NODE_COLOR)
         super().__init__(circle=(x, y, NODE_RADIUS), width=NODE_WIDTH)
 
-    def freeze(self, x=None, y=None):
-        self.frozen_pos = (*self.pos,) if x is None else (x, y)
+    def freeze(self):
+        self.frozen_pos = (*self.pos,)
 
     def reset(self):
         self.pos[:] = self.frozen_pos
@@ -161,8 +161,7 @@ class GraphCanvas(Widget):
             return self.transform_on_touch(touch)
 
         if self.highlighted is not None:
-            x, y = self.invert_coords(touch.x, touch.y)
-            self.highlighted.freeze(x, y)
+            self.highlighted.frozen_pos = self.invert_coords(touch.x, touch.y)
             return True
 
         self.offset_x += touch.dx / self.width
