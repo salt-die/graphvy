@@ -154,14 +154,10 @@ class GraphCanvas(Widget):
             Color(*BACKGROUND_COLOR)
             self.rect = Rectangle(size=self.size, pos=self.pos)
 
-        self.coords = coords = dict(zip(self.G.vertices(), self.transform_coords()))
-
         with self.canvas:
             Color(*EDGE_COLOR)
-            self.edges = [Line(points=[*coords[u], *coords[v]], width=EDGE_WIDTH)
-                          for u, v in self.G.edges()]
-
-            self.nodes = [Node(self.G_pos[int(vertex)], x, y) for vertex, (x, y) in coords.items()]
+            self.edges = [Line(points=[0, 0, 0, 0], width=EDGE_WIDTH) for u, v in self.G.edges()]
+            self.nodes = [Node(pos, x, y) for pos, (x, y) in zip(self.G_pos, self.transform_coords())]
 
         with self.canvas.after:
             self.select_rect = Selection()
