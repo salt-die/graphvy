@@ -52,12 +52,19 @@ class Node(Line):
 class Selection(Line):
     def __init__(self, *args, **kwargs):
         self.color = Color(*SELECT_RECT_COLOR)
-        super().__init__(points=[0, 0, 1, 0, 1, 1, 0, 1], width=SELECT_WIDTH, close=True)
+        self.min_x = self.min_y = 0
+        self.max_x = self.max_y = 0
+        super().__init__(points=[0, 0, 0, 0, 0, 0, 0, 0], width=SELECT_WIDTH, close=True)
 
     def set_corners(self, x1, y1, x2, y2):
-        min_x, max_x = (x1, x2) if x1 <= x2 else (x2, x1)
-        min_y, max_y = (y1, y2) if y1 <= y2 else (y2, y1)
+        min_x, max_x = self.min_x, self.max_x = (x1, x2) if x1 <= x2 else (x2, x1)
+        min_y, max_y = self.min_y, self.max_y = (y1, y2) if y1 <= y2 else (y2, y1)
         self.points =  min_x, min_y, max_x, min_y, max_x, max_y, min_x, max_y
+
+    def __contains__(self, coord):
+        """Return True if coord is within the rectangle."""
+        x, y = coord
+        return self.min_x <= x <= self.max_x and self.min_y <= y <= self.max_y
 
 
 class GraphCanvas(Widget):
@@ -121,6 +128,9 @@ class GraphCanvas(Widget):
 
         if self.highlighted is not None:
             self.highlighted.reset()
+
+        for node in self._selected:
+            node.reset()
 
         self.update_canvas()
 
@@ -209,10 +219,17 @@ class GraphCanvas(Widget):
 
     def drag_select(self, touch):
         self.select_rect.set_corners(touch.ox, touch.oy, touch.x, touch.y)
-        ### TODO: Finish implementing drag-select
-        #ox, oy = self.invert_coords(touch.ox, touch.oy)
-        #x, y = self.invert_coords(touch.x, touch.y)
-        #self._selected = [node for node in self.nodes]
+
+        self._selected = []
+        for node, coord in zip(self.nodes, self.coords.values()):
+            if coord in self.select_rect:
+                node.freeze()
+                node.color.rgba = SELECTED_COLOR
+                self._selected.append(node)
+            else:
+                node.color.rgba = NODE_COLOR
+
+        return True
 
     def transform_on_touch(self, touch):
         ax, ay = self._touches[-2].pos # Anchor coords
@@ -227,6 +244,7 @@ class GraphCanvas(Widget):
         # Make sure the anchor is a fixed point:
         self.offset_x += (ax - x) / self.width
         self.offset_y += (ay - y) / self.height
+
         return True
 
     def on_mouse_pos(self, *args):
