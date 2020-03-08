@@ -52,11 +52,10 @@ class Node(Line):
 class Selection(Line):
     def __init__(self, *args, **kwargs):
         self.color = Color(*SELECT_RECT_COLOR)
-        self.min_x = self.min_y = 0
-        self.max_x = self.max_y = 0
         super().__init__(points=[0, 0, 0, 0, 0, 0, 0, 0], width=SELECT_WIDTH, close=True)
+        self.set_corners()
 
-    def set_corners(self, x1, y1, x2, y2):
+    def set_corners(self, x1=0, y1=0, x2=0, y2=0):
         min_x, max_x = self.min_x, self.max_x = (x1, x2) if x1 <= x2 else (x2, x1)
         min_y, max_y = self.min_y, self.max_y = (y1, y2) if y1 <= y2 else (y2, y1)
         self.points =  min_x, min_y, max_x, min_y, max_x, max_y, min_x, max_y
@@ -121,6 +120,7 @@ class GraphCanvas(Widget):
     @is_drag_select.setter
     def is_drag_select(self, boolean):
         self._drag_selection = boolean
+        self.select_rect.set_corners()
         self.select_rect.color.a = int(boolean) * SELECT_RECT_COLOR[-1]
 
     def step_layout(self, dt):
@@ -149,21 +149,19 @@ class GraphCanvas(Widget):
 
     def setup_canvas(self, *args):
         self.canvas.clear()
+
         with self.canvas.before:
             Color(*BACKGROUND_COLOR)
             self.rect = Rectangle(size=self.size, pos=self.pos)
 
         self.coords = coords = dict(zip(self.G.vertices(), self.transform_coords()))
 
-        self.nodes = []
-        self.edges = []
         with self.canvas:
             Color(*EDGE_COLOR)
-            for u, v in self.G.edges():
-                self.edges.append(Line(points=[*coords[u], *coords[v]], width=EDGE_WIDTH))
+            self.edges = [Line(points=[*coords[u], *coords[v]], width=EDGE_WIDTH)
+                          for u, v in self.G.edges()]
 
-            for vertex, (x, y) in coords.items():
-                self.nodes.append(Node(self.G_pos[int(vertex)], x, y))
+            self.nodes = [Node(self.G_pos[int(vertex)], x, y) for vertex, (x, y) in coords.items()]
 
         with self.canvas.after:
             self.select_rect = Selection()
