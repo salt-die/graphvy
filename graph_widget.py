@@ -58,6 +58,8 @@ class GraphCanvas(Widget):
     offset_y = .25
     scale = .5
 
+    is_selecting = False
+
     def __init__(self, G=None, pos=None, graph_callback=None, *args, **kwargs):
         self.G = gt.generation.graph() if G is None else G
         self.G_pos = random_layout(G, (1, 1)) if pos is None else pos
@@ -211,15 +213,19 @@ if __name__ == "__main__":
     class GraphApp(App):
         def build(self):
             g = gt.generation.random_graph(50, lambda:(random.randint(1, 2), random.randint(1, 2)))
+            self.GC = GraphCanvas(g)
             Window.bind(on_key_down=self.on_key_down, on_key_up=self.on_key_up)
-            return GraphCanvas(g)
+            return self.GC
 
         def on_key_up(self, *args):
             """Will use key presses to change GraphCanvas's modes when testing; Ideally, we'd use
                buttons in some other widget..."""
-            print(args)
+            if args[1] == 304: # shift
+                self.GC.is_selecting = False
 
         def on_key_down(self, *args):
-            print(args)
+            if args[1] == 304: # shift
+                self.GC.is_selecting = True
+
 
     GraphApp().run()
