@@ -1,4 +1,6 @@
-### TODO: Drag-select vertices
+"""
+Hold shift to drag-select vertices.
+"""
 import random
 
 from kivy.app import App
@@ -20,10 +22,13 @@ BACKGROUND_COLOR = 0, 0, 0, 1
 NODE_COLOR = .027, .292, .678, 1
 EDGE_COLOR = .16, .176, .467, 1
 HIGHLIGHTED_COLOR = 0.5135, 0.646 , 0.839, 1
+SELECT_RECT_COLOR = 1, 1, 1, .8
+SELECTED_COLOR = 1, 1, 1, 1
 
 NODE_RADIUS = 3; BOUNDS = NODE_RADIUS * 2
 NODE_WIDTH = 3
 EDGE_WIDTH = 2
+SELECT_WIDTH = 1.2
 
 def collides(mx, my, x, y):
     """Return true if mx, my (mouse x, y) in (x, y)'s bounding box."""
@@ -44,6 +49,17 @@ class Node(Line):
         self.pos[:] = self.frozen_pos
 
 
+class Selection(Line):
+    def __init__(self, *args, **kwargs):
+        self.color = Color(*SELECT_RECT_COLOR)
+        super().__init__(points=[0, 0, 1, 0, 1, 1, 0, 1], width=SELECT_WIDTH, close=True)
+
+    def set_corners(self, x1, y1, x2, y2):
+        min_x, max_x = (x1, x2) if x1 <= x2 else (x2, x1)
+        min_y, max_y = (y1, y2) if y1 <= y2 else (y2, y1)
+        self.points =  min_x, min_y, max_x, min_y, max_x, max_y, min_x, max_y
+
+
 class GraphCanvas(Widget):
     """Dynamic graph layout widget.  Layout updates as graph changes."""
 
@@ -59,6 +75,7 @@ class GraphCanvas(Widget):
     scale = .5
 
     is_selecting = False
+    _drag_selection = False
 
     def __init__(self, G=None, pos=None, graph_callback=None, *args, **kwargs):
         self.G = gt.generation.graph() if G is None else G
@@ -89,6 +106,15 @@ class GraphCanvas(Widget):
             node.freeze()
             node.color.rgba = HIGHLIGHTED_COLOR
         self._highlighted = node
+
+    @property
+    def is_drag_select(self):
+        return self._drag_selection
+
+    @is_drag_select.setter
+    def is_drag_select(self, boolean):
+        self._drag_selection = boolean
+        self.select_rect.color.a = int(boolean) * SELECT_RECT_COLOR[-1]
 
     def step_layout(self, dt):
         sfdp_layout(self.G, pos=self.G_pos, K=K, init_step=STEP, max_iter=1)
@@ -129,6 +155,9 @@ class GraphCanvas(Widget):
             for vertex, (x, y) in coords.items():
                 self.nodes.append(Node(self.G_pos[int(vertex)], x, y))
 
+        with self.canvas.after:
+            self.select_rect = Selection()
+
     def transform_coords(self, x=None, y=None):
         """Transform vertex coordinates to canvas coordinates."""
 
@@ -151,16 +180,21 @@ class GraphCanvas(Widget):
     def on_touch_down(self, touch):
         self._mouse_pos_disabled = True
         self._touches.append(touch)
+        if self.is_selecting:
+            self.is_drag_select = True
         return True
 
     def on_touch_up(self, touch):
         self._mouse_pos_disabled = False
+        self.is_drag_select = False
         self._touches.remove(touch)
 
     def on_touch_move(self, touch):
         """
         Zoom if multitouch, else if a node is highlighted, drag it, else move the entire graph.
         """
+        if self.is_drag_select:
+            return self.drag_select(touch)
 
         if len(self._touches) > 1:
             return self.transform_on_touch(touch)
@@ -172,6 +206,13 @@ class GraphCanvas(Widget):
         self.offset_x += touch.dx / self.width
         self.offset_y += touch.dy / self.height
         return True
+
+    def drag_select(self, touch):
+        self.select_rect.set_corners(touch.ox, touch.oy, touch.x, touch.y)
+        ### TODO: Finish implementing drag-select
+        #ox, oy = self.invert_coords(touch.ox, touch.oy)
+        #x, y = self.invert_coords(touch.x, touch.y)
+        #self._selected = [node for node in self.nodes]
 
     def transform_on_touch(self, touch):
         ax, ay = self._touches[-2].pos # Anchor coords
