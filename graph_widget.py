@@ -217,15 +217,15 @@ if __name__ == "__main__":
             Window.bind(on_key_down=self.on_key_down, on_key_up=self.on_key_up)
             return self.GC
 
-        def on_key_up(self, *args):
+        def on_key_down(self, *args):
             """Will use key presses to change GraphCanvas's modes when testing; Ideally, we'd use
                buttons in some other widget..."""
             if args[1] == 304: # shift
-                self.GC.is_selecting = False
-
-        def on_key_down(self, *args):
-            if args[1] == 304: # shift
                 self.GC.is_selecting = True
+
+        def on_key_up(self, *args):
+            if args[1] == 304: # shift
+                self.GC.is_selecting = False
 
 
     GraphApp().run()
