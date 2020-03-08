@@ -64,9 +64,7 @@ class GraphCanvas(Widget):
         self.setup_canvas()
 
         self.bind(size=self.update_canvas, pos=self.update_canvas)
-        Window.bind(mouse_pos=self.on_mouse_pos,
-                    on_key_down=self.on_key_down,
-                    on_key_up=self.on_key_up)
+        Window.bind(mouse_pos=self.on_mouse_pos)
 
         self.update_layout = Clock.schedule_interval(self.step_layout, 1/30)
 
@@ -206,18 +204,20 @@ class GraphCanvas(Widget):
                 self.highlighted = node
                 return
 
-    def on_key_up(self, *args):
-        print(args)
-
-    def on_key_down(self, *args):
-        # TODO: SHIFT will activate selection mode, allowing one to drag-select vertices
-        print(args)
-
 
 if __name__ == "__main__":
     class GraphApp(App):
         def build(self):
             g = gt.generation.random_graph(50, lambda:(random.randint(1, 2), random.randint(1, 2)))
+            Window.bind(on_key_down=self.on_key_down, on_key_up=self.on_key_up)
             return GraphCanvas(g)
+
+        def on_key_up(self, *args):
+            """Will use key presses to change GraphCanvas's modes when testing; Ideally, we'd use
+               buttons in some other widget..."""
+            print(args)
+
+        def on_key_down(self, *args):
+            print(args)
 
     GraphApp().run()
