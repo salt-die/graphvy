@@ -23,7 +23,7 @@ NODE_COLOR = .027, .292, .678, 1
 EDGE_COLOR = .16, .176, .467, 1
 HIGHLIGHTED_COLOR = 0.5135, 0.646 , 0.839, 1
 SELECT_RECT_COLOR = 1, 1, 1, .8
-SELECTED_COLOR = 1, 1, 1, 1
+SELECTED_COLOR = 0.5135, 0.646 , 0.839, 1
 
 NODE_RADIUS = 3; BOUNDS = NODE_RADIUS * 2
 NODE_WIDTH = 3
@@ -163,7 +163,10 @@ class GraphCanvas(Widget):
             self.select_rect = Selection()
 
     def transform_coords(self, x=None, y=None):
-        """Transform vertex coordinates to canvas coordinates."""
+        """
+        Transform vertex coordinates to canvas coordinates.  Return the entire array of vertex
+        coordinates if no specific coordinate is passed.
+        """
 
         if x is not None:
             return ((x * self.scale + self.offset_x) * self.width,
@@ -175,33 +178,47 @@ class GraphCanvas(Widget):
         np.multiply(arr, (self.width, self.height), out=arr)
         return arr
 
-    def invert_coords(self, x, y):
+    def invert_coords(self, x, y, delta=False):
         """Transform canvas coordinates to vertex coordinates."""
+        off_x, off_y = (0, 0) if delta else (self.offset_x, self.offset_y)
 
-        return (((x / self.width) - self.offset_x) / self.scale,
-                ((y / self.height) - self.offset_y) / self.scale)
+        return ((x / self.width) - off_x) / self.scale, ((y / self.height) - off_y) / self.scale
 
     def on_touch_down(self, touch):
-        self._mouse_pos_disabled = True
         self._touches.append(touch)
+
+        self._mouse_pos_disabled = True
+
         if self.is_selecting:
             self.is_drag_select = True
+            self.highlighted = None
+
         return True
 
     def on_touch_up(self, touch):
-        self._mouse_pos_disabled = False
-        self.is_drag_select = False
         self._touches.remove(touch)
+
+        if not self._selected:
+            self._mouse_pos_disabled = False
+
+        self.is_drag_select = False
 
     def on_touch_move(self, touch):
         """
         Zoom if multitouch, else if a node is highlighted, drag it, else move the entire graph.
         """
+        if len(self._touches) > 1:
+            return self.transform_on_touch(touch)
+
         if self.is_drag_select:
             return self.drag_select(touch)
 
-        if len(self._touches) > 1:
-            return self.transform_on_touch(touch)
+        if self._selected:
+            dx, dy = self.invert_coords(touch.dx, touch.dy, delta=True)
+            for node in self._selected:
+                fx, fy = node.frozen_pos
+                node.frozen_pos = fx + dx, fy + dy
+            return True
 
         if self.highlighted is not None:
             self.highlighted.frozen_pos = self.invert_coords(touch.x, touch.y)
