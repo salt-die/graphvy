@@ -162,17 +162,6 @@ class GraphCanvas(Widget):
         with self.canvas.after:
             self.select_rect = Selection()
 
-    def step_layout(self, dt):
-        sfdp_layout(self.G, pos=self.G_pos, K=K, init_step=STEP, max_iter=1)
-
-        if self.highlighted is not None:
-            self.highlighted.reset()
-
-        for node in self._selected:
-            node.reset()
-
-        self.update_canvas()
-
     def update_canvas(self, *args):
         if args:
             self.rect.size = self.size
@@ -186,7 +175,16 @@ class GraphCanvas(Widget):
         for edge, (u, v) in zip(self.edges, self.G.edges()):
             edge.points = *coords[u], *coords[v]
 
+    def step_layout(self, dt):
+        sfdp_layout(self.G, pos=self.G_pos, K=K, init_step=STEP, max_iter=1)
 
+        if self.highlighted is not None:
+            self.highlighted.reset()
+
+        for node in self._selected:
+            node.reset()
+
+        self.update_canvas()
 
     def transform_coords(self, x=None, y=None):
         """
