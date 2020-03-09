@@ -37,9 +37,11 @@ def collides(mx, my, x, y):
 
 class Node(Line):
     def __init__(self, pos, x, y):
+        self.color = Color(*NODE_COLOR)
+
         self.pos = pos # pos is a reference to the mutable vertex position
         self.frozen_pos = (*pos,) # if a node is frozen, this will be its position
-        self.color = Color(*NODE_COLOR)
+
         super().__init__(circle=(x, y, NODE_RADIUS), width=NODE_WIDTH)
 
     def freeze(self):
@@ -52,12 +54,15 @@ class Node(Line):
 class Selection(Line):
     def __init__(self, *args, **kwargs):
         self.color = Color(*SELECT_RECT_COLOR)
+
         super().__init__(points=[0, 0, 0, 0, 0, 0, 0, 0], width=SELECT_WIDTH, close=True)
+
         self.set_corners()
 
     def set_corners(self, x1=0, y1=0, x2=0, y2=0):
         min_x, max_x = self.min_x, self.max_x = (x1, x2) if x1 <= x2 else (x2, x1)
         min_y, max_y = self.min_y, self.max_y = (y1, y2) if y1 <= y2 else (y2, y1)
+
         self.points = min_x, min_y, max_x, min_y, max_x, max_y, min_x, max_y
 
     def __contains__(self, coord):
