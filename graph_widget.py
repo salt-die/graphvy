@@ -21,9 +21,9 @@ K = 0.5      # preferred edge length
 BACKGROUND_COLOR = 0, 0, 0, 1
 NODE_COLOR = .027, .292, .678, 1
 EDGE_COLOR = .16, .176, .467, 1
-HIGHLIGHTED_COLOR = 0.5135, 0.646 , 0.839, 1
+HIGHLIGHTED_COLOR = 0.5135, 0.646, 0.839, 1
 SELECT_RECT_COLOR = 1, 1, 1, .8
-SELECTED_COLOR = 0.5135, 0.646 , 0.839, 1
+SELECTED_COLOR = 0.5135, 0.646, 0.839, 1
 
 NODE_RADIUS = 3; BOUNDS = NODE_RADIUS * 2
 NODE_WIDTH = 3
@@ -58,7 +58,7 @@ class Selection(Line):
     def set_corners(self, x1=0, y1=0, x2=0, y2=0):
         min_x, max_x = self.min_x, self.max_x = (x1, x2) if x1 <= x2 else (x2, x1)
         min_y, max_y = self.min_y, self.max_y = (y1, y2) if y1 <= y2 else (y2, y1)
-        self.points =  min_x, min_y, max_x, min_y, max_x, max_y, min_x, max_y
+        self.points = min_x, min_y, max_x, min_y, max_x, max_y, min_x, max_y
 
     def __contains__(self, coord):
         """Return True if coord is within the rectangle."""
@@ -95,8 +95,8 @@ class GraphCanvas(Widget):
     is_selecting = False
     _drag_selection = False # For is_drag_select property.
 
-    def __init__(self, G=None, pos=None, graph_callback=None, *args, **kwargs):
-        self.G = gt.generation.graph() if G is None else G
+    def __init__(self, *args, G=None, pos=None, graph_callback=None, **kwargs):
+        self.G = gt.Graph() if G is None else G
         self.G_pos = random_layout(G, (1, 1)) if pos is None else pos
 
         super().__init__(*args, **kwargs)
@@ -166,7 +166,7 @@ class GraphCanvas(Widget):
         for edge, (u, v) in zip(self.edges, self.G.edges()):
             edge.points = *coords[u], *coords[v]
 
-    def setup_canvas(self, *args):
+    def setup_canvas(self):
         self.canvas.clear()
 
         with self.canvas.before:
@@ -297,7 +297,7 @@ class GraphCanvas(Widget):
 if __name__ == "__main__":
     class GraphApp(App):
         def build(self):
-            g = gt.generation.random_graph(50, lambda:(random.randint(1, 2), random.randint(1, 2)))
+            g = gt.generation.random_graph(50, lambda: (random.randint(1, 2), random.randint(1, 2)))
             self.GC = GraphCanvas(g)
             Window.bind(on_key_down=self.on_key_down, on_key_up=self.on_key_up)
             return self.GC
