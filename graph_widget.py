@@ -147,6 +147,21 @@ class GraphCanvas(Widget):
         self.select_rect.set_corners()
         self.select_rect.color.a = int(boolean) * SELECT_RECT_COLOR[-1]
 
+    def setup_canvas(self):
+        self.canvas.clear()
+
+        with self.canvas.before:
+            Color(*BACKGROUND_COLOR)
+            self.rect = Rectangle(size=self.size, pos=self.pos)
+
+        with self.canvas:
+            Color(*EDGE_COLOR)
+            self.edges = [Line(points=[0, 0, 0, 0], width=EDGE_WIDTH) for u, v in self.G.edges()]
+            self.nodes = [Node(pos, x, y) for pos, (x, y) in zip(self.G_pos, self.transform_coords())]
+
+        with self.canvas.after:
+            self.select_rect = Selection()
+
     def step_layout(self, dt):
         sfdp_layout(self.G, pos=self.G_pos, K=K, init_step=STEP, max_iter=1)
 
@@ -171,20 +186,7 @@ class GraphCanvas(Widget):
         for edge, (u, v) in zip(self.edges, self.G.edges()):
             edge.points = *coords[u], *coords[v]
 
-    def setup_canvas(self):
-        self.canvas.clear()
 
-        with self.canvas.before:
-            Color(*BACKGROUND_COLOR)
-            self.rect = Rectangle(size=self.size, pos=self.pos)
-
-        with self.canvas:
-            Color(*EDGE_COLOR)
-            self.edges = [Line(points=[0, 0, 0, 0], width=EDGE_WIDTH) for u, v in self.G.edges()]
-            self.nodes = [Node(pos, x, y) for pos, (x, y) in zip(self.G_pos, self.transform_coords())]
-
-        with self.canvas.after:
-            self.select_rect = Selection()
 
     def transform_coords(self, x=None, y=None):
         """
