@@ -297,8 +297,8 @@ class GraphCanvas(Widget):
 if __name__ == "__main__":
     class GraphApp(App):
         def build(self):
-            g = gt.generation.random_graph(50, lambda: (random.randint(1, 2), random.randint(1, 2)))
-            self.GC = GraphCanvas(g)
+            G = gt.generation.random_graph(50, lambda: (random.randint(1, 2), random.randint(1, 2)))
+            self.GC = GraphCanvas(G=G)
             Window.bind(on_key_down=self.on_key_down, on_key_up=self.on_key_up)
             return self.GC
 
