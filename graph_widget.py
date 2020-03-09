@@ -66,12 +66,23 @@ class Selection(Line):
         return self.min_x <= x <= self.max_x and self.min_y <= y <= self.max_y
 
 
+class Selected(list):
+    def append(self, node):
+        super().append(node)
+        node.freeze()
+        node.color.rgba = SELECTED_COLOR
+
+    def __del__(self):
+        for node in self:
+            node.color.rgba = NODE_COLOR
+
+
 class GraphCanvas(Widget):
     """Dynamic graph layout widget.  Layout updates as graph changes."""
 
     _mouse_pos_disabled = False
     _highlighted = None
-    _selected = [] # List of selected nodes for dragging multiple nodes.
+    _selected = Selected() # List of selected nodes for dragging multiple nodes.
     _pinned = [] # List of nodes that won't be moved by layout algorithm.
 
     _touches = []
@@ -231,14 +242,10 @@ class GraphCanvas(Widget):
     def drag_select(self, touch):
         self.select_rect.set_corners(touch.ox, touch.oy, touch.x, touch.y)
 
-        self._selected = []
+        self._selected = Selected()
         for node, coord in zip(self.nodes, self.coords.values()):
             if coord in self.select_rect:
-                node.freeze()
-                node.color.rgba = SELECTED_COLOR
                 self._selected.append(node)
-            else:
-                node.color.rgba = NODE_COLOR
 
         return True
 
