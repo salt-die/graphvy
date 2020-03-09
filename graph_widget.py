@@ -1,6 +1,8 @@
 """
 Hold shift to drag-select vertices.
 """
+### TODO: ctrl-selecting, pinning vertices
+### TODO: path highlighter, edge highlighting
 import random
 
 from kivy.app import App
