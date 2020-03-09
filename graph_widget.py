@@ -67,6 +67,7 @@ class Selection(Line):
 
 
 class Selected(list):
+    """List that correctly colors nodes that are added to it."""
     def append(self, node):
         super().append(node)
         node.freeze()
@@ -81,7 +82,7 @@ class GraphCanvas(Widget):
     """Dynamic graph layout widget.  Layout updates as graph changes."""
 
     _mouse_pos_disabled = False
-    _highlighted = None
+    _highlighted = None # For highlighted property.
     _selected = Selected() # List of selected nodes for dragging multiple nodes.
     _pinned = [] # List of nodes that won't be moved by layout algorithm.
 
@@ -92,7 +93,7 @@ class GraphCanvas(Widget):
     scale = .5
 
     is_selecting = False
-    _drag_selection = False
+    _drag_selection = False # For is_drag_select property.
 
     def __init__(self, G=None, pos=None, graph_callback=None, *args, **kwargs):
         self.G = gt.generation.graph() if G is None else G
@@ -100,7 +101,14 @@ class GraphCanvas(Widget):
 
         super().__init__(*args, **kwargs)
 
+        # Following attributes set in setup_canvas:
+        self.rect = None
+        self.edges = None
+        self.nodes = None
+        self.select_rect = None
         self.setup_canvas()
+
+        self.coords = None # Set in update_canvas for edges to easily reference node coordinates.
 
         self.bind(size=self.update_canvas, pos=self.update_canvas)
         Window.bind(mouse_pos=self.on_mouse_pos)
