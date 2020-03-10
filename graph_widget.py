@@ -3,6 +3,7 @@ Hold shift to drag-select vertices. Ctrl-click to select individual vertices.
 """
 ### TODO: pinning vertices
 ### TODO: path highlighter, edge highlighting
+### TODO: update G_pos if nodes are added or deleted
 import random
 
 from kivy.app import App
