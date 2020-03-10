@@ -4,6 +4,7 @@ the layout algorithm.
 """
 ### TODO: pinning vertices
 ### TODO: path highlighter, edge highlighting
+### TODO: setup_canvas bezier mode for paused mode -- requires calculating some control points
 from functools import wraps
 import random
 
