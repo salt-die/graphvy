@@ -1,5 +1,5 @@
 """
-Hold shift to drag-select vertices.
+Hold shift to drag-select vertices. Ctrl-click to select individual vertices.
 """
 ### TODO: pinning vertices
 ### TODO: path highlighter, edge highlighting
@@ -19,19 +19,21 @@ from graph_tool.draw import random_layout, sfdp_layout
 
 import numpy as np
 
-STEP = 0.005 # move step
-K = 0.5      # preferred edge length
+STEP = 0.005    # move step; increase for sfdp to converge more quickly
+K    = 0.5      # preferred edge length
 
-BACKGROUND_COLOR = 0, 0, 0, 1
-NODE_COLOR = .027, .292, .678, 1
-EDGE_COLOR = .16, .176, .467, 1
-HIGHLIGHTED_COLOR = 0.758, 0.823, 0.92, 1
-SELECT_RECT_COLOR = 1, 1, 1, .8
-SELECTED_COLOR = 0.5135, 0.646, 0.839, 1
+BACKGROUND_COLOR  =     0,     0,     0,   1
+NODE_COLOR        = 0.027, 0.292, 0.678,   1
+EDGE_COLOR        =  0.16, 0.176, 0.467,   1
+HIGHLIGHTED_COLOR = 0.758, 0.823,  0.92,   1
+SELECT_RECT_COLOR =     1,     1,     1, 0.8
+SELECTED_COLOR    = 0.514, 0.646, 0.839,   1
 
-NODE_RADIUS = 3; BOUNDS = NODE_RADIUS * 2
-NODE_WIDTH = 3
-EDGE_WIDTH = 2
+NODE_RADIUS  = 3
+BOUNDS       = NODE_RADIUS * 2
+
+NODE_WIDTH   = 3
+EDGE_WIDTH   = 2
 SELECT_WIDTH = 1.2
 
 def collides(mx, my, x, y):
@@ -43,8 +45,8 @@ class Node(Line):
     def __init__(self, pos, x, y):
         self.color = Color(*NODE_COLOR)
 
-        self.pos = pos # pos is a reference to the mutable vertex position
-        self.frozen_pos = (*pos,) # if a node is frozen, this will be its position
+        self.pos = pos            # pos is a reference to the mutable vertex position in G_pos.
+        self.frozen_pos = (*pos,) # If a node is frozen, this will be its position.
 
         super().__init__(circle=(x, y, NODE_RADIUS), width=NODE_WIDTH)
 
