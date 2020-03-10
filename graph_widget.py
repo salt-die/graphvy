@@ -100,11 +100,15 @@ class Selection(Line):
 
 
 class Selected(list):
-    """List that correctly colors nodes that are added to it."""
+    """List that correctly colors nodes that are added to/removed from it."""
     def append(self, node):
         super().append(node)
         node.freeze()
         node.color.rgba = SELECTED_COLOR
+
+    def remove(self, node):
+        super().remove(node)
+        node.color.rgba = NODE_COLOR
 
     def __del__(self):
         for node in self:
