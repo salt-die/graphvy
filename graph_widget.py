@@ -345,9 +345,9 @@ class GraphCanvas(Widget):
         ax, ay = self._touches[-2].pos # Anchor coords
         x, y = self.invert_coords(ax, ay)
 
-        anchor = Vector(self._touches[-2].spos)
-        current = Vector(touch.spos) - anchor
-        previous = Vector(touch.psx, touch.psy) - anchor
+        anchor = Vector(self._touches[-2].pos) / self.size
+        current = Vector(touch.pos) / self.size - anchor
+        previous = Vector(touch.px, touch.py) / self.size - anchor
         self.scale += current.length() - previous.length()
 
         x, y = self.transform_coords(x, y)
