@@ -44,7 +44,7 @@ CTRL = 305
 SPACE = 32
 
 def collides(mx, my, x, y):
-    """Return true if mx, my (mouse x, y) in (x, y)'s bounding box."""
+    """Return true if the mouse position (mx, my) is in (x, y)'s bounding box."""
     return x - BOUNDS <= mx <= x + BOUNDS and y - BOUNDS <= my <= y + BOUNDS
 
 def update_if_paused(func):
