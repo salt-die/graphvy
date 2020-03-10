@@ -1,7 +1,7 @@
 """
 Hold shift to drag-select vertices.
 """
-### TODO: ctrl-selecting, pinning vertices
+### TODO: pinning vertices
 ### TODO: path highlighter, edge highlighting
 import random
 
@@ -23,7 +23,7 @@ K = 0.5      # preferred edge length
 BACKGROUND_COLOR = 0, 0, 0, 1
 NODE_COLOR = .027, .292, .678, 1
 EDGE_COLOR = .16, .176, .467, 1
-HIGHLIGHTED_COLOR = 0.5135, 0.646, 0.839, 1
+HIGHLIGHTED_COLOR = 0.758, 0.823, 0.92, 1
 SELECT_RECT_COLOR = 1, 1, 1, .8
 SELECTED_COLOR = 0.5135, 0.646, 0.839, 1
 
@@ -78,7 +78,8 @@ class Selected(list):
     def append(self, node):
         super().append(node)
         node.freeze()
-        node.color.rgba = SELECTED_COLOR
+        if node.color.rgba != HIGHLIGHTED_COLOR:
+            node.color.rgba = SELECTED_COLOR
 
     def __del__(self):
         for node in self:
@@ -89,9 +90,9 @@ class GraphCanvas(Widget):
     """Dynamic graph layout widget.  Layout updates as graph changes."""
 
     _mouse_pos_disabled = False
-    _highlighted = None # For highlighted property.
-    _selected = Selected() # List of selected nodes for dragging multiple nodes.
-    _pinned = [] # List of nodes that won't be moved by layout algorithm.
+    _highlighted = None     # For highlighted property.
+    _selected = Selected()  # List of selected nodes for dragging multiple nodes.
+    _pinned = []            # List of nodes that won't be moved by layout algorithm.
 
     _touches = []
 
@@ -101,6 +102,7 @@ class GraphCanvas(Widget):
 
     is_selecting = False
     _drag_selection = False # For is_drag_select property.
+    ctrl_select = False
 
     def __init__(self, *args, G=None, pos=None, graph_callback=None, **kwargs):
         self.G = gt.Graph() if G is None else G
@@ -132,8 +134,9 @@ class GraphCanvas(Widget):
     @highlighted.setter
     def highlighted(self, node):
         """Freezes highlighted nodes."""
-        if self.highlighted is not None:
-            self.highlighted.color.rgba = NODE_COLOR
+        lit = self.highlighted
+        if lit is not None:
+            lit.color.rgba = SELECTED_COLOR if lit in self._selected else NODE_COLOR
         if node is not None:
             node.freeze()
             node.color.rgba = HIGHLIGHTED_COLOR
@@ -215,6 +218,14 @@ class GraphCanvas(Widget):
 
         self._mouse_pos_disabled = True
 
+        if self.ctrl_select:
+            if self.highlighted is not None:
+                try:
+                    self._selected.remove(self.highlighted)
+                except ValueError:
+                    self._selected.append(self.highlighted)
+            return True
+
         if self.is_selecting:
             self.is_drag_select = True
             self.highlighted = None
@@ -224,8 +235,7 @@ class GraphCanvas(Widget):
     def on_touch_up(self, touch):
         self._touches.remove(touch)
 
-        if not self._selected:
-            self._mouse_pos_disabled = False
+        self._mouse_pos_disabled = False
 
         self.is_drag_select = False
 
@@ -235,6 +245,9 @@ class GraphCanvas(Widget):
         """
         if len(self._touches) > 1:
             return self.transform_on_touch(touch)
+
+        if self.ctrl_select:
+            return
 
         if self.is_drag_select:
             return self.drag_select(touch)
@@ -312,12 +325,16 @@ if __name__ == "__main__":
         def on_key_down(self, *args):
             """Will use key presses to change GraphCanvas's modes when testing; Ideally, we'd use
                buttons in some other widget..."""
+            print(args)
             if args[1] == 304: # shift
                 self.GC.is_selecting = True
+            elif args[1] == 305: # ctrl
+                self.GC.ctrl_select = True
 
         def on_key_up(self, *args):
             if args[1] == 304: # shift
                 self.GC.is_selecting = False
-
+            elif args[1] == 305: # ctrl
+                self.GC.ctrl_select = False
 
     GraphApp().run()
