@@ -157,8 +157,7 @@ class GraphCanvas(Widget):
         self.update_layout = Clock.schedule_interval(self.step_layout, UPDATE_INTERVAL)
         self.post_update = Clock.schedule_once(self.needs_update, UPDATE_INTERVAL)
 
-        if graph_callback is not None:
-            self.update_graph = Clock.schedule_interval(graph_callback)
+        self.update_graph = None if graph_callback is None else Clock.schedule_interval(graph_callback)
 
     @property
     def highlighted(self):
@@ -193,8 +192,12 @@ class GraphCanvas(Widget):
     def paused(self, boolean):
         if boolean:
             self.update_layout.cancel()
+            if self.update_graph is not None:
+                self.update_graph.cancel()
         else:
             self.update_layout()
+            if self.update_graph is not None:
+                self.update_graph()
         self._paused = boolean
 
     def needs_update(self, dt):
