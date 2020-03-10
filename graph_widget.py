@@ -335,7 +335,6 @@ class GraphCanvas(Widget):
 
         return True
 
-    @redraw_canvas_after
     def transform_on_touch(self, touch):
         ax, ay = self._touches[-2].pos # Anchor coords
         x, y = self.invert_coords(ax, ay)
