@@ -4,7 +4,6 @@ the layout algorithm.
 """
 ### TODO: pinning vertices
 ### TODO: path highlighter, edge highlighting
-### TODO: update G_pos if nodes are added or deleted
 from functools import wraps
 import random
 
@@ -65,7 +64,7 @@ class Node(Line):
     def __init__(self, pos, x, y):
         self.color = Color(*NODE_COLOR)
 
-        self.pos = pos            # pos is a reference to the mutable vertex position in G_pos.
+        self.pos = pos            # pos is a reference to the mutable vertex position in G.vp.pos.
         self.frozen_pos = (*pos,) # If a node is frozen, this will be its position.
 
         super().__init__(circle=(x, y, NODE_RADIUS), width=NODE_WIDTH)
@@ -139,7 +138,7 @@ class GraphCanvas(Widget):
 
     def __init__(self, *args, G=None, pos=None, graph_callback=None, **kwargs):
         self.G = gt.Graph() if G is None else G
-        self.G_pos = random_layout(G, (1, 1)) if pos is None else pos
+        self.G.vp.pos = random_layout(G, (1, 1)) if pos is None else pos
 
         super().__init__(*args, **kwargs)
 
@@ -211,7 +210,7 @@ class GraphCanvas(Widget):
         with self.canvas:
             Color(*EDGE_COLOR)
             self.edges = [Line(points=[0, 0, 0, 0], width=EDGE_WIDTH) for u, v in self.G.edges()]
-            self.nodes = [Node(pos, x, y) for pos, (x, y) in zip(self.G_pos, self.transform_coords())]
+            self.nodes = [Node(pos, x, y) for pos, (x, y) in zip(self.G.vp.pos, self.transform_coords())]
 
         with self.canvas.after:
             self.select_rect = Selection()
@@ -243,7 +242,7 @@ class GraphCanvas(Widget):
 
     @redraw_canvas_after
     def step_layout(self, dt):
-        sfdp_layout(self.G, pos=self.G_pos, K=K, init_step=STEP, max_iter=1)
+        sfdp_layout(self.G, pos=self.G.vp.pos, K=K, init_step=STEP, max_iter=1)
 
     def transform_coords(self, x=None, y=None):
         """
@@ -255,7 +254,7 @@ class GraphCanvas(Widget):
             return ((x * self.scale + self.offset_x) * self.width,
                     (y * self.scale + self.offset_y) * self.height)
 
-        arr = self.G_pos.get_2d_array((0, 1)).T
+        arr = self.G.vp.pos.get_2d_array((0, 1)).T
         np.multiply(arr, self.scale, out=arr)
         np.add(arr, (self.offset_x, self.offset_y), out=arr)
         np.multiply(arr, (self.width, self.height), out=arr)
