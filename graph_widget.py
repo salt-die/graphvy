@@ -43,11 +43,13 @@ SHIFT = 304
 CTRL = 305
 SPACE = 32
 
+UPDATE_INTERVAL = 1/30
+
 def collides(mx, my, x, y):
     """Return true if the mouse position (mx, my) is in (x, y)'s bounding box."""
     return x - BOUNDS <= mx <= x + BOUNDS and y - BOUNDS <= my <= y + BOUNDS
 
-def update_if_paused(func):
+def redraw_canvas_after(func):
     """
     This decorator will make methods call update_canvas if the layout is paused.
     Primarily for methods that change vertex coordinates.
@@ -55,8 +57,7 @@ def update_if_paused(func):
     @wraps(func)
     def wrapper(*args, **kwargs):
         results = func(*args, **kwargs)
-        if args[0].paused:
-            args[0].update_canvas()
+        args[0].update_canvas()
         return results
     return wrapper
 
@@ -134,6 +135,8 @@ class GraphCanvas(Widget):
 
     _paused = False # For paused property.
 
+    _recently_updated = False
+
     def __init__(self, *args, G=None, pos=None, graph_callback=None, **kwargs):
         self.G = gt.Graph() if G is None else G
         self.G_pos = random_layout(G, (1, 1)) if pos is None else pos
@@ -152,7 +155,8 @@ class GraphCanvas(Widget):
         self.bind(size=self.update_canvas, pos=self.update_canvas)
         Window.bind(mouse_pos=self.on_mouse_pos)
 
-        self.update_layout = Clock.schedule_interval(self.step_layout, 1/30)
+        self.update_layout = Clock.schedule_interval(self.step_layout, UPDATE_INTERVAL)
+        self.post_update = Clock.schedule_once(self.needs_update, UPDATE_INTERVAL)
 
         if graph_callback is not None:
             self.update_graph = Clock.schedule_interval(graph_callback)
@@ -194,6 +198,9 @@ class GraphCanvas(Widget):
             self.update_layout()
         self._paused = boolean
 
+    def needs_update(self, dt):
+        self._recently_updated = False
+
     def setup_canvas(self):
         self.canvas.clear()
 
@@ -214,6 +221,9 @@ class GraphCanvas(Widget):
             self.rect.size = self.size
             self.rect.pos = self.pos
 
+        if self._recently_updated:
+            return
+
         # Update positions of frozen nodes:
         if self.highlighted is not None:
             self.highlighted.reset()
@@ -229,9 +239,11 @@ class GraphCanvas(Widget):
         for edge, (u, v) in zip(self.edges, self.G.edges()):
             edge.points = *coords[u], *coords[v]
 
+        self.post_update()
+
+    @redraw_canvas_after
     def step_layout(self, dt):
         sfdp_layout(self.G, pos=self.G_pos, K=K, init_step=STEP, max_iter=1)
-        self.update_canvas()
 
     def transform_coords(self, x=None, y=None):
         """
@@ -285,7 +297,7 @@ class GraphCanvas(Widget):
 
         self.is_drag_select = False
 
-    @update_if_paused
+    @redraw_canvas_after
     def on_touch_move(self, touch):
         """
         Zoom if multitouch, else if a node is highlighted, drag it, else move the entire graph.
@@ -327,7 +339,7 @@ class GraphCanvas(Widget):
 
         return True
 
-    @update_if_paused
+    @redraw_canvas_after
     def transform_on_touch(self, touch):
         ax, ay = self._touches[-2].pos # Anchor coords
         x, y = self.invert_coords(ax, ay)
