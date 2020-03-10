@@ -1,9 +1,11 @@
 """
-Hold shift to drag-select vertices. Ctrl-click to select individual vertices.
+Hold shift to drag-select vertices. Ctrl-click to select individual vertices. Space to pause/unpause
+the layout algorithm.
 """
 ### TODO: pinning vertices
 ### TODO: path highlighter, edge highlighting
 ### TODO: update G_pos if nodes are added or deleted
+from functools import wraps
 import random
 
 from kivy.app import App
@@ -37,9 +39,23 @@ NODE_WIDTH   = 3
 EDGE_WIDTH   = 2
 SELECT_WIDTH = 1.2
 
+SHIFT = 304
+CTRL = 305
+SPACE = 32
+
 def collides(mx, my, x, y):
     """Return true if mx, my (mouse x, y) in (x, y)'s bounding box."""
     return x - BOUNDS <= mx <= x + BOUNDS and y - BOUNDS <= my <= y + BOUNDS
+
+def update_if_paused(func):
+    """This decorator will make methods call update_canvas if the layout is paused."""
+    @wraps(func)
+    def wrapper(*args, **kwargs):
+        results = func(*args, **kwargs)
+        if args[0].paused:
+            args[0].update_canvas()
+        return results
+    return wrapper
 
 
 class Node(Line):
@@ -113,6 +129,8 @@ class GraphCanvas(Widget):
     _drag_selection = False # For is_drag_select property.
     ctrl_select = False
 
+    _paused = False # For paused property.
+
     def __init__(self, *args, G=None, pos=None, graph_callback=None, **kwargs):
         self.G = gt.Graph() if G is None else G
         self.G_pos = random_layout(G, (1, 1)) if pos is None else pos
@@ -161,6 +179,18 @@ class GraphCanvas(Widget):
         self.select_rect.set_corners()
         self.select_rect.color.a = int(boolean) * SELECT_RECT_COLOR[-1]
 
+    @property
+    def paused(self):
+        return self._paused
+
+    @paused.setter
+    def paused(self, boolean):
+        if boolean:
+            self.update_layout.cancel()
+        else:
+            self.update_layout()
+        self._paused = boolean
+
     def setup_canvas(self):
         self.canvas.clear()
 
@@ -181,6 +211,13 @@ class GraphCanvas(Widget):
             self.rect.size = self.size
             self.rect.pos = self.pos
 
+        # Update positions of frozen nodes:
+        if self.highlighted is not None:
+            self.highlighted.reset()
+
+        for node in self._selected:
+            node.reset()
+
         self.coords = coords = dict(zip(self.G.vertices(), self.transform_coords()))
 
         for node, (x, y) in zip(self.nodes, coords.values()):
@@ -191,13 +228,6 @@ class GraphCanvas(Widget):
 
     def step_layout(self, dt):
         sfdp_layout(self.G, pos=self.G_pos, K=K, init_step=STEP, max_iter=1)
-
-        if self.highlighted is not None:
-            self.highlighted.reset()
-
-        for node in self._selected:
-            node.reset()
-
         self.update_canvas()
 
     def transform_coords(self, x=None, y=None):
@@ -222,6 +252,7 @@ class GraphCanvas(Widget):
 
         return ((x / self.width) - off_x) / self.scale, ((y / self.height) - off_y) / self.scale
 
+    @update_if_paused
     def on_touch_down(self, touch):
         self._touches.append(touch)
 
@@ -252,6 +283,7 @@ class GraphCanvas(Widget):
 
         self.is_drag_select = False
 
+    @update_if_paused
     def on_touch_move(self, touch):
         """
         Zoom if multitouch, else if a node is highlighted, drag it, else move the entire graph.
@@ -283,6 +315,7 @@ class GraphCanvas(Widget):
         self.offset_y += touch.dy / self.height
         return True
 
+    @update_if_paused
     def drag_select(self, touch):
         self.select_rect.set_corners(touch.ox, touch.oy, touch.x, touch.y)
 
@@ -293,6 +326,7 @@ class GraphCanvas(Widget):
 
         return True
 
+    @update_if_paused
     def transform_on_touch(self, touch):
         ax, ay = self._touches[-2].pos # Anchor coords
         x, y = self.invert_coords(ax, ay)
@@ -309,6 +343,7 @@ class GraphCanvas(Widget):
 
         return True
 
+    @update_if_paused
     def on_mouse_pos(self, *args):
         if self._mouse_pos_disabled:
             return
@@ -342,15 +377,17 @@ if __name__ == "__main__":
             """Will use key presses to change GraphCanvas's modes when testing; Ideally, we'd use
                buttons in some other widget..."""
             print(args)
-            if args[1] == 304: # shift
+            if args[1] == SHIFT:
                 self.GC.is_selecting = True
-            elif args[1] == 305: # ctrl
+            elif args[1] == CTRL:
                 self.GC.ctrl_select = True
+            elif args[1] == SPACE:
+                self.GC.paused = not self.GC.paused
 
         def on_key_up(self, *args):
-            if args[1] == 304: # shift
+            if args[1] == SHIFT:
                 self.GC.is_selecting = False
-            elif args[1] == 305: # ctrl
+            elif args[1] == CTRL:
                 self.GC.ctrl_select = False
 
     GraphApp().run()
