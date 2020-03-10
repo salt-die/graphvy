@@ -298,11 +298,11 @@ class GraphCanvas(Widget):
         """
         Zoom if multitouch, else if a node is highlighted, drag it, else move the entire graph.
         """
-        if touch.button == 'right' or self.ctrl_select:
-            return
-
         if len(self._touches) > 1:
             return self.transform_on_touch(touch)
+
+        if touch.button == 'right' or self.ctrl_select:
+            return
 
         if self.is_drag_select:
             return self.drag_select(touch)
