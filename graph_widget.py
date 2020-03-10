@@ -190,15 +190,18 @@ class GraphCanvas(Widget):
 
     @paused.setter
     def paused(self, boolean):
+        self._paused = boolean
+
         if boolean:
             self.update_layout.cancel()
             if self.update_graph is not None:
                 self.update_graph.cancel()
-        else:
-            self.update_layout()
-            if self.update_graph is not None:
-                self.update_graph()
-        self._paused = boolean
+            return
+
+        self.update_layout()
+        if self.update_graph is not None:
+            self.update_graph()
+
 
     def needs_update(self, dt):
         self._recently_updated = False
