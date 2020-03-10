@@ -42,6 +42,8 @@ def collides(mx, my, x, y):
 
 
 class Node(Line):
+    __slots__ = 'color', 'pos', 'frozen_pos'
+
     def __init__(self, pos, x, y):
         self.color = Color(*NODE_COLOR)
 
@@ -58,6 +60,8 @@ class Node(Line):
 
 
 class Selection(Line):
+    __slots__ = 'color', 'min_x', 'max_x', 'min_y', 'max_y'
+
     def __init__(self, *args, **kwargs):
         self.color = Color(*SELECT_RECT_COLOR)
 
