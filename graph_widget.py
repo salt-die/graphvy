@@ -11,6 +11,8 @@ from kivy.graphics import Color, Line, Rectangle
 from kivy.vector import Vector
 from kivy.uix.widget import Widget
 from kivy.core.window import Window
+from kivy.config import Config
+Config.set('input', 'mouse', 'mouse,multitouch_on_demand')
 
 import graph_tool as gt
 from graph_tool.draw import random_layout, sfdp_layout
@@ -218,6 +220,10 @@ class GraphCanvas(Widget):
 
         self._mouse_pos_disabled = True
 
+        if touch.button == 'right':
+            touch.multitouch_sim = True
+            return True
+
         if self.ctrl_select:
             if self.highlighted is not None:
                 try:
@@ -243,6 +249,9 @@ class GraphCanvas(Widget):
         """
         Zoom if multitouch, else if a node is highlighted, drag it, else move the entire graph.
         """
+        if touch.button == 'right':
+            return
+
         if len(self._touches) > 1:
             return self.transform_on_touch(touch)
 
