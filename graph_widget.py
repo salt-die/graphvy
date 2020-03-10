@@ -157,7 +157,8 @@ class GraphCanvas(Widget):
         self.update_layout = Clock.schedule_interval(self.step_layout, UPDATE_INTERVAL)
         self.post_update = Clock.schedule_once(self.needs_update, UPDATE_INTERVAL)
 
-        self.update_graph = None if graph_callback is None else Clock.schedule_interval(graph_callback)
+        self.update_graph = (None if graph_callback is None
+                             else Clock.schedule_interval(graph_callback))
 
     @property
     def highlighted(self):
@@ -216,7 +217,8 @@ class GraphCanvas(Widget):
         with self.canvas:
             Color(*EDGE_COLOR)
             self.edges = [Line(points=[0, 0, 0, 0], width=EDGE_WIDTH) for u, v in self.G.edges()]
-            self.nodes = [Node(pos, x, y) for pos, (x, y) in zip(self.G.vp.pos, self.transform_coords())]
+            self.nodes = [Node(pos, x, y)
+                          for pos, (x, y) in zip(self.G.vp.pos, self.transform_coords())]
 
         with self.canvas.after:
             self.select_rect = Selection()
