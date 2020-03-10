@@ -48,7 +48,10 @@ def collides(mx, my, x, y):
     return x - BOUNDS <= mx <= x + BOUNDS and y - BOUNDS <= my <= y + BOUNDS
 
 def update_if_paused(func):
-    """This decorator will make methods call update_canvas if the layout is paused."""
+    """
+    This decorator will make methods call update_canvas if the layout is paused.
+    Primarily for methods that change vertex coordinates.
+    """
     @wraps(func)
     def wrapper(*args, **kwargs):
         results = func(*args, **kwargs)
@@ -252,7 +255,6 @@ class GraphCanvas(Widget):
 
         return ((x / self.width) - off_x) / self.scale, ((y / self.height) - off_y) / self.scale
 
-    @update_if_paused
     def on_touch_down(self, touch):
         self._touches.append(touch)
 
@@ -315,7 +317,6 @@ class GraphCanvas(Widget):
         self.offset_y += touch.dy / self.height
         return True
 
-    @update_if_paused
     def drag_select(self, touch):
         self.select_rect.set_corners(touch.ox, touch.oy, touch.x, touch.y)
 
@@ -343,7 +344,6 @@ class GraphCanvas(Widget):
 
         return True
 
-    @update_if_paused
     def on_mouse_pos(self, *args):
         if self._mouse_pos_disabled:
             return
@@ -376,7 +376,6 @@ if __name__ == "__main__":
         def on_key_down(self, *args):
             """Will use key presses to change GraphCanvas's modes when testing; Ideally, we'd use
                buttons in some other widget..."""
-            print(args)
             if args[1] == SHIFT:
                 self.GC.is_selecting = True
             elif args[1] == CTRL:
