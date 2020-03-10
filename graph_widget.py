@@ -50,10 +50,7 @@ def collides(mx, my, x, y):
     return x - BOUNDS <= mx <= x + BOUNDS and y - BOUNDS <= my <= y + BOUNDS
 
 def redraw_canvas_after(func):
-    """
-    This decorator will make methods call update_canvas if the layout is paused.
-    Primarily for methods that change vertex coordinates.
-    """
+    """For methods that change vertex coordinates."""
     @wraps(func)
     def wrapper(*args, **kwargs):
         results = func(*args, **kwargs)
@@ -107,8 +104,7 @@ class Selected(list):
     def append(self, node):
         super().append(node)
         node.freeze()
-        if node.color.rgba != HIGHLIGHTED_COLOR:
-            node.color.rgba = SELECTED_COLOR
+        node.color.rgba = SELECTED_COLOR
 
     def __del__(self):
         for node in self:
