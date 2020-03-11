@@ -6,6 +6,7 @@ the layout algorithm.
 ### TODO: path highlighter, edge highlighting
 ### TODO: setup_canvas bezier mode for paused mode -- requires calculating some control points
 ### TODO: Implement arrows; subclass Line possibly
+### TODO: gather all sfdp constants into a dict
 from functools import wraps
 import random
 
@@ -159,7 +160,10 @@ class GraphCanvas(Widget):
         self.update_layout = Clock.schedule_interval(self.step_layout, UPDATE_INTERVAL)
         self.post_update = Clock.schedule_once(self.needs_update, UPDATE_INTERVAL)
 
-        self.update_graph = None if graph_callback is None else Clock.schedule_interval(graph_callback)
+        if graph_callback is None:
+            self.update_graph = None
+        else:
+            self.update_graph = Clock.schedule_interval(graph_callback, UPDATE_INTERVAL)
 
     @property
     def highlighted(self):
@@ -381,10 +385,13 @@ class GraphCanvas(Widget):
 
 
 if __name__ == "__main__":
+    from dynamic_graph import EdgeCentricGASEP
+
     class GraphApp(App):
         def build(self):
             G = gt.generation.random_graph(50, lambda: (random.randint(1, 2), random.randint(1, 2)))
-            self.GC = GraphCanvas(G=G)
+            GASEP = EdgeCentricGASEP(G)
+            self.GC = GraphCanvas(G=G, graph_callback=lambda dt:GASEP())
             Window.bind(on_key_down=self.on_key_down, on_key_up=self.on_key_up)
             return self.GC
 
