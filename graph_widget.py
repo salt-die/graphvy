@@ -79,6 +79,7 @@ class Node(Line):
 
     def unfreeze(self):
         self.pinned[self.vertex] = 0
+        self.color.rgba = NODE_COLOR
 
 
 class Selection(Line):
@@ -113,12 +114,10 @@ class Selected(list):
     def remove(self, node):
         super().remove(node)
         node.unfreeze()
-        node.color.rgba = NODE_COLOR
 
     def __del__(self):
         for node in self:
             node.unfreeze()
-            node.color.rgba = NODE_COLOR
 
 
 class GraphCanvas(Widget):
@@ -167,7 +166,7 @@ class GraphCanvas(Widget):
         if graph_callback is None:
             self.update_graph = None
         else:
-            self.update_graph = Clock.schedule_interval(graph_callback, UPDATE_INTERVAL * 10)
+            self.update_graph = Clock.schedule_interval(graph_callback, UPDATE_INTERVAL)
 
     @property
     def highlighted(self):
@@ -182,7 +181,6 @@ class GraphCanvas(Widget):
                 lit.color.rgba = SELECTED_COLOR
             else:
                 lit.unfreeze()
-                lit.color.rgba = NODE_COLOR
 
         if node is not None:
             node.freeze()
