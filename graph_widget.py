@@ -395,6 +395,7 @@ if __name__ == "__main__":
             G = gt.generation.random_graph(50, lambda: (random.randint(1, 2), random.randint(1, 2)))
             GASEP = EdgeCentricGASEP(G)
             self.GC = GraphCanvas(G=G, graph_callback=lambda dt:GASEP())
+
             Window.bind(on_key_down=self.on_key_down, on_key_up=self.on_key_up)
             return self.GC
 

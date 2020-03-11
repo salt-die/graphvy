@@ -3,7 +3,6 @@ from itertools import islice, starmap
 from random import choice, choices, randrange as randint
 
 import graph_tool as gt
-import numpy as np
 
 
 def nth(iterator, n):
