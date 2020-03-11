@@ -18,7 +18,7 @@ def rotation_matrix(theta):
                      [-np.sin(theta), np.cos(theta)]])
 
 class Triangle(Line):
-    base = np.array([[0,  1], [0, -1], [-2,  0]])
+    base = np.array([[0,  0], [2, 1], [2,  -1]])
 
     def __init__(self, coords, size=1):
         self.base = size * self.base / 150
