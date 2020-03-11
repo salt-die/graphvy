@@ -2,11 +2,10 @@
 Hold shift to drag-select vertices. Ctrl-click to select individual vertices. Space to pause/unpause
 the layout algorithm.
 """
-### TODO: pinning vertices
+### TODO: pinning vertices - probably with repeated ctrl-clicks?
 ### TODO: path highlighter, edge highlighting
 ### TODO: setup_canvas bezier mode for paused mode -- requires calculating some control points
 ### TODO: Implement arrows; subclass Line possibly
-### TODO: gather all sfdp constants into a dict
 from functools import wraps
 import random
 
@@ -24,8 +23,12 @@ from graph_tool.draw import random_layout, sfdp_layout
 
 import numpy as np
 
-STEP = 0.005    # move step; increase for sfdp to converge more quickly
-K    = 0.5      # preferred edge length
+
+SFDP_SETTINGS = dict(init_step=0.005, # move step; increase for sfdp to converge more quickly
+                     K=0.5,           # preferred edge length
+                     C=0.2,           # relative strength repulsive forces
+                     p=2.0,           # repulsive force exponent
+                     max_iter=1)
 
 BACKGROUND_COLOR  =     0,     0,     0,   1
 NODE_COLOR        = 0.027, 0.292, 0.678,   1
@@ -62,21 +65,20 @@ def redraw_canvas_after(func):
 
 
 class Node(Line):
-    __slots__ = 'color', 'pos', 'frozen_pos'
+    __slots__ = 'color', 'vertex', 'pinned'
 
-    def __init__(self, pos, x, y):
+    def __init__(self, vertex, pinned):
         self.color = Color(*NODE_COLOR)
+        self.vertex = vertex
+        self.pinned = pinned
 
-        self.pos = pos            # pos is a reference to the mutable vertex position in G.vp.pos.
-        self.frozen_pos = (*pos,) # If a node is frozen, this will be its position.
-
-        super().__init__(circle=(x, y, NODE_RADIUS), width=NODE_WIDTH)
+        super().__init__(circle=(0, 0, NODE_RADIUS), width=NODE_WIDTH)
 
     def freeze(self):
-        self.frozen_pos = (*self.pos,)
+        self.pinned[self.vertex] = 1
 
-    def reset(self):
-        self.pos[:] = self.frozen_pos
+    def unfreeze(self):
+        self.pinned[self.vertex] = 0
 
 
 class Selection(Line):
@@ -110,10 +112,12 @@ class Selected(list):
 
     def remove(self, node):
         super().remove(node)
+        node.unfreeze()
         node.color.rgba = NODE_COLOR
 
     def __del__(self):
         for node in self:
+            node.unfreeze()
             node.color.rgba = NODE_COLOR
 
 
@@ -123,7 +127,6 @@ class GraphCanvas(Widget):
     _mouse_pos_disabled = False
     _highlighted = None     # For highlighted property.
     _selected = Selected()  # List of selected nodes for dragging multiple nodes.
-    _pinned = []            # List of nodes that won't be moved by layout algorithm.
 
     _touches = []
 
@@ -142,6 +145,7 @@ class GraphCanvas(Widget):
     def __init__(self, *args, G=None, pos=None, graph_callback=None, **kwargs):
         self.G = gt.Graph() if G is None else G
         self.G.vp.pos = random_layout(G, (1, 1)) if pos is None else pos
+        self.G.vp.pinned = G.new_vertex_property('bool')
 
         super().__init__(*args, **kwargs)
 
@@ -163,7 +167,7 @@ class GraphCanvas(Widget):
         if graph_callback is None:
             self.update_graph = None
         else:
-            self.update_graph = Clock.schedule_interval(graph_callback, UPDATE_INTERVAL)
+            self.update_graph = Clock.schedule_interval(graph_callback, UPDATE_INTERVAL * 10)
 
     @property
     def highlighted(self):
@@ -174,10 +178,16 @@ class GraphCanvas(Widget):
         """Freezes highlighted nodes."""
         lit = self.highlighted
         if lit is not None:
-            lit.color.rgba = SELECTED_COLOR if lit in self._selected else NODE_COLOR
+            if lit in self._selected:
+                lit.color.rgba = SELECTED_COLOR
+            else:
+                lit.unfreeze()
+                lit.color.rgba = NODE_COLOR
+
         if node is not None:
             node.freeze()
             node.color.rgba = HIGHLIGHTED_COLOR
+
         self._highlighted = node
 
     @property
@@ -222,7 +232,7 @@ class GraphCanvas(Widget):
         with self.canvas:
             Color(*EDGE_COLOR)
             self.edges = [Line(points=[0, 0, 0, 0], width=EDGE_WIDTH) for u, v in self.G.edges()]
-            self.nodes = [Node(pos, x, y) for pos, (x, y) in zip(self.G.vp.pos, self.transform_coords())]
+            self.nodes = [Node(vertex, self.G.vp.pinned) for vertex in self.G.vertices()]
 
         with self.canvas.after:
             self.select_rect = Selection()
@@ -234,13 +244,6 @@ class GraphCanvas(Widget):
 
         if self._recently_updated:
             return
-
-        # Update positions of frozen nodes:
-        if self.highlighted is not None:
-            self.highlighted.reset()
-
-        for node in self._selected:
-            node.reset()
 
         self.coords = coords = dict(zip(self.G.vertices(), self.transform_coords()))
 
@@ -254,7 +257,7 @@ class GraphCanvas(Widget):
 
     @redraw_canvas_after
     def step_layout(self, dt):
-        sfdp_layout(self.G, pos=self.G.vp.pos, K=K, init_step=STEP, max_iter=1)
+        sfdp_layout(self.G, pos=self.G.vp.pos, pin=self.G.vp.pinned, **SFDP_SETTINGS)
 
     def transform_coords(self, x=None, y=None):
         """
@@ -325,12 +328,12 @@ class GraphCanvas(Widget):
         if self._selected:
             dx, dy = self.invert_coords(touch.dx, touch.dy, delta=True)
             for node in self._selected:
-                fx, fy = node.frozen_pos
-                node.frozen_pos = fx + dx, fy + dy
+                x, y = self.G.vp.pos[node.vertex]
+                self.G.vp.pos[node.vertex][:] = x + dx, y + dy
             return True
 
         if self.highlighted is not None:
-            self.highlighted.frozen_pos = self.invert_coords(touch.x, touch.y)
+            self.G.vp.pos[self.highlighted.vertex][:] = self.invert_coords(touch.x, touch.y)
             return True
 
         self.offset_x += touch.dx / self.width
@@ -372,7 +375,7 @@ class GraphCanvas(Widget):
         # Keeping track of highlighted node should prevent us from having to check collisions
         # between nodes and touch too often.
         if self.highlighted is not None:
-            x, y = self.transform_coords(*self.highlighted.pos)
+            x, y = self.coords[self.highlighted.vertex]
             if collides(mx, my, x, y):
                 return
             self.highlighted = None

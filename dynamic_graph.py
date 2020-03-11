@@ -10,6 +10,7 @@ def nth(iterator, n):
     """Return the nth item from an iterator."""
     return next(islice(iterator, n, None))
 
+
 class AsyncDynamicBase:
     def __init__(self, G, *, niter=1):
         self.G = G
