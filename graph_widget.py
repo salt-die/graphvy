@@ -5,7 +5,6 @@ the layout algorithm.
 ### TODO: pinning vertices - probably with repeated ctrl-clicks?
 ### TODO: path highlighter, edge highlighting
 ### TODO: setup_canvas bezier mode for paused mode -- requires calculating some control points
-### TODO: Implement arrows; subclass Line possibly
 from functools import wraps
 import random
 
@@ -23,6 +22,8 @@ from graph_tool.draw import random_layout, sfdp_layout
 
 import numpy as np
 
+from arrow import Arrow
+
 
 SFDP_SETTINGS = dict(init_step=0.005, # move step; increase for sfdp to converge more quickly
                      K=0.5,           # preferred edge length
@@ -33,6 +34,7 @@ SFDP_SETTINGS = dict(init_step=0.005, # move step; increase for sfdp to converge
 BACKGROUND_COLOR  =     0,     0,     0,   1
 NODE_COLOR        = 0.027, 0.292, 0.678,   1
 EDGE_COLOR        =  0.16, 0.176, 0.467,   1
+HEAD_COLOR        =  0.26, 0.276, 0.567,   1
 HIGHLIGHTED_COLOR = 0.758, 0.823,  0.92,   1
 SELECT_RECT_COLOR =     1,     1,     1, 0.8
 SELECTED_COLOR    = 0.514, 0.646, 0.839,   1
@@ -228,8 +230,7 @@ class GraphCanvas(Widget):
             self.rect = Rectangle(size=self.size, pos=self.pos)
 
         with self.canvas:
-            Color(*EDGE_COLOR)
-            self.edges = [Line(points=[0, 0, 0, 0], width=EDGE_WIDTH) for u, v in self.G.edges()]
+            self.edges = [Arrow(EDGE_COLOR, HEAD_COLOR, EDGE_WIDTH) for u, v in self.G.edges()]
             self.nodes = [Node(vertex, self.G.vp.pinned) for vertex in self.G.vertices()]
 
         with self.canvas.after:
@@ -249,7 +250,7 @@ class GraphCanvas(Widget):
             node.circle = x, y, NODE_RADIUS
 
         for edge, (u, v) in zip(self.edges, self.G.edges()):
-            edge.points = *coords[u], *coords[v]
+            edge.update(*coords[u], *coords[v])
 
         self.post_update()
 

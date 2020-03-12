@@ -10,24 +10,21 @@ from kivy.app import App
 from kivy.graphics import Color, Line
 from kivy.uix.widget import Widget
 
-HEAD_COLOR = 0.26, 0.276, 0.567, 1
-EDGE_COLOR = 0.16, 0.176, 0.467, 1
-
 
 class Triangle(Line):
     __slots__ = 'x1', 'y1', 'x2', 'y2', 'x3', 'y3', 'color'
 
-    def __init__(self, color, size=3):
+    def __init__(self, color, width, size):
         # This should be faster than a for-loop
-        self.x1 =  0 * size
+        self.x1 = -2 * size
         self.y1 =  0 * size
-        self.x2 = -3 * size
+        self.x2 = -5 * size
         self.y2 =  1 * size
-        self.x3 = -3 * size
+        self.x3 = -5 * size
         self.y3 = -1 * size
 
         self.color = Color(*color)
-        super().__init__(points=[0, 0, 0, 0, 0, 0], close=True, width=2)
+        super().__init__(points=[0, 0, 0, 0, 0, 0], close=True, width=width)
 
 
     def update(self, x1, y1, x2, y2):
@@ -47,10 +44,10 @@ class Triangle(Line):
 class Arrow(Line):
     __slots__ = 'color', 'head'
 
-    def __init__(self, line_color, head_color, size=1):
+    def __init__(self, line_color, head_color, width, size=3):
         self.color = Color(*line_color)
-        super().__init__(points=[0, 0, 0, 0], width=2)
-        self.head = Triangle(color=head_color)
+        super().__init__(points=[0, 0, 0, 0], width=width)
+        self.head = Triangle(color=head_color, width=width, size=size)
 
     def update(self, x1, y1, x2, y2):
         self.points = x1, y1, x2, y2
@@ -58,12 +55,14 @@ class Arrow(Line):
 
 
 if __name__ == '__main__':
+    HEAD_COLOR = 0.26, 0.276, 0.567, 1
+    EDGE_COLOR = 0.16, 0.176, 0.467, 1
+
+
     class TestArrows(Widget):
         def __init__(self, *args, **kwargs):
             super().__init__(*args, **kwargs)
-
             self.bind(size=self.update_canvas, pos=self.update_canvas)
-
 
         def update_canvas(self, *args):
             self.canvas.clear()
