@@ -3,9 +3,7 @@ A Line canvas instruction with an arrow at the end.  For directed edges in
 graph_widget.py.
 """
 from math import atan2, cos, sin
-from random import random
 
-from kivy.app import App
 from kivy.graphics import Color, Line
 from kivy.uix.widget import Widget
 
@@ -55,6 +53,9 @@ class Arrow(Line):
 
 
 if __name__ == '__main__':
+    from random import random
+    from kivy.app import App
+
     HEAD_COLOR = 0.26, 0.276, 0.567, 1
     EDGE_COLOR = 0.16, 0.176, 0.467, 1
 
