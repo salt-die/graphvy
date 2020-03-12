@@ -2,7 +2,6 @@
 A Line canvas instruction with an arrow at the end.  For directed edges in
 graph_widget.py.
 """
-from itertools import islice
 from math import atan2, cos, sin
 from random import random
 
@@ -69,7 +68,7 @@ if __name__ == '__main__':
             self.canvas.clear()
             with self.canvas:
                 for _ in range(20):
-                    arrow = Arrow(EDGE_COLOR, HEAD_COLOR)
+                    arrow = Arrow(EDGE_COLOR, HEAD_COLOR, width=2)
                     arrow.update(random() * self.width, random() * self.height,
                                  random() * self.width, random() * self.height)
 
