@@ -51,7 +51,7 @@ SHIFT = 304
 CTRL = 305
 SPACE = 32
 
-UPDATE_INTERVAL = 1/30
+UPDATE_INTERVAL = 1/60
 
 def collides(mx, my, x, y):
     """Return true if the mouse position (mx, my) is in (x, y)'s bounding box."""
