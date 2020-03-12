@@ -34,7 +34,7 @@ SFDP_SETTINGS = dict(init_step=0.005, # move step; increase for sfdp to converge
 
 BACKGROUND_COLOR  =     0,     0,     0,   1
 NODE_COLOR        = 0.027, 0.292, 0.678,   1
-EDGE_COLOR        =  0.16, 0.176, 0.467,   1
+EDGE_COLOR        =  0.16, 0.176, 0.467,  .8
 HEAD_COLOR        =  0.26, 0.276, 0.567,   1
 HIGHLIGHTED_COLOR = 0.758, 0.823,  0.92,   1
 SELECT_RECT_COLOR =     1,     1,     1, 0.8
