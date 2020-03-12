@@ -77,10 +77,13 @@ class EdgeCentricGASEP(GraphASEP):
 
     def step(self):
         source, target = edge = self.re
-        self.G.remove_edge(edge)
-        source_out, target_out = source.out_degree(), target.out_degree()
+        self.G.remove_edge(edge) # We'll add edge back if our random move was excluded.
 
-        head, tail = partial(self.head_move, source_out), partial(self.tail_move, target_out)
+        source_out = source.out_degree()
+        target_out = target.out_degree()
+
+        head = partial(self.head_move, source_out)
+        tail = partial(self.tail_move, target_out)
         move, = choices((head, tail, self.flip), (source_out, target_out, 1))
 
         if not move(source, target):
