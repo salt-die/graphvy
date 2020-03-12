@@ -9,7 +9,7 @@ from kivy.uix.widget import Widget
 
 
 class Triangle(Line):
-    __slots__ = 'x1', 'y1', 'x2', 'y2', 'x3', 'y3', 'color'
+    __slots__ = 'x1', 'y1', 'x2', 'y2', 'x3', 'y3', 'color', 'a'
 
     def __init__(self, color, width, size):
         # This should be faster than a for-loop
@@ -21,10 +21,17 @@ class Triangle(Line):
         self.y3 = -1 * size
 
         self.color = Color(*color)
+        self.a = self.color.a
         super().__init__(points=[0, 0, 0, 0, 0, 0], close=True, width=width)
 
 
     def update(self, x1, y1, x2, y2):
+        if x1 == x2 and y1 == y2:
+            self.a = 0
+            return
+
+        self.a = self.color.a
+
         theta = atan2(y2 - y1, x2 - x1)
         cosine, sine = cos(theta), sin(theta)
         # Rotate the base arrow by theta and move it to x2, y2
