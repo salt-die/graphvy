@@ -1,8 +1,6 @@
 from functools import partial
-from itertools import islice, starmap
-from random import choice, choices, randrange as randint
-
-import graph_tool as gt
+from itertools import islice
+from random import choices, randrange as randint
 
 
 def nth(iterator, n):
