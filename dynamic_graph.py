@@ -55,32 +55,25 @@ class GraphASEP(AsyncDynamicBase):
 class EdgeCentricGASEP(GraphASEP):
     def flip(self, source, target):
         """Flip an edge if the flipped edge doesn't exist."""
-        G = self.G
-
-        if G.edge(target, source) is None:
-            G.add_edge(target, source)
-        else:
-            G.add_edge(source, target)
+        if self.G.edge(target, source) is None:
+            self.G.add_edge(target, source)
+            return True
 
     def head_move(self, out_deg, source, target):
         """Move source along an out_edge if possible."""
-        G = self.G
         new_source = nth(source.out_neighbors(), randint(out_deg))
 
-        if G.edge(new_source, target) is None:
-            G.add_edge(new_source, target)
-        else:
-            G.add_edge(source, target)
+        if self.G.edge(new_source, target) is None:
+            self.G.add_edge(new_source, target)
+            return True
 
     def tail_move(self, out_deg, source, target):
         """Move target along an out_edge if possible."""
-        G = self.G
         new_target = nth(target.out_neighbors(), randint(out_deg))
 
-        if G.edge(source, new_target) is None:
-            G.add_edge(source, new_target)
-        else:
-            G.add_edge(source, target)
+        if self.G.edge(source, new_target) is None:
+            self.G.add_edge(source, new_target)
+            return True
 
     def step(self):
         source, target = edge = self.re
@@ -89,7 +82,9 @@ class EdgeCentricGASEP(GraphASEP):
 
         head, tail = partial(self.head_move, source_out), partial(self.tail_move, target_out)
         move, = choices((head, tail, self.flip), (source_out, target_out, 1))
-        move(source, target)
+
+        if not move(source, target):
+            self.G.add_edge(source, target)
 
     def __call__(self):
         self.step()
