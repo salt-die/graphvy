@@ -16,11 +16,11 @@ class Triangle(Line):
 
     def __init__(self, color, width, size):
         # This should be faster than a for-loop
-        self.x1 = -2 * size
+        self.x1 = -3 * size
         self.y1 =  0 * size
-        self.x2 = -5 * size
+        self.x2 = -6 * size
         self.y2 =  1 * size
-        self.x3 = -5 * size
+        self.x3 = -6 * size
         self.y3 = -1 * size
 
         self.color = Color(*color)
