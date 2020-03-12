@@ -11,9 +11,13 @@ def nth(iterator, n):
 
 
 class AsyncDynamicBase:
+    """Asynchronous graphs update nodes/edges randomly."""
+
+    __slots__ = 'G', 'niter'
+
     def __init__(self, G, *, niter=1):
-        self.G = G
-        self.niter = niter
+        self.G = G # Graph
+        self.niter = niter # Default iterations for self.update
 
     @property
     def rv(self):
@@ -26,14 +30,26 @@ class AsyncDynamicBase:
         return nth(self.G.edges(), randint(self.G.num_edges()))
 
     def update(self):
+        """Apply self.step niter times."""
         for _ in range(self.niter):
             self.step()
 
     def step(self):
+        """A single iteration of graph dynamics."""
         pass
+
+    def __call__(self):
+        """Alternative method of stepping."""
+        self.step()
 
 
 class GraphASEP(AsyncDynamicBase):
+    """Totally Asymmetric Simple Exclusion Process (TASEP) is normally defined on a 1-D lattice.
+       Our Graph TASEP (GASEP) moves these dynamics to a graph with the particles represented by
+       edges."""
+
+    __slots__ = 'num_vertices', 'num_edges'
+
     def __init__(self, G, *, niter=1):
         super().__init__(G, niter=niter)
 
@@ -53,6 +69,9 @@ class GraphASEP(AsyncDynamicBase):
 
 
 class EdgeCentricGASEP(GraphASEP):
+    """Edge-centric as we'll base our dynamics off of randomly chosen edges rather than randomly
+       chosen nodes.  Node-centric will dynamics will lead to a different steady-state."""
+
     def flip(self, source, target):
         """Flip an edge if the flipped edge doesn't exist."""
         if self.G.edge(target, source) is None:
@@ -88,6 +107,3 @@ class EdgeCentricGASEP(GraphASEP):
 
         if not move(source, target):
             self.G.add_edge(source, target)
-
-    def __call__(self):
-        self.step()
