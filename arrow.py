@@ -27,7 +27,7 @@ class Triangle(Line):
     def update(self, x1, y1, x2, y2):
         theta = atan2(y2 - y1, x2 - x1)
         cosine, sine = cos(theta), sin(theta)
-
+        # Rotate the base arrow by theta and move it to x2, y2
         px1 = self.x1 * cosine + self.y1 * -sine + x2
         py1 = self.x1 *  sine  + self.y1 * cosine + y2
         px2 = self.x2 * cosine + self.y2 * -sine + x2
