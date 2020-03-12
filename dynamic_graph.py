@@ -70,7 +70,7 @@ class GraphASEP(AsyncDynamicBase):
 
 class EdgeCentricGASEP(GraphASEP):
     """Edge-centric as we'll base our dynamics off of randomly chosen edges rather than randomly
-       chosen nodes.  Node-centric will dynamics will lead to a different steady-state."""
+       chosen nodes.  Node-centric dynamics will lead to a different steady-state."""
 
     def flip(self, source, target):
         """Flip an edge if the flipped edge doesn't exist."""
