@@ -9,7 +9,7 @@ from kivy.uix.widget import Widget
 
 
 class Triangle(Line):
-    __slots__ = 'x1', 'y1', 'x2', 'y2', 'x3', 'y3', 'color', 'a'
+    __slots__ = 'x1', 'y1', 'x2', 'y2', 'x3', 'y3', 'color'
 
     def __init__(self, color, width, size):
         # This should be faster than a for-loop

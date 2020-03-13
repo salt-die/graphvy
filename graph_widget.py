@@ -255,6 +255,7 @@ class GraphCanvas(Widget):
 
         for edge, (u, v) in zip(self.edges, self.G.edges()):
             edge.update(*coords[u], *coords[v])
+
             if self.G.vp.pinned[u]: # Highlight edges if their source nodes are pinned:
                 edge.color.rgba = HIGHLIGHTED_EDGE
                 edge.head.color.rgba = HIGHLIGHTED_HEAD
