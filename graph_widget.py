@@ -1,12 +1,10 @@
 """
 Hold shift to drag-select vertices. Ctrl-click to select individual vertices. Space to pause/unpause
-the layout algorithm.
+the layout algorithm. Ctrl-Space to pause/unpause the Graph callback.
 """
 ### TODO: pinning vertices - probably with repeated ctrl-clicks?
 ### TODO: path highlighter
 ### TODO: setup_canvas bezier mode for paused mode -- requires calculating some control points
-### TODO: another canvas instruction for self-loops (so that they're visible)
-### TODO: separate pauses for layout and graph_callback
 from functools import wraps
 import random
 
@@ -140,9 +138,10 @@ class GraphCanvas(Widget):
 
     is_selecting = False
     _drag_selection = False # For is_drag_select property.
-    ctrl_select = False
+    ctrl_pressed = False
 
-    _paused = False # For paused property.
+    _callback_paused = False
+    _layout_paused = False
 
     _recently_updated = False
 
@@ -171,7 +170,11 @@ class GraphCanvas(Widget):
         if graph_callback is None:
             self.update_graph = None
         else:
-            self.update_graph = Clock.schedule_interval(graph_callback, UPDATE_INTERVAL)
+            def callback(dt):
+                graph_callback()
+                self.update_canvas()
+
+            self.update_graph = Clock.schedule_interval(callback, UPDATE_INTERVAL)
 
     @property
     def highlighted(self):
@@ -203,24 +206,21 @@ class GraphCanvas(Widget):
         self.select_rect.set_corners()
         self.select_rect.color.a = int(boolean) * SELECT_RECT_COLOR[-1]
 
-    @property
-    def paused(self):
-        return self._paused
-
-    @paused.setter
-    def paused(self, boolean):
-        self._paused = boolean
-
-        if boolean:
-            self.update_layout.cancel()
+    def pause(self):
+        if self.ctrl_pressed:
+            self._callback_paused = not self._callback_paused
             if self.update_graph is not None:
-                self.update_graph.cancel()
+                if self._callback_paused:
+                    self.update_graph.cancel()
+                else:
+                    self.update_graph()
             return
 
-        self.update_layout()
-        if self.update_graph is not None:
-            self.update_graph()
-
+        self._layout_paused = not self._layout_paused
+        if self._layout_paused:
+            self.update_layout.cancel()
+        else:
+            self.update_layout()
 
     def needs_update(self, dt):
         self._recently_updated = False
@@ -296,7 +296,7 @@ class GraphCanvas(Widget):
             touch.multitouch_sim = True
             return True
 
-        if self.ctrl_select:
+        if self.ctrl_pressed:
             if self.highlighted is not None:
                 try:
                     self._selected.remove(self.highlighted)
@@ -325,7 +325,7 @@ class GraphCanvas(Widget):
         if len(self._touches) > 1:
             return self.transform_on_touch(touch)
 
-        if touch.button == 'right' or self.ctrl_select:
+        if touch.button == 'right' or self.ctrl_pressed:
             return
 
         if self.is_drag_select:
@@ -401,7 +401,7 @@ if __name__ == "__main__":
         def build(self):
             G = gt.generation.random_graph(50, lambda: (random.randint(1, 2), random.randint(1, 2)))
             GASEP = EdgeCentricGASEP(G)
-            self.GC = GraphCanvas(G=G, graph_callback=lambda dt:GASEP())
+            self.GC = GraphCanvas(G=G, graph_callback=GASEP)
 
             Window.bind(on_key_down=self.on_key_down, on_key_up=self.on_key_up)
             return self.GC
@@ -409,17 +409,18 @@ if __name__ == "__main__":
         def on_key_down(self, *args):
             """Will use key presses to change GraphCanvas's modes when testing; Ideally, we'd use
                buttons in some other widget..."""
+            print(args)
             if args[1] == SHIFT:
                 self.GC.is_selecting = True
             elif args[1] == CTRL:
-                self.GC.ctrl_select = True
+                self.GC.ctrl_pressed = True
             elif args[1] == SPACE:
-                self.GC.paused = not self.GC.paused
+                self.GC.pause()
 
         def on_key_up(self, *args):
             if args[1] == SHIFT:
                 self.GC.is_selecting = False
             elif args[1] == CTRL:
-                self.GC.ctrl_select = False
+                self.GC.ctrl_pressed = False
 
     GraphApp().run()
