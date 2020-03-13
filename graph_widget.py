@@ -5,7 +5,6 @@ the layout algorithm. Ctrl-Space to pause/unpause the Graph callback.
 ### TODO: path highlighter
 ### TODO: setup_canvas bezier mode for paused mode -- requires calculating some control points
 ### TODO: Degree Histogram
-from contextlib import suppress
 from functools import wraps
 
 from kivy.app import App
