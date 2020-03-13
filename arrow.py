@@ -12,7 +12,18 @@ class Triangle(Line):
     __slots__ = 'x1', 'y1', 'x2', 'y2', 'x3', 'y3', 'color'
 
     def __init__(self, color, width, size):
-        # This should be faster than a for-loop
+        """
+        Triangle points are: (-3, 0), (-6, 1), (-6, -1). Looks like:
+        (Two characters per x, One line per y, O is origin)
+
+                           |
+               o           |
+            ---------o-----O---
+               o           |
+                           |
+
+        Tip is off origin so that arrow is less covered by nodes.
+        """
         self.x1 = -3 * size
         self.y1 =  0 * size
         self.x2 = -6 * size

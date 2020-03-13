@@ -9,7 +9,7 @@ from functools import wraps
 
 from kivy.app import App
 from kivy.clock import Clock
-from kivy.graphics import Color, Line, Rectangle
+from kivy.graphics import Color, Rectangle
 from kivy.vector import Vector
 from kivy.uix.widget import Widget
 from kivy.core.window import Window
@@ -22,37 +22,8 @@ from graph_tool.draw import random_layout, sfdp_layout
 import numpy as np
 
 from arrow import Arrow
-
-
-SFDP_SETTINGS = dict(init_step=0.005, # move step; increase for sfdp to converge more quickly
-                     K=0.5,           # preferred edge length
-                     C=0.4,           # relative strength repulsive forces
-                     p=2.0,           # repulsive force exponent
-                     max_iter=2)
-
-BACKGROUND_COLOR  =     0,     0,     0,   1
-NODE_COLOR        = 0.027, 0.292, 0.678,   1
-EDGE_COLOR        =  0.16, 0.176, 0.467, 0.8
-HEAD_COLOR        =  0.26, 0.276, 0.567,   1
-HIGHLIGHTED_NODE  = 0.758, 0.823,  0.92,   1
-HIGHLIGHTED_EDGE  = 0.760, 0.235, 0.239,   1
-HIGHLIGHTED_HEAD  = 0.770, 0.245, 0.249,   1
-PINNED_COLOR      = 0.770, 0.455, 0.350,   1
-SELECT_RECT_COLOR =     1,     1,     1, 0.8
-SELECTED_COLOR    = 0.514, 0.646, 0.839,   1
-
-NODE_RADIUS  = 3
-BOUNDS       = NODE_RADIUS * 2
-
-NODE_WIDTH   = 3
-EDGE_WIDTH   = 2
-SELECT_WIDTH = 1.2
-
-LSHIFT, RSHIFT = 304, 13
-LCTRL, RCTRL   = 305, 306
-SPACE          = 32
-
-UPDATE_INTERVAL = 1/30
+from convenience_classes import Node, Selection, SelectedSet, PinnedSet
+from constants import *
 
 
 def redraw_canvas_after(func):
@@ -72,74 +43,6 @@ def redraw_canvas_after(func):
 
         return results
     return wrapper
-
-
-class Node(Line):
-    __slots__ = 'color', 'vertex', 'canvas'
-
-    def __init__(self, vertex, canvas):
-        self.color = Color(*NODE_COLOR)
-        self.vertex = vertex
-        self.canvas = canvas
-
-        super().__init__(circle=(0, 0, NODE_RADIUS), width=NODE_WIDTH)
-
-    def freeze(self):
-        self.canvas.G.vp.pinned[self.vertex] = 1
-
-    def unfreeze(self):
-        self.canvas.G.vp.pinned[self.vertex] = 0
-        self.color.rgba = NODE_COLOR
-
-    def collides(self, mx, my):
-        x, y = self.canvas.coords[self.vertex]
-        return x - BOUNDS <= mx <= x + BOUNDS and y - BOUNDS <= my <= y + BOUNDS
-
-
-class Selection(Line):
-    __slots__ = 'color', 'min_x', 'max_x', 'min_y', 'max_y'
-
-    def __init__(self, *args, **kwargs):
-        self.color = Color(*SELECT_RECT_COLOR)
-
-        super().__init__(points=[0, 0, 0, 0, 0, 0, 0, 0], width=SELECT_WIDTH, close=True)
-
-        self.set_corners()
-
-    def set_corners(self, x1=0, y1=0, x2=0, y2=0):
-        min_x, max_x = self.min_x, self.max_x = (x1, x2) if x1 <= x2 else (x2, x1)
-        min_y, max_y = self.min_y, self.max_y = (y1, y2) if y1 <= y2 else (y2, y1)
-
-        self.points = min_x, min_y, max_x, min_y, max_x, max_y, min_x, max_y
-
-    def __contains__(self, coord):
-        """Return True if coord is within the rectangle."""
-        x, y = coord
-        return self.min_x <= x <= self.max_x and self.min_y <= y <= self.max_y
-
-
-class NodeSet(set):
-    """Set that correctly colors nodes that are added to/removed from it."""
-    def __init__(self, *args, in_color, **kwargs):
-        self.in_color = in_color
-        super().__init__(*args, **kwargs)
-
-    def add(self, node):
-        super().add(node)
-        node.freeze()
-        node.color.rgba = self.in_color
-
-
-class SelectedSet(NodeSet):
-    def remove(self, node):
-        super().remove(node)
-        node.unfreeze()
-
-
-class PinnedSet(NodeSet):
-    def remove(self, node):
-        super().remove(node)
-        node.color.rgba = HIGHLIGHTED_NODE
 
 
 class GraphCanvas(Widget):
