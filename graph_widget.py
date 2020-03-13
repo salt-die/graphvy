@@ -6,6 +6,7 @@ the layout algorithm.
 ### TODO: path highlighter
 ### TODO: setup_canvas bezier mode for paused mode -- requires calculating some control points
 ### TODO: another canvas instruction for self-loops (so that they're visible)
+### TODO: separate pauses for layout and graph_callback
 from functools import wraps
 import random
 
@@ -345,7 +346,6 @@ class GraphCanvas(Widget):
         self.offset_y += touch.dy / self.height
         return True
 
-    @redraw_canvas_after
     def drag_select(self, touch):
         self.select_rect.set_corners(touch.ox, touch.oy, touch.x, touch.y)
 
