@@ -1,6 +1,6 @@
 """
-Hold shift to drag-select vertices. Ctrl-click to select individual vertices. Space to pause/unpause
-the layout algorithm. Ctrl-Space to pause/unpause the Graph callback.
+Hold shift to drag-select vertices. Ctrl-click to select individual vertices, and again to pin them.
+Space to pause/unpause the layout algorithm. Ctrl-Space to pause/unpause the Graph callback.
 """
 ### TODO: path highlighter
 ### TODO: setup_canvas bezier mode for paused mode -- requires calculating some control points
