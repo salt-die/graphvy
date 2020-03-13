@@ -70,12 +70,6 @@ class EdgeCentricGASEP(GraphASEP):
     """Edge-centric as we'll base our dynamics off of randomly chosen edges rather than randomly
        chosen nodes.  Node-centric dynamics will lead to a different steady-state."""
 
-    def flip(self, source, target):
-        """Flip an edge if the flipped edge doesn't exist."""
-        if self.G.edge(target, source) is None:
-            self.G.add_edge(target, source)
-            return True
-
     def head_move(self, out_deg, source, target):
         """Move source along an out_edge if possible."""
         new_source = nth(source.out_neighbors(), randint(out_deg))
@@ -90,6 +84,34 @@ class EdgeCentricGASEP(GraphASEP):
 
         if self.G.edge(source, new_target) is None:
             self.G.add_edge(source, new_target)
+            return True
+
+    def step(self):
+        source, target = edge = self.re
+        self.G.remove_edge(edge) # We'll add edge back if our random move was excluded.
+
+        source_out = source.out_degree()
+        target_out = target.out_degree()
+
+        if source_out + target_out == 0: # No moves possible.
+            self.G.add_edge(source, target)
+            return
+
+        head = partial(self.head_move, source_out)
+        tail = partial(self.tail_move, target_out)
+        move, = choices((head, tail), (source_out, target_out))
+
+        if not move(source, target):
+            self.G.add_edge(source, target)
+
+
+class EdgeFlipGASEP(EdgeCentricGASEP):
+    """Same as EdgeCentricGASEP, but with one extra move(edges can flip orientation)."""
+
+    def flip(self, source, target):
+        """Flip an edge if the flipped edge doesn't exist."""
+        if self.G.edge(target, source) is None:
+            self.G.add_edge(target, source)
             return True
 
     def step(self):
