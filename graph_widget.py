@@ -52,18 +52,27 @@ LSHIFT, RSHIFT = 304, 13
 LCTRL, RCTRL   = 305, 306
 SPACE          = 32
 
-UPDATE_INTERVAL = 1/60
+UPDATE_INTERVAL = 1/30
 
 def collides(mx, my, x, y):
     """Return true if the mouse position (mx, my) is in (x, y)'s bounding box."""
     return x - BOUNDS <= mx <= x + BOUNDS and y - BOUNDS <= my <= y + BOUNDS
 
 def redraw_canvas_after(func):
-    """For methods that change vertex coordinates or edge colors."""
+    """For methods that change vertex coordinates or edge colors. Checks that canvas hasn't been
+       redrawn recently (to limit fps and overhead)."""
+
     @wraps(func)
     def wrapper(*args, **kwargs):
         results = func(*args, **kwargs)
+
+        if args[0]._recently_updated:
+            return results
+
         args[0].update_canvas()
+        args[0]._recently_updated = True
+        args[0].schedule_needs_update()
+
         return results
     return wrapper
 
@@ -245,9 +254,6 @@ class GraphCanvas(Widget):
             self.rect.size = self.size
             self.rect.pos = self.pos
 
-        if self._recently_updated:
-            return
-
         self.coords = coords = dict(zip(self.G.vertices(), self.transform_coords()))
 
         for node, (x, y) in zip(self.nodes, coords.values()):
@@ -256,15 +262,12 @@ class GraphCanvas(Widget):
         for edge, (u, v) in zip(self.edges, self.G.edges()):
             edge.update(*coords[u], *coords[v])
 
-            if self.G.vp.pinned[u]: # Highlight edges if their source nodes are pinned:
+            if self.G.vp.pinned[u]: # Highlight edges if their source nodes are pinned.
                 edge.color.rgba = HIGHLIGHTED_EDGE
                 edge.head.color.rgba = HIGHLIGHTED_HEAD
             else:
                 edge.color.rgba = EDGE_COLOR
                 edge.head.color.rgba = HEAD_COLOR
-
-        self._recently_updated = True
-        self.schedule_needs_update()
 
     @redraw_canvas_after
     def step_layout(self, dt):
