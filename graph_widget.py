@@ -122,10 +122,12 @@ class NodeSet(set):
     """Set that correctly colors nodes that are added to/removed from it."""
     __slots__ = 'in_color', 'out_color', 'unfreeze'
 
-    def __init__(self, *args, in_color, out_color, unfreeze, **kwargs):
+    def __init__(self, *args, in_color, out_color=None, unfreeze=False, **kwargs):
         self.in_color = in_color
-        self.out_color = out_color
         self.unfreeze = unfreeze
+        if not unfreeze:
+            self.out_color = out_color
+
         super().__init__(*args, **kwargs)
 
     def add(self, node):
@@ -135,9 +137,10 @@ class NodeSet(set):
 
     def remove(self, node):
         super().remove(node)
-        node.color.rgba = self.out_color
         if self.unfreeze:
             node.unfreeze()
+        else:
+            node.color.rgba = self.out_color
 
 
 class GraphCanvas(Widget):
@@ -145,8 +148,8 @@ class GraphCanvas(Widget):
 
     _mouse_pos_disabled = False
     _highlighted = None  # For highlighted property.
-    _selected = NodeSet(in_color=SELECTED_COLOR, out_color=NODE_COLOR, unfreeze=True)
-    _pinned = NodeSet(in_color=PINNED_COLOR, out_color=HIGHLIGHTED_NODE, unfreeze=False)
+    _selected = NodeSet(in_color=SELECTED_COLOR, unfreeze=True)
+    _pinned = NodeSet(in_color=PINNED_COLOR, out_color=HIGHLIGHTED_NODE)
 
     _touches = []
 
