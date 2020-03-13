@@ -7,7 +7,6 @@ the layout algorithm. Ctrl-Space to pause/unpause the Graph callback.
 ### TODO: setup_canvas bezier mode for paused mode -- requires calculating some control points
 ### TODO: Degree Histogram
 from functools import wraps
-import random
 
 from kivy.app import App
 from kivy.clock import Clock
@@ -28,9 +27,9 @@ from arrow import Arrow
 
 SFDP_SETTINGS = dict(init_step=0.005, # move step; increase for sfdp to converge more quickly
                      K=0.5,           # preferred edge length
-                     C=0.2,           # relative strength repulsive forces
+                     C=0.4,           # relative strength repulsive forces
                      p=2.0,           # repulsive force exponent
-                     max_iter=1)
+                     max_iter=2)
 
 BACKGROUND_COLOR  =     0,     0,     0,   1
 NODE_COLOR        = 0.027, 0.292, 0.678,   1
@@ -405,6 +404,7 @@ class GraphCanvas(Widget):
 
 
 if __name__ == "__main__":
+    import random
     from dynamic_graph import EdgeCentricGASEP
 
     class GraphApp(App):
