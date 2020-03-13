@@ -54,9 +54,6 @@ SPACE          = 32
 
 UPDATE_INTERVAL = 1/30
 
-def collides(mx, my, x, y):
-    """Return true if the mouse position (mx, my) is in (x, y)'s bounding box."""
-    return x - BOUNDS <= mx <= x + BOUNDS and y - BOUNDS <= my <= y + BOUNDS
 
 def redraw_canvas_after(func):
     """For methods that change vertex coordinates or edge colors. Checks that canvas hasn't been
@@ -78,21 +75,25 @@ def redraw_canvas_after(func):
 
 
 class Node(Line):
-    __slots__ = 'color', 'vertex', 'pinned'
+    __slots__ = 'color', 'vertex', 'canvas'
 
-    def __init__(self, vertex, pinned):
+    def __init__(self, vertex, canvas):
         self.color = Color(*NODE_COLOR)
         self.vertex = vertex
-        self.pinned = pinned
+        self.canvas = canvas
 
         super().__init__(circle=(0, 0, NODE_RADIUS), width=NODE_WIDTH)
 
     def freeze(self):
-        self.pinned[self.vertex] = 1
+        self.canvas.G.vp.pinned[self.vertex] = 1
 
     def unfreeze(self):
-        self.pinned[self.vertex] = 0
+        self.canvas.G.vp.pinned[self.vertex] = 0
         self.color.rgba = NODE_COLOR
+
+    def collides(self, mx, my):
+        x, y = self.canvas.coords[self.vertex]
+        return x - BOUNDS <= mx <= x + BOUNDS and y - BOUNDS <= my <= y + BOUNDS
 
 
 class Selection(Line):
@@ -244,7 +245,7 @@ class GraphCanvas(Widget):
 
         with self.canvas:
             self.edges = [Arrow(EDGE_COLOR, HEAD_COLOR, EDGE_WIDTH) for u, v in self.G.edges()]
-            self.nodes = [Node(vertex, self.G.vp.pinned) for vertex in self.G.vertices()]
+            self.nodes = [Node(vertex, self) for vertex in self.G.vertices()]
 
         with self.canvas.after:
             self.select_rect = Selection()
@@ -338,7 +339,7 @@ class GraphCanvas(Widget):
             return
 
         if self.is_drag_select:
-            return self.drag_select(touch)
+            return self.on_drag_select(touch)
 
         if self._selected:
             dx, dy = self.invert_coords(touch.dx, touch.dy, delta=True)
@@ -355,7 +356,7 @@ class GraphCanvas(Widget):
         self.offset_y += touch.dy / self.height
         return True
 
-    def drag_select(self, touch):
+    def on_drag_select(self, touch):
         self.select_rect.set_corners(touch.ox, touch.oy, touch.x, touch.y)
 
         self._selected = Selected()
@@ -390,15 +391,14 @@ class GraphCanvas(Widget):
 
         # Keeping track of highlighted node should prevent us from having to check collisions
         # between nodes and touch too often.
-        if self.highlighted is not None:
-            x, y = self.coords[self.highlighted.vertex]
-            if collides(mx, my, x, y):
-                return
-            self.highlighted = None
+        if self.highlighted is not None and self.highlighted.collides(mx, my):
+            return
+
+        self.highlighted = None
 
         # Now we loop through all nodes until we find a collision with mouse:
-        for node, (x, y) in zip(self.nodes, self.coords.values()):
-            if collides(mx, my, x, y):
+        for node in self.nodes:
+            if node.collides(mx, my):
                 self.highlighted = node
                 return
 
