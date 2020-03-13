@@ -2,7 +2,7 @@
 
 SFDP_SETTINGS = dict(init_step=0.005, # move step; increase for sfdp to converge more quickly
                      K=0.5,           # preferred edge length
-                     C=0.4,           # relative strength repulsive forces
+                     C=0.3,           # relative strength repulsive forces
                      p=2.0,           # repulsive force exponent
                      max_iter=2)
 
