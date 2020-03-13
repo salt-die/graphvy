@@ -14,7 +14,7 @@ class Triangle(Line):
     def __init__(self, color, width, size):
         """
         Triangle points are: (-3, 0), (-6, 1), (-6, -1). Looks like:
-        (Two characters per x, One line per y, O is origin)
+        (Two characters per x unit, One line per y unit, O is origin)
 
                            |
                o           |
