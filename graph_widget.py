@@ -3,7 +3,7 @@ Hold shift to drag-select vertices. Ctrl-click to select individual vertices. Sp
 the layout algorithm.
 """
 ### TODO: pinning vertices - probably with repeated ctrl-clicks?
-### TODO: path highlighter, edge highlighting
+### TODO: path highlighter
 ### TODO: setup_canvas bezier mode for paused mode -- requires calculating some control points
 ### TODO: another canvas instruction for self-loops (so that they're visible)
 from functools import wraps
@@ -36,7 +36,8 @@ BACKGROUND_COLOR  =     0,     0,     0,   1
 NODE_COLOR        = 0.027, 0.292, 0.678,   1
 EDGE_COLOR        =  0.16, 0.176, 0.467,  .8
 HEAD_COLOR        =  0.26, 0.276, 0.567,   1
-HIGHLIGHTED_COLOR = 0.758, 0.823,  0.92,   1
+HIGHLIGHTED_NODE  = 0.758, 0.823,  0.92,   1
+HIGHLIGHTED_EDGE  =  0.21, 0.226, 0.517,  .8
 SELECT_RECT_COLOR =     1,     1,     1, 0.8
 SELECTED_COLOR    = 0.514, 0.646, 0.839,   1
 
@@ -58,7 +59,7 @@ def collides(mx, my, x, y):
     return x - BOUNDS <= mx <= x + BOUNDS and y - BOUNDS <= my <= y + BOUNDS
 
 def redraw_canvas_after(func):
-    """For methods that change vertex coordinates."""
+    """For methods that change vertex coordinates or edge colors."""
     @wraps(func)
     def wrapper(*args, **kwargs):
         results = func(*args, **kwargs)
@@ -164,7 +165,7 @@ class GraphCanvas(Widget):
         Window.bind(mouse_pos=self.on_mouse_pos)
 
         self.update_layout = Clock.schedule_interval(self.step_layout, UPDATE_INTERVAL)
-        self.post_update = Clock.schedule_once(self.needs_update, UPDATE_INTERVAL)
+        self.schedule_needs_update = Clock.schedule_once(self.needs_update, UPDATE_INTERVAL)
 
         if graph_callback is None:
             self.update_graph = None
@@ -187,7 +188,7 @@ class GraphCanvas(Widget):
 
         if node is not None:
             node.freeze()
-            node.color.rgba = HIGHLIGHTED_COLOR
+            node.color.rgba = HIGHLIGHTED_NODE
 
         self._highlighted = node
 
@@ -252,8 +253,11 @@ class GraphCanvas(Widget):
 
         for edge, (u, v) in zip(self.edges, self.G.edges()):
             edge.update(*coords[u], *coords[v])
+            # Highlight edges if their source nodes are pinned:
+            edge.color.rgba = HEAD_COLOR if self.G.vp.pinned[u] else EDGE_COLOR
 
-        self.post_update()
+        self._recently_updated = True
+        self.schedule_needs_update()
 
     @redraw_canvas_after
     def step_layout(self, dt):
@@ -281,6 +285,7 @@ class GraphCanvas(Widget):
 
         return ((x / self.width) - off_x) / self.scale, ((y / self.height) - off_y) / self.scale
 
+    @redraw_canvas_after
     def on_touch_down(self, touch):
         self._touches.append(touch)
 
@@ -340,6 +345,7 @@ class GraphCanvas(Widget):
         self.offset_y += touch.dy / self.height
         return True
 
+    @redraw_canvas_after
     def drag_select(self, touch):
         self.select_rect.set_corners(touch.ox, touch.oy, touch.x, touch.y)
 
@@ -366,6 +372,7 @@ class GraphCanvas(Widget):
 
         return True
 
+    @redraw_canvas_after
     def on_mouse_pos(self, *args):
         if self._mouse_pos_disabled:
             return
