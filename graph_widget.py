@@ -47,9 +47,9 @@ NODE_WIDTH   = 3
 EDGE_WIDTH   = 2
 SELECT_WIDTH = 1.2
 
-SHIFT = 304
-CTRL = 305
-SPACE = 32
+LSHIFT, RSHIFT = 304, 13
+LCTRL, RCTRL   = 305, 306
+SPACE          = 32
 
 UPDATE_INTERVAL = 1/60
 
@@ -409,18 +409,17 @@ if __name__ == "__main__":
         def on_key_down(self, *args):
             """Will use key presses to change GraphCanvas's modes when testing; Ideally, we'd use
                buttons in some other widget..."""
-            print(args)
-            if args[1] == SHIFT:
+            if args[1] in (LSHIFT, RSHIFT):
                 self.GC.is_selecting = True
-            elif args[1] == CTRL:
+            elif args[1] in (LCTRL, RCTRL):
                 self.GC.ctrl_pressed = True
             elif args[1] == SPACE:
                 self.GC.pause()
 
         def on_key_up(self, *args):
-            if args[1] == SHIFT:
+            if args[1] in (RSHIFT, LSHIFT):
                 self.GC.is_selecting = False
-            elif args[1] == CTRL:
+            elif args[1] in (LCTRL, RCTRL):
                 self.GC.ctrl_pressed = False
 
     GraphApp().run()
