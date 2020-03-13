@@ -2,10 +2,10 @@
 Hold shift to drag-select vertices. Ctrl-click to select individual vertices. Space to pause/unpause
 the layout algorithm. Ctrl-Space to pause/unpause the Graph callback.
 """
-### TODO: pinning vertices - probably with repeated ctrl-clicks?
 ### TODO: path highlighter
 ### TODO: setup_canvas bezier mode for paused mode -- requires calculating some control points
 ### TODO: Degree Histogram
+from contextlib import suppress
 from functools import wraps
 
 from kivy.app import App
@@ -33,11 +33,12 @@ SFDP_SETTINGS = dict(init_step=0.005, # move step; increase for sfdp to converge
 
 BACKGROUND_COLOR  =     0,     0,     0,   1
 NODE_COLOR        = 0.027, 0.292, 0.678,   1
-EDGE_COLOR        =  0.16, 0.176, 0.467,  .8
+EDGE_COLOR        =  0.16, 0.176, 0.467, 0.8
 HEAD_COLOR        =  0.26, 0.276, 0.567,   1
 HIGHLIGHTED_NODE  = 0.758, 0.823,  0.92,   1
 HIGHLIGHTED_EDGE  = 0.760, 0.235, 0.239,   1
 HIGHLIGHTED_HEAD  = 0.770, 0.245, 0.249,   1
+PINNED_COLOR      = 0.770, 0.455, 0.350,   1
 SELECT_RECT_COLOR =     1,     1,     1, 0.8
 SELECTED_COLOR    = 0.514, 0.646, 0.839,   1
 
@@ -118,15 +119,25 @@ class Selection(Line):
         return self.min_x <= x <= self.max_x and self.min_y <= y <= self.max_y
 
 
-class Selected(list):
-    """List that correctly colors nodes that are added to/removed from it."""
-    def append(self, node):
-        super().append(node)
-        node.freeze()
-        node.color.rgba = SELECTED_COLOR
+class NodeSet(set):
+    """Set that correctly colors nodes that are added to/removed from it."""
+    __slots__ = 'in_color', 'out_color', 'unfreeze'
 
-    def __del__(self):
-        for node in self:
+    def __init__(self, *args, in_color, out_color, unfreeze, **kwargs):
+        self.in_color = in_color
+        self.out_color = out_color
+        self.unfreeze = unfreeze
+        super().__init__(*args, **kwargs)
+
+    def add(self, node):
+        super().add(node)
+        node.freeze()
+        node.color.rgba = self.in_color
+
+    def remove(self, node):
+        super().remove(node)
+        node.color.rgba = self.out_color
+        if self.unfreeze:
             node.unfreeze()
 
 
@@ -134,8 +145,9 @@ class GraphCanvas(Widget):
     """Dynamic graph layout widget.  Layout updates as graph changes."""
 
     _mouse_pos_disabled = False
-    _highlighted = None     # For highlighted property.
-    _selected = Selected()  # List of selected nodes for dragging multiple nodes.
+    _highlighted = None  # For highlighted property.
+    _selected = NodeSet(in_color=SELECTED_COLOR, out_color=NODE_COLOR, unfreeze=True)
+    _pinned = NodeSet(in_color=PINNED_COLOR, out_color=HIGHLIGHTED_NODE, unfreeze=False)
 
     _touches = []
 
@@ -144,7 +156,7 @@ class GraphCanvas(Widget):
     scale = .5
 
     is_selecting = False
-    _drag_selection = False # For is_drag_select property.
+    _drag_selection = False  # For is_drag_select property.
     ctrl_pressed = False
 
     _callback_paused = False
@@ -194,6 +206,8 @@ class GraphCanvas(Widget):
         if lit is not None:
             if lit in self._selected:
                 lit.color.rgba = SELECTED_COLOR
+            elif lit in self._pinned:
+                lit.color.rgba = PINNED_COLOR
             else:
                 lit.unfreeze()
 
@@ -304,10 +318,13 @@ class GraphCanvas(Widget):
 
         if self.ctrl_pressed:
             if self.highlighted is not None:
-                try:
+                if self.highlighted in self._pinned:
+                    self._pinned.remove(self.highlighted)
+                elif self.highlighted in self._selected:
                     self._selected.remove(self.highlighted)
-                except ValueError:
-                    self._selected.append(self.highlighted)
+                    self._pinned.add(self.highlighted)
+                else:
+                    self._selected.add(self.highlighted)
             return True
 
         if self.is_selecting:
@@ -353,12 +370,17 @@ class GraphCanvas(Widget):
         return True
 
     def on_drag_select(self, touch):
+        selected = self._selected
         self.select_rect.set_corners(touch.ox, touch.oy, touch.x, touch.y)
 
-        self._selected = Selected()
-        for node, coord in zip(self.nodes, self.coords.values()):
-            if coord in self.select_rect:
-                self._selected.append(node)
+        for node in self.nodes:
+            coord = self.coords[node.vertex]
+            if node in selected:
+                if coord not in self.select_rect:
+                    selected.remove(node)
+            else:
+                if node not in self._pinned and coord in self.select_rect:
+                    self._selected.add(node)
 
         return True
 
