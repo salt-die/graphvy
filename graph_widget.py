@@ -125,10 +125,6 @@ class Selected(list):
         node.freeze()
         node.color.rgba = SELECTED_COLOR
 
-    def remove(self, node):
-        super().remove(node)
-        node.unfreeze()
-
     def __del__(self):
         for node in self:
             node.unfreeze()
