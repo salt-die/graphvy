@@ -13,6 +13,7 @@ BACKGROUND_COLOR  =     0,     0,     0,   1
 
 NODE_COLOR        = 0.027, 0.292, 0.678,   1
 HIGHLIGHTED_NODE  = 0.758, 0.823,  0.92,   1
+SELECTED_COLOR    = 0.514, 0.646, 0.839,   1
 PINNED_COLOR      = 0.770, 0.455, 0.350,   1
 
 EDGE_COLOR        =  0.16, 0.176, 0.467, 0.8
@@ -20,8 +21,7 @@ HEAD_COLOR        =  0.26, 0.276, 0.567,   1
 HIGHLIGHTED_EDGE  = 0.760, 0.235, 0.239,   1
 HIGHLIGHTED_HEAD  = 0.770, 0.245, 0.249,   1
 
-SELECT_RECT_COLOR =     1,     1,     1, 0.8
-SELECTED_COLOR    = 0.514, 0.646, 0.839,   1
+SELECT_RECT_COLOR =     1,     1,     1, 0.8 # color of select_rect's outline
 
 # Sizes
 NODE_RADIUS  = 3
