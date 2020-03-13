@@ -5,6 +5,7 @@ the layout algorithm. Ctrl-Space to pause/unpause the Graph callback.
 ### TODO: pinning vertices - probably with repeated ctrl-clicks?
 ### TODO: path highlighter
 ### TODO: setup_canvas bezier mode for paused mode -- requires calculating some control points
+### TODO: Degree Histogram
 from functools import wraps
 import random
 
