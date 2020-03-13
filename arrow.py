@@ -27,10 +27,10 @@ class Triangle(Line):
 
     def update(self, x1, y1, x2, y2):
         if x1 == x2 and y1 == y2:
-            self.a = 0
+            self.color.a = 0
             return
 
-        self.a = self.color.a
+        self.color.a = self.a
 
         theta = atan2(y2 - y1, x2 - x1)
         cosine, sine = cos(theta), sin(theta)

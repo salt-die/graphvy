@@ -36,7 +36,8 @@ NODE_COLOR        = 0.027, 0.292, 0.678,   1
 EDGE_COLOR        =  0.16, 0.176, 0.467,  .8
 HEAD_COLOR        =  0.26, 0.276, 0.567,   1
 HIGHLIGHTED_NODE  = 0.758, 0.823,  0.92,   1
-HIGHLIGHTED_EDGE  =  0.21, 0.226, 0.517,  .8
+HIGHLIGHTED_EDGE  = 0.760, 0.235, 0.239,   1
+HIGHLIGHTED_HEAD  = 0.770, 0.245, 0.249,   1
 SELECT_RECT_COLOR =     1,     1,     1, 0.8
 SELECTED_COLOR    = 0.514, 0.646, 0.839,   1
 
@@ -254,8 +255,12 @@ class GraphCanvas(Widget):
 
         for edge, (u, v) in zip(self.edges, self.G.edges()):
             edge.update(*coords[u], *coords[v])
-            # Highlight edges if their source nodes are pinned:
-            edge.color.rgba = HEAD_COLOR if self.G.vp.pinned[u] else EDGE_COLOR
+            if self.G.vp.pinned[u]: # Highlight edges if their source nodes are pinned:
+                edge.color.rgba = HIGHLIGHTED_EDGE
+                edge.head.color.rgba = HIGHLIGHTED_HEAD
+            else:
+                edge.color.rgba = EDGE_COLOR
+                edge.head.color.rgba = HEAD_COLOR
 
         self._recently_updated = True
         self.schedule_needs_update()
