@@ -32,7 +32,7 @@ class Triangle(Line):
         self.y3 = -1 * size
 
         self.color = Color(*color)
-        super().__init__(points=[0, 0, 0, 0, 0, 0], close=True, width=width)
+        super().__init__(close=True, width=width)
 
 
     def update(self, x1, y1, x2, y2):
@@ -55,7 +55,7 @@ class Arrow(Line):
 
     def __init__(self, line_color, head_color, width, size=3):
         self.color = Color(*line_color)
-        super().__init__(points=[0, 0, 0, 0], width=width)
+        super().__init__(width=width)
 
         self.head = Triangle(color=head_color, width=width, size=size)
 

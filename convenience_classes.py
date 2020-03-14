@@ -12,7 +12,7 @@ class Node(Line):
         self.vertex = vertex
         self.canvas = canvas
 
-        super().__init__(circle=(0, 0, NODE_RADIUS), width=NODE_WIDTH)
+        super().__init__(width=NODE_WIDTH)
 
     def freeze(self, color):
         self.canvas.G.vp.pinned[self.vertex] = 1
@@ -33,7 +33,7 @@ class Selection(Line):
     def __init__(self, *args, **kwargs):
         self.color = Color(*SELECT_RECT_COLOR)
 
-        super().__init__(points=[0, 0, 0, 0, 0, 0, 0, 0], width=SELECT_WIDTH, close=True)
+        super().__init__(width=SELECT_WIDTH, close=True)
 
         self.set_corners()
 
