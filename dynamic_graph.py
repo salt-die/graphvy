@@ -34,7 +34,7 @@ class AsyncDynamicBase:
 
     def step(self):
         """A single iteration of graph dynamics."""
-        pass
+        raise NotImplementedError
 
     def __call__(self):
         """Alternative method of stepping."""
