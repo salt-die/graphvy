@@ -196,13 +196,14 @@ class GraphCanvas(Widget):
             self.rect.size = self.size
             self.rect.pos = self.pos
 
-        self.coords = coords = dict(zip(self.G.vertices(), self.transform_coords()))
+        self.transform_coords()
+        coords = self.coords
 
-        for node, (x, y) in zip(self.nodes, coords.values()):
+        for node, (x, y) in zip(self.nodes, coords):
             node.circle = x, y, NODE_RADIUS
 
         for edge, (u, v) in zip(self.edges, self.G.edges()):
-            edge.update(*coords[u], *coords[v])
+            edge.update(*coords[int(u)], *coords[int(v)])
 
             if self.G.vp.pinned[u]:  # Highlight edges if their source nodes are pinned.
                 edge.color.rgba = HIGHLIGHTED_EDGE
@@ -225,11 +226,10 @@ class GraphCanvas(Widget):
             return ((x * self.scale + self.offset_x) * self.width,
                     (y * self.scale + self.offset_y) * self.height)
 
-        arr = self.G.vp.pos.get_2d_array((0, 1)).T
-        np.multiply(arr, self.scale, out=arr)
-        np.add(arr, (self.offset_x, self.offset_y), out=arr)
-        np.multiply(arr, (self.width, self.height), out=arr)
-        return arr
+        self.coords = coords = self.G.vp.pos.get_2d_array((0, 1)).T
+        np.multiply(coords, self.scale, out=coords)
+        np.add(coords, (self.offset_x, self.offset_y), out=coords)
+        np.multiply(coords, (self.width, self.height), out=coords)
 
     def invert_coords(self, x, y, delta=False):
         """Transform canvas coordinates to vertex coordinates."""
@@ -305,7 +305,7 @@ class GraphCanvas(Widget):
         self.select_rect.set_corners(touch.ox, touch.oy, touch.x, touch.y)
 
         for node in self.nodes:
-            coord = self.coords[node.vertex]
+            coord = self.coords[int(node.vertex)]
             if node in selected:
                 if coord not in self.select_rect:
                     selected.remove(node)

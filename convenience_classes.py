@@ -23,7 +23,7 @@ class Node(Line):
         self.color.rgba = NODE_COLOR
 
     def collides(self, mx, my):
-        x, y = self.canvas.coords[self.vertex]
+        x, y = self.canvas.coords[int(self.vertex)]
         return x - BOUNDS <= mx <= x + BOUNDS and y - BOUNDS <= my <= y + BOUNDS
 
 
