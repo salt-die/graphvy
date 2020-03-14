@@ -44,6 +44,7 @@ def redraw_canvas_after(func):
 def limit(interval):
     def deco(func):
         """Limits how quickly a function can be called."""
+
         last_call = time.time()
 
         @wraps(func)
