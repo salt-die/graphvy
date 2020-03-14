@@ -50,8 +50,8 @@ class GraphCanvas(Widget):
 
     _mouse_pos_disabled = False
     _highlighted = None  # For highlighted property.
-    _selected = SelectedSet(in_color=SELECTED_COLOR)
-    _pinned = PinnedSet(in_color=PINNED_COLOR)
+    _selected = SelectedSet(color=SELECTED_COLOR)
+    _pinned = PinnedSet(color=PINNED_COLOR)
 
     _touches = []
 
@@ -106,6 +106,7 @@ class GraphCanvas(Widget):
     @highlighted.setter
     def highlighted(self, node):
         """Freezes highlighted nodes."""
+
         lit = self.highlighted
         if lit is not None:
             if lit in self._selected:
@@ -116,8 +117,7 @@ class GraphCanvas(Widget):
                 lit.unfreeze()
 
         if node is not None:
-            node.freeze()
-            node.color.rgba = HIGHLIGHTED_NODE
+            node.freeze(HIGHLIGHTED_NODE)
 
         self._highlighted = node
 

@@ -14,8 +14,9 @@ class Node(Line):
 
         super().__init__(circle=(0, 0, NODE_RADIUS), width=NODE_WIDTH)
 
-    def freeze(self):
+    def freeze(self, color):
         self.canvas.G.vp.pinned[self.vertex] = 1
+        self.color.rgba = color
 
     def unfreeze(self):
         self.canvas.G.vp.pinned[self.vertex] = 0
@@ -50,14 +51,13 @@ class Selection(Line):
 
 class NodeSet(set):
     """Set that correctly colors nodes that are added to/removed from it."""
-    def __init__(self, *args, in_color, **kwargs):
-        self.in_color = in_color
+    def __init__(self, *args, color, **kwargs):
+        self.color = color
         super().__init__(*args, **kwargs)
 
     def add(self, node):
         super().add(node)
-        node.freeze()
-        node.color.rgba = self.in_color
+        node.freeze(self.color)
 
 
 class SelectedSet(NodeSet):
