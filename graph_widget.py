@@ -107,7 +107,7 @@ class GraphCanvas(Widget):
         self.select_rect = None
         self.setup_canvas()
 
-        self.coords = None # Set in update_canvas for edges to easily reference node coordinates.
+        self.coords = None  # Set in update_canvas for edges to easily reference node coordinates.
 
         self.bind(size=self.update_canvas, pos=self.update_canvas)
         Window.bind(mouse_pos=self.on_mouse_pos)
@@ -182,7 +182,7 @@ class GraphCanvas(Widget):
             self.rect = Rectangle(size=self.size, pos=self.pos)
 
         with self.canvas:
-            self.edges = [Arrow(EDGE_COLOR, HEAD_COLOR, EDGE_WIDTH) for u, v in self.G.edges()]
+            self.edges = [Arrow(EDGE_COLOR, HEAD_COLOR, EDGE_WIDTH) for _ in self.G.edges()]
             self.nodes = [Node(vertex, self) for vertex in self.G.vertices()]
 
         with self.canvas.after:
@@ -203,7 +203,7 @@ class GraphCanvas(Widget):
         for edge, (u, v) in zip(self.edges, self.G.edges()):
             edge.update(*coords[u], *coords[v])
 
-            if self.G.vp.pinned[u]: # Highlight edges if their source nodes are pinned.
+            if self.G.vp.pinned[u]:  # Highlight edges if their source nodes are pinned.
                 edge.color.rgba = HIGHLIGHTED_EDGE
                 edge.head.color.rgba = HIGHLIGHTED_HEAD
             else:
@@ -315,7 +315,7 @@ class GraphCanvas(Widget):
         return True
 
     def transform_on_touch(self, touch):
-        ax, ay = self._touches[-2].pos # Anchor coords
+        ax, ay = self._touches[-2].pos  # Anchor coords
         x, y = self.invert_coords(ax, ay)
 
         anchor = Vector(self._touches[-2].pos) / self.size
