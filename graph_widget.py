@@ -1,6 +1,17 @@
 """
 Hold shift to drag-select vertices. Ctrl-click to select individual vertices, and again to pin them.
 Space to pause/unpause the layout algorithm. Ctrl-Space to pause/unpause the Graph callback.
+
+Note:
+    Arrows (our canvas instructions for edges) don't correspond to any specific edge in the
+underlying graph.  We keep the same number of Arrows as edges and then we update Arrows by iterating
+over both Arrows and edges.  It would be hard to associate a canvas instruction to an edge as edges
+are constantly being added and deleted; that is, I think we'd suffer penalties adding and removing
+canvas instructions constantly.  So changing an Arrow color, say, requires us to iterate over the
+entire collection of Arrows.
+
+    Our logic for updating the canvas will need to be modified some amount to account for dynamic
+graphs that grow or shrink.  (We assume a constant number of nodes/edges.)
 """
 ### TODO: path highlighter
 ### TODO: bezier lines (only when paused; computationally heavy)
