@@ -6,6 +6,7 @@ Space to pause/unpause the layout algorithm. Ctrl-Space to pause/unpause the Gra
 ### TODO: setup_canvas bezier mode for paused mode -- requires calculating some control points
 ### TODO: Degree Histogram
 from functools import wraps
+import time
 
 from kivy.app import App
 from kivy.clock import Clock
@@ -27,22 +28,35 @@ from constants import *
 
 
 def redraw_canvas_after(func):
-    """For methods that change vertex coordinates or edge colors. Checks that canvas hasn't been
-       redrawn recently (to limit fps and overhead)."""
+    """
+    For methods that change vertex coordinates or edge colors.
+    """
 
     @wraps(func)
     def wrapper(*args, **kwargs):
         results = func(*args, **kwargs)
-
-        if args[0]._recently_updated:
-            return results
-
         args[0].update_canvas()
-        args[0]._recently_updated = True
-        args[0].schedule_can_update()
-
         return results
+
     return wrapper
+
+
+def limit(interval):
+    def deco(func):
+        """Limits how quickly a function can be called."""
+        last_call = time.time()
+
+        @wraps(func)
+        def wrapper(*args, **kwargs):
+            now = time.time()
+            nonlocal last_call
+            if now - last_call < interval:
+                return
+            last_call = now
+            return func(*args, **kwargs)
+
+        return wrapper
+    return deco
 
 
 class GraphCanvas(Widget):
@@ -66,8 +80,6 @@ class GraphCanvas(Widget):
     _callback_paused = False
     _layout_paused = False
 
-    _recently_updated = False
-
     def __init__(self, *args, G=None, pos=None, graph_callback=None, **kwargs):
         self.G = gt.Graph() if G is None else G
         self.G.vp.pos = random_layout(G, (1, 1)) if pos is None else pos
@@ -87,17 +99,15 @@ class GraphCanvas(Widget):
         self.bind(size=self.update_canvas, pos=self.update_canvas)
         Window.bind(mouse_pos=self.on_mouse_pos)
 
-        self.update_layout = Clock.schedule_interval(self.step_layout, UPDATE_INTERVAL)
-        self.schedule_can_update = Clock.schedule_once(self.can_update, UPDATE_INTERVAL)
+        self.update_layout = Clock.schedule_interval(self.step_layout, 0)
 
-        if graph_callback is None:
-            self.update_graph = None
-        else:
-            def callback(dt):
-                graph_callback()
-                self.update_canvas()
+        self.graph_callback = graph_callback
+        if graph_callback is not None:
+            self.update_graph = Clock.schedule_interval(self.callback, 0)
 
-            self.update_graph = Clock.schedule_interval(callback, UPDATE_INTERVAL)
+    @redraw_canvas_after
+    def callback(self, dt):
+        self.graph_callback()
 
     @property
     def highlighted(self):
@@ -134,7 +144,7 @@ class GraphCanvas(Widget):
     def pause(self):
         if self.ctrl_pressed:
             self._callback_paused = not self._callback_paused
-            if self.update_graph is not None:
+            if self.graph_callback is not None:
                 if self._callback_paused:
                     self.update_graph.cancel()
                 else:
@@ -146,9 +156,6 @@ class GraphCanvas(Widget):
             self.update_layout.cancel()
         else:
             self.update_layout()
-
-    def can_update(self, dt):
-        self._recently_updated = False
 
     def setup_canvas(self):
         self.canvas.clear()
@@ -164,6 +171,7 @@ class GraphCanvas(Widget):
         with self.canvas.after:
             self.select_rect = Selection()
 
+    @limit(UPDATE_INTERVAL)
     def update_canvas(self, *args):
         if args:
             self.rect.size = self.size
@@ -304,6 +312,7 @@ class GraphCanvas(Widget):
 
         return True
 
+    @limit(UPDATE_INTERVAL)
     @redraw_canvas_after
     def on_mouse_pos(self, *args):
         if self._mouse_pos_disabled:

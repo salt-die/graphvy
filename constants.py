@@ -4,9 +4,9 @@ SFDP_SETTINGS = dict(init_step=0.005, # move step; increase for sfdp to converge
                      K=0.5,           # preferred edge length
                      C=0.3,           # relative strength repulsive forces
                      p=2.0,           # repulsive force exponent
-                     max_iter=2)
+                     max_iter=1)
 
-UPDATE_INTERVAL = 1/30
+UPDATE_INTERVAL = 1/20
 
 # Colors
 BACKGROUND_COLOR  =     0,     0,     0,   1
