@@ -51,10 +51,9 @@ def limit(interval):
         def wrapper(*args, **kwargs):
             now = time.time()
             nonlocal last_call
-            if now - last_call < interval:
-                return
-            last_call = now
-            return func(*args, **kwargs)
+            if now - last_call > interval:
+                last_call = now
+                return func(*args, **kwargs)
 
         return wrapper
     return deco
@@ -116,7 +115,7 @@ class GraphCanvas(Widget):
 
     @highlighted.setter
     def highlighted(self, node):
-        """Freezes highlighted nodes."""
+        """Freezes highlighted nodes or returns un-highlighted nodes to the proper color."""
 
         lit = self.highlighted
         if lit is not None:
@@ -138,11 +137,14 @@ class GraphCanvas(Widget):
 
     @is_drag_select.setter
     def is_drag_select(self, boolean):
+        """Make select_rect visible or non-visible depending on state."""
+
         self._drag_selection = boolean
         self.select_rect.set_corners()
         self.select_rect.color.a = int(boolean) * SELECT_RECT_COLOR[-1]
 
     def pause(self):
+        """Pause/unpause graph_callback if ctrl is pressed or pause/unpause layout."""
         if self.ctrl_pressed:
             self._callback_paused = not self._callback_paused
             if self.graph_callback is not None:
@@ -159,6 +161,7 @@ class GraphCanvas(Widget):
             self.update_layout()
 
     def setup_canvas(self):
+        """Populate the canvas with the initial instructions."""
         self.canvas.clear()
 
         with self.canvas.before:
@@ -174,6 +177,7 @@ class GraphCanvas(Widget):
 
     @limit(UPDATE_INTERVAL)
     def update_canvas(self, *args):
+        """Update node coordinates and edge colors."""
         if args:
             self.rect.size = self.size
             self.rect.pos = self.pos
