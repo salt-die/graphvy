@@ -38,13 +38,14 @@ class AsyncDynamicBase:
 
     def __call__(self):
         """Alternative method of stepping."""
-        self.step()
+        return self.step()
 
 
 class GraphASEP(AsyncDynamicBase):
-    """Totally Asymmetric Simple Exclusion Process (TASEP) is normally defined on a 1-D lattice.
-       Our Graph TASEP (GASEP) moves these dynamics to a graph with the particles represented by
-       edges."""
+    """
+    Totally Asymmetric Simple Exclusion Process (TASEP) is normally defined on a 1-D lattice. Our
+    Graph TASEP (GASEP) moves these dynamics to a graph with the particles represented by edges.
+    """
 
     __slots__ = 'num_vertices', 'num_edges'
 
@@ -67,8 +68,10 @@ class GraphASEP(AsyncDynamicBase):
 
 
 class EdgeCentricGASEP(GraphASEP):
-    """Edge-centric as we'll base our dynamics off of randomly chosen edges rather than randomly
-       chosen nodes.  Node-centric dynamics will lead to a different steady-state."""
+    """
+    Edge-centric as we'll base our dynamics off of randomly chosen edges rather than randomly chosen
+    nodes.  Node-centric dynamics will lead to a different steady-state.
+    """
 
     def head_move(self, out_deg, source, target):
         """Move source along an out_edge if possible."""
