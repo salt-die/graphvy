@@ -39,7 +39,7 @@ def redraw_canvas_after(func):
 
         args[0].update_canvas()
         args[0]._recently_updated = True
-        args[0].schedule_needs_update()
+        args[0].schedule_can_update()
 
         return results
     return wrapper
@@ -88,7 +88,7 @@ class GraphCanvas(Widget):
         Window.bind(mouse_pos=self.on_mouse_pos)
 
         self.update_layout = Clock.schedule_interval(self.step_layout, UPDATE_INTERVAL)
-        self.schedule_needs_update = Clock.schedule_once(self.needs_update, UPDATE_INTERVAL)
+        self.schedule_can_update = Clock.schedule_once(self.can_update, UPDATE_INTERVAL)
 
         if graph_callback is None:
             self.update_graph = None
@@ -147,7 +147,7 @@ class GraphCanvas(Widget):
         else:
             self.update_layout()
 
-    def needs_update(self, dt):
+    def can_update(self, dt):
         self._recently_updated = False
 
     def setup_canvas(self):
