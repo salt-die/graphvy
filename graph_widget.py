@@ -99,7 +99,7 @@ class GraphCanvas(Widget):
         self.bind(size=self.update_canvas, pos=self.update_canvas)
         Window.bind(mouse_pos=self.on_mouse_pos)
 
-        self.update_layout = Clock.schedule_interval(self.step_layout, 0)
+        self.update_layout = Clock.schedule_interval(self.step_layout, UPDATE_INTERVAL)
 
         self.graph_callback = graph_callback
         if graph_callback is not None:

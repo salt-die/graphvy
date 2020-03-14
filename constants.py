@@ -6,7 +6,7 @@ SFDP_SETTINGS = dict(init_step=0.005, # move step; increase for sfdp to converge
                      p=2.0,           # repulsive force exponent
                      max_iter=1)
 
-UPDATE_INTERVAL = 1/20
+UPDATE_INTERVAL = 1/60
 
 # Colors
 BACKGROUND_COLOR  =     0,     0,     0,   1
