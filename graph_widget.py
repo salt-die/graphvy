@@ -3,8 +3,9 @@ Hold shift to drag-select vertices. Ctrl-click to select individual vertices, an
 Space to pause/unpause the layout algorithm. Ctrl-Space to pause/unpause the Graph callback.
 """
 ### TODO: path highlighter
-### TODO: setup_canvas bezier mode for paused mode -- requires calculating some control points
-### TODO: Degree Histogram
+### TODO: bezier lines (only when paused; computationally heavy)
+### TODO: degree histogram
+### TODO: handle callbacks that change the number of nodes/edges
 from functools import wraps
 import time
 
@@ -63,6 +64,7 @@ class GraphCanvas(Widget):
     """Dynamic graph layout widget.  Layout updates as graph changes."""
 
     _mouse_pos_disabled = False
+
     _highlighted = None  # For highlighted property.
     _selected = SelectedSet(color=SELECTED_COLOR)
     _pinned = PinnedSet(color=PINNED_COLOR)
