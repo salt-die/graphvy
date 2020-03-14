@@ -293,7 +293,7 @@ class GraphCanvas(Widget):
                     selected.remove(node)
             else:
                 if node not in self._pinned and coord in self.select_rect:
-                    self._selected.add(node)
+                    selected.add(node)
 
         return True
 
