@@ -27,7 +27,6 @@ from kivy.vector import Vector
 from kivy.uix.widget import Widget
 from kivy.core.window import Window
 from kivy.config import Config
-Config.set('input', 'mouse', 'mouse,multitouch_on_demand')
 
 import graph_tool as gt
 from graph_tool.draw import random_layout, sfdp_layout
@@ -37,6 +36,8 @@ import numpy as np
 from arrow import Arrow
 from convenience_classes import Node, Selection, SelectedSet, PinnedSet
 from constants import *
+
+Config.set('input', 'mouse', 'mouse,multitouch_on_demand')
 
 
 def redraw_canvas_after(func):
