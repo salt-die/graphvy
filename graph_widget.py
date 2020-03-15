@@ -1,22 +1,10 @@
 """
 Hold shift to drag-select vertices. Ctrl-click to select individual vertices, and again to pin them.
 Space to pause/unpause the layout algorithm. Ctrl-Space to pause/unpause the Graph callback.
-
-Note:
-    Arrows (our canvas instructions for edges) don't correspond to any specific edge in the
-underlying graph.  We keep the same number of Arrows as edges and then we update Arrows by iterating
-over both Arrows and edges.  It would be hard to associate a canvas instruction to an edge as edges
-are constantly being added and deleted; that is, I think we'd suffer penalties adding and removing
-canvas instructions constantly.  So changing an Arrow color, say, requires us to iterate over the
-entire collection of Arrows.
-
-    Our logic for updating the canvas will need to be modified some amount to account for dynamic
-graphs that grow or shrink.  (We assume a constant number of nodes/edges.)
 """
 ### TODO: path highlighter
 ### TODO: bezier lines (only when paused; computationally heavy)
 ### TODO: degree histogram
-### TODO: handle callbacks that change the number of nodes/edges
 ### TODO: hide/filter nodes
 from functools import wraps
 import time
@@ -29,13 +17,11 @@ from kivy.uix.widget import Widget
 from kivy.core.window import Window
 from kivy.config import Config
 
-import graph_tool as gt
 from graph_tool.draw import random_layout, sfdp_layout
-
 import numpy as np
 
-from arrow import Arrow
-from convenience_classes import Node, Selection, SelectedSet, PinnedSet
+from arrow import Edge
+from convenience_classes import Node, Selection, SelectedSet, PinnedSet, GraphInterface
 from constants import *
 
 Config.set('input', 'mouse', 'mouse,multitouch_on_demand')
@@ -95,10 +81,10 @@ class GraphCanvas(Widget):
     _callback_paused = False
     _layout_paused = False
 
-    def __init__(self, *args, G=None, pos=None, graph_callback=None, **kwargs):
-        self.G = gt.Graph() if G is None else G
-        self.G.vp.pos = random_layout(G, (1, 1)) if pos is None else pos
-        self.G.vp.pinned = G.new_vertex_property('bool')
+    def __init__(self, *args, G=None, graph_callback=None, **kwargs):
+        self.G = GraphInterface(self) if G is None else GraphInterface(self, G)
+        self.G.vp.pos = random_layout(self.G, (1, 1))
+        self.G.vp.pinned = self.G.new_vertex_property('bool')
 
         super().__init__(*args, **kwargs)
 
@@ -116,9 +102,11 @@ class GraphCanvas(Widget):
 
         self.update_layout = Clock.schedule_interval(self.step_layout, UPDATE_INTERVAL)
 
-        self.graph_callback = graph_callback
         if graph_callback is not None:
+            self.graph_callback = graph_callback(self.G)
             self.update_graph = Clock.schedule_interval(self.callback, 0)
+        else:
+            self.graph_callback = None
 
     @redraw_canvas_after
     def callback(self, dt):
@@ -184,11 +172,44 @@ class GraphCanvas(Widget):
             self.rect = Rectangle(size=self.size, pos=self.pos)
 
         with self.canvas:
-            self.edges = [Arrow(EDGE_COLOR, HEAD_COLOR, EDGE_WIDTH) for _ in self.G.edges()]
-            self.nodes = [Node(vertex, self) for vertex in self.G.vertices()]
+            self.edges = {edge: Edge(edge, self) for edge in self.G.edges()}
+            self.nodes = {vertex: Node(vertex, self) for vertex in self.G.vertices()}
 
         with self.canvas.after:
             self.select_rect = Selection()
+
+    def make_node(self, node):
+        """Make a new canvas instruction corresponding to node."""
+        with self.canvas:
+            self.nodes[node] = Node(node, self)
+
+    def pre_unmake_node(self, node):
+        """Remove the canvas instruction corresponding to node."""
+        last = self.G.num_vertices() - 1
+        if int(node) != last:
+            self._last_node_to_pos = self.nodes[G.vertex(last)], int(node)
+        else:
+            self._last_node_to_pos = None
+        instruction = self.nodes.pop(node)
+        self.canvas.remove_group(instruction.group_name)
+
+    def post_unmake_node(self):
+        """Swap the vertex descriptor of the last node. (Node deletion invalidated it.)"""
+        if self._last_node_to_pos is not None:
+            node, pos = self._last_node_to_pos
+            node.vertex = self.G.vertex(pos)
+
+    def make_edge(self, edge):
+        """Make a new canvas instruction corresponding to edge."""
+        with self.canvas:
+            self.edges[edge] = Edge(edge, self)
+        if self.G.vp.pinned[edge.source()]:
+            self.edges[edge].color.rgba = HIGHLIGHTED_EDGE
+
+    def unmake_edge(self, edge):
+        """Remove the canvas instruction corresponding to edge."""
+        instruction = self.edges.pop(edge)
+        self.canvas.remove_group(instruction.group_name)
 
     @limit(UPDATE_INTERVAL)
     def update_canvas(self, *args):
@@ -200,18 +221,11 @@ class GraphCanvas(Widget):
         self.transform_coords()
         coords = self.coords
 
-        for node, (x, y) in zip(self.nodes, coords):
-            node.circle = x, y, NODE_RADIUS
+        for node in self.nodes.values():
+            node.update()
 
-        for edge, (u, v) in zip(self.edges, self.G.edges()):
-            edge.update(*coords[int(u)], *coords[int(v)])
-
-            if self.G.vp.pinned[u]:  # Highlight edges if their source nodes are pinned.
-                edge.color.rgba = HIGHLIGHTED_EDGE
-                edge.head.color.rgba = HIGHLIGHTED_HEAD
-            else:
-                edge.color.rgba = EDGE_COLOR
-                edge.head.color.rgba = HEAD_COLOR
+        for edge in self.edges.values():
+            edge.update()
 
     @redraw_canvas_after
     def step_layout(self, dt):
@@ -312,7 +326,7 @@ class GraphCanvas(Widget):
         selected = self._selected
         self.select_rect.set_corners(touch.ox, touch.oy, touch.x, touch.y)
 
-        for node in self.nodes:
+        for node in self.nodes.values():
             coord = self.coords[int(node.vertex)]
             if node in selected:
                 if coord not in self.select_rect:
@@ -340,7 +354,6 @@ class GraphCanvas(Widget):
         return True
 
     @limit(UPDATE_INTERVAL)
-    @redraw_canvas_after
     def on_mouse_pos(self, *args):
         mx, my = args[-1]
 
@@ -355,7 +368,7 @@ class GraphCanvas(Widget):
         self.highlighted = None
 
         # Now we loop through all nodes until we find a collision with mouse:
-        for node in self.nodes:
+        for node in self.nodes.values():
             if node.collides(mx, my):
                 self.highlighted = node
                 return
@@ -363,13 +376,13 @@ class GraphCanvas(Widget):
 
 if __name__ == "__main__":
     import random
+    import graph_tool as gt
     from dynamic_graph import EdgeCentricGASEP
 
     class GraphApp(App):
         def build(self):
             G = gt.generation.random_graph(50, lambda: (random.randint(1, 2), random.randint(1, 2)))
-            GASEP = EdgeCentricGASEP(G)
-            self.GC = GraphCanvas(G=G, graph_callback=GASEP)
+            self.GC = GraphCanvas(G=G, graph_callback=EdgeCentricGASEP)
 
             Window.bind(on_key_down=self.on_key_down, on_key_up=self.on_key_up)
             return self.GC

@@ -1,39 +1,53 @@
 """Convenience classes for graph widget."""
 from kivy.graphics import Color, Line
+from graph_tool import Graph
 
 from constants import *
 
 
 class Node(Line):
-    __slots__ = 'color', 'vertex', 'canvas'
+    __slots__ = 'color', 'vertex', 'canvas', 'group_name', 'is_frozen'
 
     def __init__(self, vertex, canvas):
-        self.color = Color(*NODE_COLOR)
+        self.group_name = str(id(self))
+
         self.vertex = vertex
         self.canvas = canvas
 
-        super().__init__(width=NODE_WIDTH)
+        self.color = Color(*NODE_COLOR, group=self.group_name)
+        super().__init__(width=NODE_WIDTH, group=self.group_name)
+
+    def recolor_out_edges(self, color):
+        edges = self.canvas.edges
+        for edge in self.vertex.out_edges():
+            edges[edge].color.rgba = color
 
     def freeze(self, color):
         self.canvas.G.vp.pinned[self.vertex] = 1
         self.color.rgba = color
+        self.recolor_out_edges(HIGHLIGHTED_EDGE)
 
     def unfreeze(self):
         self.canvas.G.vp.pinned[self.vertex] = 0
         self.color.rgba = NODE_COLOR
+        self.recolor_out_edges(EDGE_COLOR)
 
     def collides(self, mx, my):
         x, y = self.canvas.coords[int(self.vertex)]
         return x - BOUNDS <= mx <= x + BOUNDS and y - BOUNDS <= my <= y + BOUNDS
 
+    def update(self):
+        self.circle = *self.canvas.coords[int(self.vertex)], NODE_RADIUS
+
 
 class Selection(Line):
-    __slots__ = 'color', 'min_x', 'max_x', 'min_y', 'max_y'
+    __slots__ = 'color', 'min_x', 'max_x', 'min_y', 'max_y', 'group_name'
 
     def __init__(self, *args, **kwargs):
-        self.color = Color(*SELECT_RECT_COLOR)
+        self.group_name = str(id(self))
+        self.color = Color(*SELECT_RECT_COLOR, group=self.group_name)
 
-        super().__init__(width=SELECT_WIDTH, close=True)
+        super().__init__(width=SELECT_WIDTH, close=True, group=self.group_name)
 
         self.set_corners()
 
@@ -65,8 +79,41 @@ class SelectedSet(NodeSet):
         super().remove(node)
         node.unfreeze()
 
-
 class PinnedSet(NodeSet):
     def remove(self, node):
         super().remove(node)
         node.color.rgba = HIGHLIGHTED_NODE
+
+
+class GraphInterface(Graph):
+    """
+    An interface from a graph_tool Graph to graph widget that updates the widget when an edge/vertex
+    has been added/removed.  Our solution to dealing with dynamic graphs that change size.
+    """
+    __slots__ = "graph_widget"
+
+    def __init__(self, graph_widget, *args, **kwargs):
+        self.graph_widget = graph_widget
+        super().__init__(*args, **kwargs)
+
+    def add_vertex(self, *args, **kwargs):
+        node = super().add_vertex(*args, **kwargs)
+        self.graph_widget.make_vertex(node)
+        return node
+
+    def remove_vertex(self, node, fast=True):
+        for edge in node.all_edges():
+            self.remove_edge(edge)
+        self.graph_widget.pre_unmake_node(node)
+        super().remove_vertex(node, fast=fast)
+        self.graph_widget.post_unmake_node()
+
+    def add_edge(self, *args, **kwargs):
+        edge = super().add_edge(*args, **kwargs)
+        self.graph_widget.make_edge(edge)
+        return edge
+
+    def remove_edge(self, edge):
+        self.graph_widget.unmake_edge(edge)
+        super().remove_edge(edge)
+

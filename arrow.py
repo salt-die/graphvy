@@ -7,11 +7,13 @@ from math import atan2, cos, sin
 from kivy.graphics import Color, Line
 from kivy.uix.widget import Widget
 
+from constants import *
+
 
 class Triangle(Line):
-    __slots__ = 'x1', 'y1', 'x2', 'y2', 'x3', 'y3', 'color'
+    __slots__ = 'x1', 'y1', 'x2', 'y2', 'x3', 'y3', 'color', 'group_name'
 
-    def __init__(self, color, width, size):
+    def __init__(self, color, width, size, group_name=None):
         """
         Triangle points are: (-3, 0), (-6, 1), (-6, -1). Looks like:
         (Two characters per x unit, One line per y unit, O is origin)
@@ -31,8 +33,13 @@ class Triangle(Line):
         self.x3 = -6 * size
         self.y3 = -1 * size
 
-        self.color = Color(*color)
-        super().__init__(close=True, width=width)
+        if group_name is None:
+            self.group_name = str(id(self))
+        else:
+            self.group_name = group_name
+
+        self.color = Color(*color, group=self.group_name)
+        super().__init__(close=True, width=width, group=self.group_name)
 
 
     def update(self, x1, y1, x2, y2):
@@ -51,17 +58,41 @@ class Triangle(Line):
 
 
 class Arrow(Line):
-    __slots__ = 'color', 'head'
+    __slots__ = 'group_name', 'color', 'head'
 
-    def __init__(self, line_color, head_color, width, size=3):
-        self.color = Color(*line_color)
-        super().__init__(width=width)
+    def __init__(self,
+                 line_color,
+                 head_color,
+                 width,
+                 head_size):
 
-        self.head = Triangle(color=head_color, width=width, size=size)
+        self.group_name = str(id(self))
+        self.color = Color(*line_color, group=self.group_name)
+        super().__init__(width=width, group=self.group_name)
+
+        self.head = Triangle(color=head_color,
+                             width=width,
+                             size=head_size,
+                             group_name=self.group_name)
 
     def update(self, x1, y1, x2, y2):
         self.points = x1, y1, x2, y2
         self.head.update(x1, y1, x2, y2)
+
+
+class Edge(Arrow):
+    __slots__ = 's', 't', 'canvas'
+
+    def __init__(self, edge, canvas):
+        self.s, self.t = edge
+        self.canvas = canvas
+        super().__init__(line_color=EDGE_COLOR,
+                         head_color=HEAD_COLOR,
+                         width=EDGE_WIDTH,
+                         head_size=HEAD_SIZE)
+
+    def update(self):
+        super().update(*self.canvas.coords[int(self.s)], *self.canvas.coords[int(self.t)])
 
 
 if __name__ == '__main__':

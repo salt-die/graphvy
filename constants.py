@@ -27,6 +27,8 @@ SELECT_RECT_COLOR =     1,     1,     1, 0.8 # color of select_rect's outline
 NODE_RADIUS  = 3
 BOUNDS       = NODE_RADIUS * 2
 
+HEAD_SIZE    = 3 # size of arrow heads
+
 NODE_WIDTH   = 3
 EDGE_WIDTH   = 2
 SELECT_WIDTH = 1.2
