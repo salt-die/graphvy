@@ -395,11 +395,9 @@ class GraphCanvas(Widget):
 
         self.highlighted = None
 
-        # Now we loop through all nodes until we find a collision with mouse:
-        for node in self.nodes.values():
-            if node.collides(mx, my):
-                self.highlighted = node
-                return
+        collisions, = np.where(np.all(np.isclose(self.coords, (mx, my), atol=BOUNDS), axis=1))
+        if len(collisions):
+            self.highlighted = self.nodes[self.G.vertex(collisions[0])]
 
 
 if __name__ == "__main__":

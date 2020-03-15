@@ -130,3 +130,13 @@ class EdgeFlipGASEP(EdgeCentricGASEP):
 
         if not move(source, target):
             self.G.add_edge(source, target)
+
+PHOTON = 0
+MATTER = 1
+ANTIMATTER = -1
+class Gravity(AsyncDynamicBase):
+    """An asynchronous graph that very loosely resembles gravity."""
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        flavors = self.G.new_edge_property('short')
+        self.G.ep.flavor = flavors
