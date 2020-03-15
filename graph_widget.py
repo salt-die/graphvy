@@ -217,14 +217,15 @@ class GraphCanvas(Widget):
 
         node, pos, _edge_instructions = self._last_node_to_pos
 
-        node.vertex = self.G.vertex(pos)
-        self.nodes[node.vertex] = node
+        node.vertex = self.G.vertex(pos)  # Update descriptor
+        self.nodes[node.vertex] = node    # Update node dict
 
         for edge_instruction, edge in zip(_edge_instructions, node.vertex.all_edges()):
-            edge_instruction.s, edge_instruction.t = edge
+            edge_instruction.s, edge_instruction.t = edge  # Update descriptor
+            self.edges[edge] = edge_instruction  # Update edge dict
+            # In case edge index order changed, we should correct edge color:
             is_highlighted = self.G.vp.pinned[edge_instruction.s]
             edge_instruction.color.rgba = HIGHLIGHTED_EDGE if is_highlighted else EDGE_COLOR
-            self.edges[edge] = edge_instruction
 
         self._last_node_to_pos = None
 
