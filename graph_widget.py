@@ -255,8 +255,8 @@ class GraphCanvas(Widget):
                 if self.highlighted in self._pinned:
                     self._pinned.remove(self.highlighted)
                 elif self.highlighted in self._selected:
-                    self._selected.remove(self.highlighted)
-                    self._pinned.add(self.highlighted)
+                    self._selected.remove(self.highlighted) # This order is important else
+                    self._pinned.add(self.highlighted)      # node color will be incorrect.
                 else:
                     self._selected.add(self.highlighted)
             return True
