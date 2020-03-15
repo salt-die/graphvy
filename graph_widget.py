@@ -218,8 +218,8 @@ class GraphCanvas(Widget):
 
     def transform_coords(self, x=None, y=None):
         """
-        Transform vertex coordinates to canvas coordinates.  Return the entire array of vertex
-        coordinates if no specific coordinate is passed.
+        Transform vertex coordinates to canvas coordinates.  If no specific coordinate is passed
+        transform all coordinates and set to self.coords.
         """
 
         if x is not None:
