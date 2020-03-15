@@ -239,8 +239,11 @@ class GraphCanvas(Widget):
 
     @redraw_canvas_after
     def on_touch_down(self, touch):
-        self._touches.append(touch)
+        if not self.collide_point(*touch.pos):
+            return
 
+        touch.grab(self)
+        self._touches.append(touch)
         self._mouse_pos_disabled = True
 
         if touch.button == 'right':
@@ -265,10 +268,11 @@ class GraphCanvas(Widget):
         return True
 
     def on_touch_up(self, touch):
+        if touch.grab_current is not self:
+            return
+        touch.ungrab(self)
         self._touches.remove(touch)
-
         self._mouse_pos_disabled = False
-
         self.is_drag_select = False
 
     @redraw_canvas_after
@@ -276,6 +280,9 @@ class GraphCanvas(Widget):
         """
         Zoom if multitouch, else if a node is highlighted, drag it, else move the entire graph.
         """
+        if touch.grab_current is not self:
+            return
+
         if len(self._touches) > 1:
             return self.transform_on_touch(touch)
 
@@ -334,10 +341,10 @@ class GraphCanvas(Widget):
     @limit(UPDATE_INTERVAL)
     @redraw_canvas_after
     def on_mouse_pos(self, *args):
-        if self._mouse_pos_disabled:
-            return
-
         mx, my = args[-1]
+
+        if self._mouse_pos_disabled or not self.collide_point(mx, my):
+            return
 
         # Keeping track of highlighted node should prevent us from having to check collisions
         # between nodes and touch too often.
