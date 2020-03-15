@@ -391,8 +391,7 @@ class GraphCanvas(Widget):
         if self._mouse_pos_disabled or not self.collide_point(mx, my):
             return
 
-        # Keeping track of highlighted node should prevent us from having to check collisions
-        # between nodes and touch too often.
+        # Check collision with already highlighted node first:
         if self.highlighted is not None and self.highlighted.collides(mx, my):
             return
 
