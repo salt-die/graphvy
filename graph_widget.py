@@ -89,12 +89,12 @@ class GraphCanvas(Widget):
         super().__init__(*args, **kwargs)
 
         # Following attributes set in setup_canvas:
-        self.edges = None
-        self.nodes = None
+        self.edges = None  # dict from self.G.edges() to Edge instruction group
+        self.nodes = None  # dict from self.G.vertices() to Node instruction group
         self.rect = None
         self.select_rect = None
-        self.edge_instructions = None
-        self.node_instructions = None
+        self._edge_instructions = None
+        self._node_instructions = None
         self.setup_canvas()
 
         self.coords = None  # Set in transform_coords
@@ -171,22 +171,22 @@ class GraphCanvas(Widget):
             Color(*BACKGROUND_COLOR)
             self.rect = Rectangle(size=self.size, pos=self.pos)
 
-        self.edge_instructions = CanvasBase()
-        with self.edge_instructions:
+        self._edge_instructions = CanvasBase()
+        with self._edge_instructions:
             self.edges = {edge: Edge(edge, self) for edge in self.G.edges()}
-        self.canvas.add(self.edge_instructions)
+        self.canvas.add(self._edge_instructions)
 
-        self.node_instructions = CanvasBase()
-        with self.node_instructions:
+        self._node_instructions = CanvasBase()
+        with self._node_instructions:
             self.nodes = {vertex: Node(vertex, self) for vertex in self.G.vertices()}
-        self.canvas.add(self.node_instructions)
+        self.canvas.add(self._node_instructions)
 
         with self.canvas.after:
             self.select_rect = Selection()
 
     def make_node(self, node):
         """Make a new canvas instruction corresponding to node."""
-        with self.node_instructions:
+        with self._node_instructions:
             self.nodes[node] = Node(node, self)
 
     def pre_unmake_node(self, node):
@@ -195,20 +195,20 @@ class GraphCanvas(Widget):
         """
 
         last = self.G.num_vertices() - 1
-        if int(node) != last:
-            last_node = self.nodes[G.vertex(last)]
+        if int(node) == last:
+            self._last_node_to_pos = None
+        else:
+            last_node = self.nodes.pop(G.vertex(last))
             last_node_edges = tuple(self.edges.pop(edge) for edge in last_node.all_edges())
             self._last_node_to_pos = last_node, int(node), last_node_edges
-        else:
-            self._last_node_to_pos = None
 
         instruction = self.nodes.pop(node)
-        self.node_instructions.remove_group(instruction.group_name)
+        self._node_instructions.remove_group(instruction.group_name)
 
     def post_unmake_node(self):
         """
         Swap the vertex descriptor of the last node and edge descriptors of all edges adjacent to
-        it and fix our edge dictionary that used these descriptors.
+        it and fix our node and edge dictionary that used these descriptors.
 
         (Node deletion invalidated these descriptors.)
         """
@@ -216,9 +216,12 @@ class GraphCanvas(Widget):
         if self._last_node_to_pos is None:
             return
 
-        node, pos, edge_instructions = self._last_node_to_pos
+        node, pos, _edge_instructions = self._last_node_to_pos
+
         node.vertex = self.G.vertex(pos)
-        for edge_instruction, edge in zip(edge_instructions, node.vertex.all_edges()):
+        self.nodes[node.vertex] = node
+
+        for edge_instruction, edge in zip(_edge_instructions, node.vertex.all_edges()):
             edge_instruction.s, edge_instruction.t = edge
             is_highlighted = self.G.vp.pinned[edge_instruction.s]
             edge_instruction.color.rgba = HIGHLIGHTED_EDGE if is_highlighted else EDGE_COLOR
@@ -228,13 +231,13 @@ class GraphCanvas(Widget):
 
     def make_edge(self, edge):
         """Make a new canvas instruction corresponding to edge."""
-        with self.edge_instructions:
+        with self._edge_instructions:
             self.edges[edge] = Edge(edge, self)
 
     def unmake_edge(self, edge):
         """Remove the canvas instruction corresponding to edge."""
         instruction = self.edges.pop(edge)
-        self.edge_instructions.remove_group(instruction.group_name)
+        self._edge_instructions.remove_group(instruction.group_name)
 
     @limit(UPDATE_INTERVAL)
     def update_canvas(self, *args):
