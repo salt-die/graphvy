@@ -193,18 +193,30 @@ class GraphCanvas(Widget):
         """Remove the canvas instruction corresponding to node."""
         last = self.G.num_vertices() - 1
         if int(node) != last:
-            self._last_node_to_pos = self.nodes[G.vertex(last)], int(node)
+            last_node = self.nodes[G.vertex(last)]
+            last_node_edges = tuple(self.edges[edge] for edge in last_node.all_edges())
+            self._last_node_to_pos = last_node, int(node), last_node_edges
         else:
             self._last_node_to_pos = None
         instruction = self.nodes.pop(node)
         self.node_instructions.remove_group(instruction.group_name)
 
     def post_unmake_node(self):
-        """Swap the vertex descriptor of the last node. (Node deletion invalidated it.)"""
+        """
+        Swap the vertex descriptor of the last node and edge descriptors of all edges adjacent to
+        it. (Node deletion invalidated these descriptors.)
+        """
+
         if self._last_node_to_pos is None:
             return
-        node, pos = self._last_node_to_pos
+
+        node, pos, edges = self._last_node_to_pos
         node.vertex = self.G.vertex(pos)
+        for edge_instruction, edge in zip(edges, node.vertex.all_edges()):
+            edge_instruction.s, edge_instruction.t = edge
+            is_highlighted = self.G.vp.pinned[edge_instruction.s]
+            edge_instruction.color.rgba = HIGHLIGHTED_EDGE if is_highlighted else EDGE_COLOR
+
         self._last_node_to_pos = None
 
     def make_edge(self, edge):
