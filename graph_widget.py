@@ -28,7 +28,7 @@ Config.set('input', 'mouse', 'mouse,multitouch_on_demand')
 
 
 def redraw_canvas_after(func):
-    """For methods that change vertex coordinates or edge colors."""
+    """For methods that change vertex coordinates."""
     @wraps(func)
     def wrapper(*args, **kwargs):
         results = func(*args, **kwargs)
@@ -280,7 +280,6 @@ class GraphCanvas(Widget):
         return (((x / self.width) - off_x) / self.scale,
                 ((y / self.height) - off_y) / self.scale)
 
-    @redraw_canvas_after
     def on_touch_down(self, touch):
         if not self.collide_point(*touch.pos):
             return
@@ -351,21 +350,6 @@ class GraphCanvas(Widget):
         self.offset_y += touch.dy / self.height
         return True
 
-    def on_drag_select(self, touch):
-        selected = self._selected
-        self.select_rect.set_corners(touch.ox, touch.oy, touch.x, touch.y)
-
-        for node in self.nodes.values():
-            coord = self.coords[int(node.vertex)]
-            if node in selected:
-                if coord not in self.select_rect:
-                    selected.remove(node)
-            else:
-                if node not in self._pinned and coord in self.select_rect:
-                    selected.add(node)
-
-        return True
-
     def transform_on_touch(self, touch):
         ax, ay = self._touches[-2].pos  # Anchor coords
         x, y = self.invert_coords(ax, ay)
@@ -379,6 +363,21 @@ class GraphCanvas(Widget):
         # Make sure the anchor is a fixed point:
         self.offset_x += (ax - x) / self.width
         self.offset_y += (ay - y) / self.height
+
+        return True
+
+    def on_drag_select(self, touch):
+        selected = self._selected
+        self.select_rect.set_corners(touch.ox, touch.oy, touch.x, touch.y)
+
+        for node in self.nodes.values():
+            coord = self.coords[int(node.vertex)]
+            if node in selected:
+                if coord not in self.select_rect:
+                    selected.remove(node)
+            else:
+                if node not in self._pinned and coord in self.select_rect:
+                    selected.add(node)
 
         return True
 

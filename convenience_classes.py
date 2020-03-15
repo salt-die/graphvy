@@ -18,20 +18,21 @@ class Node(Line):
         self.color = Color(*NODE_COLOR, group=self.group_name)
         super().__init__(width=NODE_WIDTH, group=self.group_name)
 
-    def recolor_out_edges(self, color):
+    def recolor_out_edges(self, line_color, head_color):
         edges = self.canvas.edges
         for edge in self.vertex.out_edges():
-            edges[edge].color.rgba = color
+            edges[edge].color.rgba = line_color
+            edges[edge].head.color.rgba = head_color
 
     def freeze(self, color):
         self.canvas.G.vp.pinned[self.vertex] = 1
         self.color.rgba = color
-        self.recolor_out_edges(HIGHLIGHTED_EDGE)
+        self.recolor_out_edges(HIGHLIGHTED_EDGE, HIGHLIGHTED_HEAD)
 
     def unfreeze(self):
         self.canvas.G.vp.pinned[self.vertex] = 0
         self.color.rgba = NODE_COLOR
-        self.recolor_out_edges(EDGE_COLOR)
+        self.recolor_out_edges(EDGE_COLOR, HEAD_COLOR)
 
     def collides(self, mx, my):
         x, y = self.canvas.coords[int(self.vertex)]
@@ -47,9 +48,14 @@ class Edge(Arrow):
     def __init__(self, edge, canvas):
         self.s, self.t = edge
         self.canvas = canvas
-        color = HIGHLIGHTED_EDGE if self.canvas.G.vp.pinned[self.s] else EDGE_COLOR
-        super().__init__(line_color=color,
-                         head_color=HEAD_COLOR,
+        if self.canvas.G.vp.pinned[self.s]:
+            line_color = HIGHLIGHTED_EDGE
+            head_color = HIGHLIGHTED_HEAD
+        else:
+            line_color = EDGE_COLOR
+            head_color = HEAD_COLOR
+        super().__init__(line_color=line_color,
+                         head_color=head_color,
                          width=EDGE_WIDTH,
                          head_size=HEAD_SIZE)
 
