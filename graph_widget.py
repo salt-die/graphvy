@@ -70,8 +70,7 @@ class GraphCanvas(Widget):
 
     _touches = []
 
-    offset_x = .25
-    offset_y = .25
+    offset = Vector(.25, .25)
     scale = .5
 
     is_selecting = False
@@ -185,13 +184,13 @@ class GraphCanvas(Widget):
             self.select_rect = Selection()
 
     def make_node(self, node):
-        """Make a new canvas instruction corresponding to node."""
+        """Make new canvas instructions corresponding to node."""
         with self._node_instructions:
             self.nodes[node] = Node(node, self)
 
     def pre_unmake_node(self, node):
         """
-        Remove the canvas instruction corresponding to node. Prepare last node to take its place.
+        Remove the canvas instructions corresponding to node. Prepare last node to take its place.
         """
 
         last = self.G.num_vertices() - 1
@@ -222,7 +221,8 @@ class GraphCanvas(Widget):
 
         for edge_instruction, edge in zip(_edge_instructions, node.vertex.all_edges()):
             edge_instruction.s, edge_instruction.t = edge  # Update descriptor
-            self.edges[edge] = edge_instruction  # Update edge dict
+            self.edges[edge] = edge_instruction            # Update edge dict
+
             # In case edge index order changed, we should correct edge color:
             is_highlighted = self.G.vp.pinned[edge_instruction.s]
             edge_instruction.color.rgba = HIGHLIGHTED_EDGE if is_highlighted else EDGE_COLOR
@@ -230,12 +230,12 @@ class GraphCanvas(Widget):
         self._last_node_to_pos = None
 
     def make_edge(self, edge):
-        """Make a new canvas instruction corresponding to edge."""
+        """Make new canvas instructions corresponding to edge."""
         with self._edge_instructions:
             self.edges[edge] = Edge(edge, self)
 
     def unmake_edge(self, edge):
-        """Remove the canvas instruction corresponding to edge."""
+        """Remove the canvas instructions corresponding to edge."""
         instruction = self.edges.pop(edge)
         self._edge_instructions.remove_group(instruction.group_name)
 
@@ -247,7 +247,6 @@ class GraphCanvas(Widget):
             self.rect.pos = self.pos
 
         self.transform_coords()
-        coords = self.coords
 
         for node in self.nodes.values():
             node.update()
@@ -266,19 +265,17 @@ class GraphCanvas(Widget):
         """
 
         if x is not None:
-            return ((x * self.scale + self.offset_x) * self.width,
-                    (y * self.scale + self.offset_y) * self.height)
+            return (Vector(x, y) * self.scale + self.offset) * self.size
 
         self.coords = coords = self.G.vp.pos.get_2d_array((0, 1)).T
         np.multiply(coords, self.scale, out=coords)
-        np.add(coords, (self.offset_x, self.offset_y), out=coords)
+        np.add(coords, self.offset, out=coords)
         np.multiply(coords, (self.width, self.height), out=coords)
 
     def invert_coords(self, x, y, delta=False):
         """Transform canvas coordinates to vertex coordinates."""
-        off_x, off_y = (0, 0) if delta else (self.offset_x, self.offset_y)
-        return (((x / self.width) - off_x) / self.scale,
-                ((y / self.height) - off_y) / self.scale)
+        offset = (0, 0) if delta else self.offset
+        return (Vector(x, y) / self.size - offset) / self.scale
 
     def on_touch_down(self, touch):
         if not self.collide_point(*touch.pos):
@@ -346,8 +343,7 @@ class GraphCanvas(Widget):
             self.G.vp.pos[self.highlighted.vertex][:] = self.invert_coords(touch.x, touch.y)
             return True
 
-        self.offset_x += touch.dx / self.width
-        self.offset_y += touch.dy / self.height
+        self.offset += Vector(touch.dx, touch.dy) / self.size
         return True
 
     def transform_on_touch(self, touch):
@@ -361,8 +357,7 @@ class GraphCanvas(Widget):
 
         x, y = self.transform_coords(x, y)
         # Make sure the anchor is a fixed point:
-        self.offset_x += (ax - x) / self.width
-        self.offset_y += (ay - y) / self.height
+        self.offset += Vector(ax - x, ay - y) / self.size
 
         return True
 
@@ -374,7 +369,7 @@ class GraphCanvas(Widget):
         rect.set_corners(touch.ox, touch.oy, touch.x, touch.y)
         coords_within = ((rect.min_x, rect.min_y) <= coords) & (coords <= (rect.max_x, rect.max_y))
         node_indices = np.argwhere(np.all(coords_within, axis=1))
-        nodes = tuple(self.nodes[self.G.vertex(index)] for index in node_indices)
+        nodes = (self.nodes[self.G.vertex(index)] for index in node_indices)
 
         for node in selected.symmetric_difference(nodes):  # Note: Don't use update, we depend on
             if node in selected:                           # remove/add methods of subclassed set.
