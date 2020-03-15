@@ -368,16 +368,19 @@ class GraphCanvas(Widget):
 
     def on_drag_select(self, touch):
         selected = self._selected
-        self.select_rect.set_corners(touch.ox, touch.oy, touch.x, touch.y)
+        rect = self.select_rect
+        coords = self.coords
 
-        for node in self.nodes.values():
-            coord = self.coords[int(node.vertex)]
-            if node in selected:
-                if coord not in self.select_rect:
-                    selected.remove(node)
-            else:
-                if node not in self._pinned and coord in self.select_rect:
-                    selected.add(node)
+        rect.set_corners(touch.ox, touch.oy, touch.x, touch.y)
+        coords_within = ((rect.min_x, rect.min_y) <= coords) & (coords <= (rect.max_x, rect.max_y))
+        node_indices = np.argwhere(np.all(coords_within, axis=1))
+        nodes = tuple(self.nodes[self.G.vertex(index)] for index in node_indices)
+
+        for node in selected.symmetric_difference(nodes):  # Note: Don't use update, we depend on
+            if node in selected:                           # remove/add methods of subclassed set.
+                selected.remove(node)
+            elif node not in self._pinned:
+                selected.add(node)
 
         return True
 
@@ -395,9 +398,9 @@ class GraphCanvas(Widget):
 
         self.highlighted = None
 
-        collisions, = np.where(np.all(np.isclose(self.coords, (mx, my), atol=BOUNDS), axis=1))
+        collisions = np.argwhere(np.all(np.isclose(self.coords, (mx, my), atol=BOUNDS), axis=1))
         if len(collisions):
-            self.highlighted = self.nodes[self.G.vertex(collisions[0])]
+            self.highlighted = self.nodes[self.G.vertex(collisions[0][0])]
 
 
 if __name__ == "__main__":
