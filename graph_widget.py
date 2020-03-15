@@ -17,6 +17,7 @@ graphs that grow or shrink.  (We assume a constant number of nodes/edges.)
 ### TODO: bezier lines (only when paused; computationally heavy)
 ### TODO: degree histogram
 ### TODO: handle callbacks that change the number of nodes/edges
+### TODO: hide/filter nodes
 from functools import wraps
 import time
 
