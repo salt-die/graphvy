@@ -69,7 +69,8 @@ class GraphCanvas(Widget):
 
     _touches = []
 
-    offset = np.array([.25, .25])
+    offset_x = .25
+    offset_y = .25
     scale = .5
 
     is_selecting = False
@@ -78,8 +79,6 @@ class GraphCanvas(Widget):
 
     _callback_paused = False
     _layout_paused = False
-
-    _buffer = np.zeros_like(offset)
 
     def __init__(self, *args, G=None, graph_callback=None, **kwargs):
         self.G = GraphInterface(self) if G is None else GraphInterface(self, G)
@@ -266,27 +265,18 @@ class GraphCanvas(Widget):
         """
 
         if x is not None:
-            buffer = self._buffer
-            buffer[:] = x, y
-            np.multiply(buffer, self.scale, out=buffer)
-            np.add(buffer, self.offset, out=buffer)
-            np.multiply(buffer, self.size, out=buffer)
-            return buffer
+            return ((x * self.scale + self.offset_x) * self.width,
+                    (y * self.scale + self.offset_y) * self.height)
 
         self.coords = coords = self.G.vp.pos.get_2d_array((0, 1)).T
         np.multiply(coords, self.scale, out=coords)
-        np.add(coords, self.offset, out=coords)
+        np.add(coords, (self.offset_x, self.offset_y), out=coords)
         np.multiply(coords, (self.width, self.height), out=coords)
 
     def invert_coords(self, x, y, delta=False):
         """Transform canvas coordinates to vertex coordinates."""
-        offset = (0, 0) if delta else self.offset
-        buffer = self._buffer
-        buffer[:] = x, y
-        np.divide(buffer, self.size, out=buffer)
-        np.subtract(buffer, offset, out=buffer)
-        np.divide(buffer, self.scale, out=buffer)
-        return buffer
+        off_x, off_y = (0, 0) if delta else (self.offset_x, self.offset_y)
+        return (x / self.width - off_x) / self.scale, (y / self.height - off_y) / self.scale
 
     def on_touch_down(self, touch):
         if not self.collide_point(*touch.pos):
@@ -354,32 +344,28 @@ class GraphCanvas(Widget):
             self.G.vp.pos[self.highlighted.vertex][:] = *self.invert_coords(touch.x, touch.y),
             return True
 
-        np.divide((touch.dx, touch.dy), self.size, out=self._buffer)
-        np.add(self.offset, self._buffer, out=self.offset)
+        self.offset_x += touch.dx / self.width
+        self.offset_y += touch.dy / self.height
         return True
 
     def transform_on_touch(self, touch):
         ax, ay = self._touches[-2].pos  # Anchor coords
         x, y = self.invert_coords(ax, ay)
 
-        buffer = self._buffer
-        buffer[:] = touch.pos
-        np.subtract(buffer, (ax, ay), out=buffer)
-        np.divide(buffer, self.size, out=buffer)
-        current_length = np.linalg.norm(buffer)
+        cx = (touch.x - ax) / self.width
+        cy = (touch.y - ay) / self.height
+        current_length = (cx**2 + cy**2)**.5
 
-        buffer[:] = touch.px, touch.py
-        np.subtract(buffer, (ax, ay), out=buffer)
-        np.divide(buffer, self.size, out=buffer)
-        previous_length = np.linalg.norm(buffer)
+        px = (touch.px - ax) / self.width
+        py = (touch.py - ay) / self.height
+        previous_length = (px**2 + py**2)**.5
 
         self.scale += current_length - previous_length
 
         # Make sure the anchor is a fixed point:
         x, y = self.transform_coords(x, y)
-        buffer[:] = ax - x, ay - y
-        np.divide(buffer, self.size, out=buffer)
-        np.add(buffer, self.offset, out=self.offset)
+        self.offset_x += (ax - x) / self.width
+        self.offset_y += (ay - y) / self.height
 
         return True
 
