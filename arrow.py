@@ -1,14 +1,17 @@
 """
 A Line canvas instruction with an arrow at the end.
 """
-from math import atan2, cos, sin
+import numpy as np
+from math import atan2, sin, cos  # Should be slightly faster than numpy for non-arrays.
 
 from kivy.graphics import Color, Line
 from kivy.uix.widget import Widget
 
 
+ROTATION = np.zeros((2, 2), dtype=float)  # Used as a buffer for Triangle rotation matrix
+
 class Triangle(Line):
-    __slots__ = 'x1', 'y1', 'x2', 'y2', 'x3', 'y3', 'color', 'group_name'
+    __slots__ = 'base', 'buffer', 'color', 'group_name'
 
     def __init__(self, color, width, size, group_name=None):
         """
@@ -23,12 +26,8 @@ class Triangle(Line):
 
         Tip is off origin so that arrow is less covered by nodes.
         """
-        self.x1 = -3 * size
-        self.y1 =  0 * size
-        self.x2 = -6 * size
-        self.y2 =  1 * size
-        self.x3 = -6 * size
-        self.y3 = -1 * size
+        self.base = np.array([[-3, 0], [-6, 1], [-6, -1]], dtype=float) * size
+        self.buffer = np.zeros_like(self.base)
 
         if group_name is None:
             self.group_name = str(id(self))
@@ -41,17 +40,17 @@ class Triangle(Line):
 
     def update(self, x1, y1, x2, y2):
         theta = atan2(y2 - y1, x2 - x1)
-        cosine, sine = cos(theta), sin(theta)
 
-        # Rotate the base arrow by theta and move it to x2, y2
-        px1 = self.x1 * cosine + self.y1 * -sine + x2
-        py1 = self.x1 *  sine  + self.y1 * cosine + y2
-        px2 = self.x2 * cosine + self.y2 * -sine + x2
-        py2 = self.x2 *  sine  + self.y2 * cosine + y2
-        px3 = self.x3 * cosine + self.y3 * -sine + x2
-        py3 = self.x3 *  sine  + self.y3 * cosine + y2
+        ROTATION[(0, 1), (0, 1)] = cos(theta)
 
-        self.points = px1, py1, px2, py2, px3, py3
+        sine = sin(theta)
+        ROTATION[0, 1] = sine
+        ROTATION[1, 0] = -sine
+
+        np.matmul(self.base, ROTATION, out=self.buffer)
+        np.add(self.buffer, (x2, y2), out=self.buffer)
+
+        self.points = *self.buffer.reshape(1, -1)[0],
 
 
 class Arrow(Line):
