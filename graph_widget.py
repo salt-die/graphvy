@@ -208,9 +208,8 @@ class GraphCanvas(Widget):
     def post_unmake_node(self):
         """
         Swap the vertex descriptor of the last node and edge descriptors of all edges adjacent to
-        it and fix our node and edge dictionary that used these descriptors.
-
-        (Node deletion invalidated these descriptors.)
+        it and fix our node and edge dictionary that used these descriptors. (Node deletion
+        invalidated these descriptors.)
         """
 
         if self._last_node_to_pos is None:
