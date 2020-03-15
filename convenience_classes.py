@@ -96,6 +96,7 @@ class SelectedSet(NodeSet):
         super().remove(node)
         node.unfreeze()
 
+
 class PinnedSet(NodeSet):
     def remove(self, node):
         super().remove(node)
