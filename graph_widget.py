@@ -28,10 +28,7 @@ Config.set('input', 'mouse', 'mouse,multitouch_on_demand')
 
 
 def redraw_canvas_after(func):
-    """
-    For methods that change vertex coordinates or edge colors.
-    """
-
+    """For methods that change vertex coordinates or edge colors."""
     @wraps(func)
     def wrapper(*args, **kwargs):
         results = func(*args, **kwargs)
@@ -44,7 +41,6 @@ def redraw_canvas_after(func):
 def limit(interval):
     def deco(func):
         """Limits how quickly a function can be called."""
-
         last_call = time.time()
 
         @wraps(func)
@@ -125,7 +121,6 @@ class GraphCanvas(Widget):
     @highlighted.setter
     def highlighted(self, node):
         """Freezes highlighted nodes or returns un-highlighted nodes to the proper color."""
-
         lit = self.highlighted
         if lit is not None:
             if lit in self._selected:
@@ -147,7 +142,6 @@ class GraphCanvas(Widget):
     @is_drag_select.setter
     def is_drag_select(self, boolean):
         """Make select_rect visible or non-visible depending on state."""
-
         self._drag_selection = boolean
         self.select_rect.set_corners()
         self.select_rect.color.a = int(boolean) * SELECT_RECT_COLOR[-1]
@@ -261,8 +255,8 @@ class GraphCanvas(Widget):
     def invert_coords(self, x, y, delta=False):
         """Transform canvas coordinates to vertex coordinates."""
         off_x, off_y = (0, 0) if delta else (self.offset_x, self.offset_y)
-
-        return ((x / self.width) - off_x) / self.scale, ((y / self.height) - off_y) / self.scale
+        return (((x / self.width) - off_x) / self.scale,
+                ((y / self.height) - off_y) / self.scale)
 
     @redraw_canvas_after
     def on_touch_down(self, touch):
@@ -307,6 +301,7 @@ class GraphCanvas(Widget):
         """
         Zoom if multitouch, else if a node is highlighted, drag it, else move the entire graph.
         """
+
         if touch.grab_current is not self:
             return
 
@@ -400,8 +395,10 @@ if __name__ == "__main__":
             return self.GC
 
         def on_key_down(self, *args):
-            """Will use key presses to change GraphCanvas's modes when testing; Ideally, we'd use
-               buttons in some other widget..."""
+            """
+            Will use key presses to change GraphCanvas's modes when testing; Ideally, we'd use
+            buttons in some other widget.
+            """
             if args[1] in (LSHIFT, RSHIFT):
                 self.GC.is_selecting = True
             elif args[1] in (LCTRL, RCTRL):
