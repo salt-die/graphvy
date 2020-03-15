@@ -7,7 +7,7 @@ from constants import *
 
 
 class Node(Line):
-    __slots__ = 'color', 'vertex', 'canvas', 'group_name', 'is_frozen'
+    __slots__ = 'color', 'vertex', 'canvas', 'group_name'
 
     def __init__(self, vertex, canvas):
         self.group_name = str(id(self))
