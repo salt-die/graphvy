@@ -2,6 +2,7 @@
 from kivy.graphics import Color, Line
 from graph_tool import Graph
 
+from arrow import Arrow
 from constants import *
 
 
@@ -38,6 +39,22 @@ class Node(Line):
 
     def update(self):
         self.circle = *self.canvas.coords[int(self.vertex)], NODE_RADIUS
+
+
+class Edge(Arrow):
+    __slots__ = 's', 't', 'canvas'
+
+    def __init__(self, edge, canvas):
+        self.s, self.t = edge
+        self.canvas = canvas
+        color = HIGHLIGHTED_EDGE if self.canvas.G.vp.pinned[self.s] else EDGE_COLOR
+        super().__init__(line_color=color,
+                         head_color=HEAD_COLOR,
+                         width=EDGE_WIDTH,
+                         head_size=HEAD_SIZE)
+
+    def update(self):
+        super().update(*self.canvas.coords[int(self.s)], *self.canvas.coords[int(self.t)])
 
 
 class Selection(Line):
@@ -105,7 +122,7 @@ class GraphInterface(Graph):
         for edge in node.all_edges():
             self.remove_edge(edge)
         self.graph_widget.pre_unmake_node(node)
-        super().remove_vertex(node, fast=fast)
+        super().remove_vertex(node, fast=True)  # Interface relies on fast=True
         self.graph_widget.post_unmake_node()
 
     def add_edge(self, *args, **kwargs):

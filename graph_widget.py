@@ -12,16 +12,16 @@ import time
 from kivy.app import App
 from kivy.clock import Clock
 from kivy.graphics import Color, Rectangle
+from kivy.config import Config
+from kivy.graphics.instructions import CanvasBase
 from kivy.vector import Vector
 from kivy.uix.widget import Widget
 from kivy.core.window import Window
-from kivy.config import Config
 
 from graph_tool.draw import random_layout, sfdp_layout
 import numpy as np
 
-from arrow import Edge
-from convenience_classes import Node, Selection, SelectedSet, PinnedSet, GraphInterface
+from convenience_classes import Node, Edge, Selection, SelectedSet, PinnedSet, GraphInterface
 from constants import *
 
 Config.set('input', 'mouse', 'mouse,multitouch_on_demand')
@@ -89,13 +89,15 @@ class GraphCanvas(Widget):
         super().__init__(*args, **kwargs)
 
         # Following attributes set in setup_canvas:
-        self.rect = None
         self.edges = None
         self.nodes = None
+        self.rect = None
         self.select_rect = None
+        self.edge_instructions = None
+        self.node_instructions = None
         self.setup_canvas()
 
-        self.coords = None  # Set in update_canvas for edges to easily reference node coordinates.
+        self.coords = None  # Set in transform_coords
 
         self.bind(size=self.update_canvas, pos=self.update_canvas)
         Window.bind(mouse_pos=self.on_mouse_pos)
@@ -171,16 +173,22 @@ class GraphCanvas(Widget):
             Color(*BACKGROUND_COLOR)
             self.rect = Rectangle(size=self.size, pos=self.pos)
 
-        with self.canvas:
+        self.edge_instructions = CanvasBase()
+        with self.edge_instructions:
             self.edges = {edge: Edge(edge, self) for edge in self.G.edges()}
+        self.canvas.add(self.edge_instructions)
+
+        self.node_instructions = CanvasBase()
+        with self.node_instructions:
             self.nodes = {vertex: Node(vertex, self) for vertex in self.G.vertices()}
+        self.canvas.add(self.node_instructions)
 
         with self.canvas.after:
             self.select_rect = Selection()
 
     def make_node(self, node):
         """Make a new canvas instruction corresponding to node."""
-        with self.canvas:
+        with self.node_instructions:
             self.nodes[node] = Node(node, self)
 
     def pre_unmake_node(self, node):
@@ -191,25 +199,25 @@ class GraphCanvas(Widget):
         else:
             self._last_node_to_pos = None
         instruction = self.nodes.pop(node)
-        self.canvas.remove_group(instruction.group_name)
+        self.node_instructions.remove_group(instruction.group_name)
 
     def post_unmake_node(self):
         """Swap the vertex descriptor of the last node. (Node deletion invalidated it.)"""
-        if self._last_node_to_pos is not None:
-            node, pos = self._last_node_to_pos
-            node.vertex = self.G.vertex(pos)
+        if self._last_node_to_pos is None:
+            return
+        node, pos = self._last_node_to_pos
+        node.vertex = self.G.vertex(pos)
+        self._last_node_to_pos = None
 
     def make_edge(self, edge):
         """Make a new canvas instruction corresponding to edge."""
-        with self.canvas:
+        with self.edge_instructions:
             self.edges[edge] = Edge(edge, self)
-        if self.G.vp.pinned[edge.source()]:
-            self.edges[edge].color.rgba = HIGHLIGHTED_EDGE
 
     def unmake_edge(self, edge):
         """Remove the canvas instruction corresponding to edge."""
         instruction = self.edges.pop(edge)
-        self.canvas.remove_group(instruction.group_name)
+        self.edge_instructions.remove_group(instruction.group_name)
 
     @limit(UPDATE_INTERVAL)
     def update_canvas(self, *args):

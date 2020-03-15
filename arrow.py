@@ -1,13 +1,10 @@
 """
-A Line canvas instruction with an arrow at the end.  For directed edges in
-graph_widget.py.
+A Line canvas instruction with an arrow at the end.
 """
 from math import atan2, cos, sin
 
 from kivy.graphics import Color, Line
 from kivy.uix.widget import Widget
-
-from constants import *
 
 
 class Triangle(Line):
@@ -78,47 +75,3 @@ class Arrow(Line):
     def update(self, x1, y1, x2, y2):
         self.points = x1, y1, x2, y2
         self.head.update(x1, y1, x2, y2)
-
-
-class Edge(Arrow):
-    __slots__ = 's', 't', 'canvas'
-
-    def __init__(self, edge, canvas):
-        self.s, self.t = edge
-        self.canvas = canvas
-        super().__init__(line_color=EDGE_COLOR,
-                         head_color=HEAD_COLOR,
-                         width=EDGE_WIDTH,
-                         head_size=HEAD_SIZE)
-
-    def update(self):
-        super().update(*self.canvas.coords[int(self.s)], *self.canvas.coords[int(self.t)])
-
-
-if __name__ == '__main__':
-    from random import random
-    from kivy.app import App
-
-    HEAD_COLOR = 0.26, 0.276, 0.567, 1
-    EDGE_COLOR = 0.16, 0.176, 0.467, 1
-
-
-    class TestArrows(Widget):
-        def __init__(self, *args, **kwargs):
-            super().__init__(*args, **kwargs)
-            self.bind(size=self.update_canvas, pos=self.update_canvas)
-
-        def update_canvas(self, *args):
-            self.canvas.clear()
-            with self.canvas:
-                for _ in range(20):
-                    arrow = Arrow(EDGE_COLOR, HEAD_COLOR, width=2)
-                    arrow.update(random() * self.width, random() * self.height,
-                                 random() * self.width, random() * self.height)
-
-
-    class ArrowsApp(App):
-        def build(self):
-            return TestArrows()
-
-    ArrowsApp().run()
