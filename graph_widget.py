@@ -60,7 +60,11 @@ def limit(interval):
 
 
 class GraphCanvas(Widget):
-    """Dynamic graph layout widget.  Layout updates as graph changes."""
+    """
+    Dynamic graph layout widget.  Layout updates as graph changes.
+
+    graph_callback(G) should return a function that updates G when called.
+    """
 
     _mouse_pos_disabled = False
 
