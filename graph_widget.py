@@ -97,7 +97,7 @@ class GraphCanvas(Widget):
         self.setup_canvas()
 
         self.coords = None  # Set in transform_coords
-        self._last_node_to_pos  # Set in unmake_node
+        self._last_node_to_pos = None  # Set in unmake_node
 
         self.bind(size=self.update_canvas, pos=self.update_canvas)
         Window.bind(mouse_pos=self.on_mouse_pos)
