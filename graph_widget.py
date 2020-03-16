@@ -58,7 +58,7 @@ class GraphCanvas(Widget):
     """
     Dynamic graph layout widget.  Layout updates as graph changes.
 
-    graph_callback(G) should return a function that updates G when called.
+    graph_callback(G) should return a callable that updates G when called.
     """
 
     _mouse_pos_disabled = False
@@ -195,9 +195,7 @@ class GraphCanvas(Widget):
         """
 
         last = self.G.num_vertices() - 1
-        if int(node) == last:
-            self._last_node_to_pos = None
-        else:
+        if int(node) != last:
             last_node = self.nodes.pop(G.vertex(last))
             last_node_edges = tuple(self.edges.pop(edge) for edge in last_node.all_edges())
             self._last_node_to_pos = last_node, int(node), last_node_edges
@@ -224,9 +222,9 @@ class GraphCanvas(Widget):
             edge_instruction.s, edge_instruction.t = edge  # Update descriptor
             self.edges[edge] = edge_instruction            # Update edge dict
 
-            # In case edge index order changed, we should correct edge color:
-            is_highlighted = self.G.vp.pinned[edge_instruction.s]
-            edge_instruction.color.rgba = HIGHLIGHTED_EDGE if is_highlighted else EDGE_COLOR
+            # In case edge index order changed, we should correct edge color by re-freezing/unfreezing the source node:
+            s = edge_instruction.s
+            (s.freeze if self.vp.pinned[s] else s.unfreeze)()
 
         self._last_node_to_pos = None
 

@@ -24,9 +24,10 @@ class Node(Line):
             edges[edge].color.rgba = line_color
             edges[edge].head.color.rgba = head_color
 
-    def freeze(self, color):
+    def freeze(self, color=None):
         self.canvas.G.vp.pinned[self.vertex] = 1
-        self.color.rgba = color
+        if color is not None:
+            self.color.rgba = color
         self.recolor_out_edges(HIGHLIGHTED_EDGE, HIGHLIGHTED_HEAD)
 
     def unfreeze(self):
