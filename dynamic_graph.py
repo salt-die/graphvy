@@ -14,8 +14,8 @@ class AsyncDynamicBase:
     __slots__ = 'G', 'niter'
 
     def __init__(self, G, *, niter=1):
-        self.G = G # Graph
-        self.niter = niter # Default iterations for self.update
+        self.G = G  # Graph
+        self.niter = niter  # Default iterations for self.update
 
     @property
     def rv(self):
@@ -91,12 +91,12 @@ class EdgeCentricGASEP(GraphASEP):
 
     def step(self):
         source, target = edge = self.re
-        self.G.remove_edge(edge) # We'll add edge back if our random move was excluded.
+        self.G.remove_edge(edge)  # We'll add edge back if our random move was excluded.
 
         source_out = source.out_degree()
         target_out = target.out_degree()
 
-        if source_out + target_out == 0: # No moves possible.
+        if source_out + target_out == 0:  # No moves possible.
             self.G.add_edge(source, target)
             return
 
@@ -119,7 +119,7 @@ class EdgeFlipGASEP(EdgeCentricGASEP):
 
     def step(self):
         source, target = edge = self.re
-        self.G.remove_edge(edge) # We'll add edge back if our random move was excluded.
+        self.G.remove_edge(edge)  # We'll add edge back if our random move was excluded.
 
         source_out = source.out_degree()
         target_out = target.out_degree()
@@ -131,11 +131,15 @@ class EdgeFlipGASEP(EdgeCentricGASEP):
         if not move(source, target):
             self.G.add_edge(source, target)
 
+
 PHOTON = 0
 MATTER = 1
 ANTIMATTER = 2
+
+
 class Gravity(AsyncDynamicBase):
     """An asynchronous graph that very loosely resembles gravity."""
+
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
         flavors = self.G.new_edge_property('uint8_t')

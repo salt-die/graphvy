@@ -66,7 +66,7 @@ class Edge(Arrow):
 class Selection(Line):
     __slots__ = 'color', 'min_x', 'max_x', 'min_y', 'max_y', 'group_name'
 
-    def __init__(self, *args, **kwargs):
+    def __init__(self):
         self.group_name = str(id(self))
         self.color = Color(*SELECT_RECT_COLOR, group=self.group_name)
 
@@ -129,7 +129,7 @@ class GraphInterface(Graph):
         for edge in node.all_edges():
             self.remove_edge(edge)
         self.graph_widget.pre_unmake_node(node)
-        super().remove_vertex(node, fast=True)  # Interface relies on fast=True
+        super().remove_vertex(node, fast=True)  # Interface relies on fast=True, we ignore the previous fast value
         self.graph_widget.post_unmake_node()
 
     def add_edge(self, *args, **kwargs):
@@ -140,4 +140,3 @@ class GraphInterface(Graph):
     def remove_edge(self, edge):
         self.graph_widget.unmake_edge(edge)
         super().remove_edge(edge)
-
