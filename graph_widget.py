@@ -97,6 +97,7 @@ class GraphCanvas(Widget):
         self.setup_canvas()
 
         self.coords = None  # Set in transform_coords
+        self._last_node_to_pos  # Set in unmake_node
 
         self.bind(size=self.update_canvas, pos=self.update_canvas)
         Window.bind(mouse_pos=self.on_mouse_pos)
@@ -295,8 +296,8 @@ class GraphCanvas(Widget):
                 if self.highlighted in self._pinned:
                     self._pinned.remove(self.highlighted)
                 elif self.highlighted in self._selected:
-                    self._selected.remove(self.highlighted) # This order is important else
-                    self._pinned.add(self.highlighted)      # node color will be incorrect.
+                    self._selected.remove(self.highlighted)  # This order is important else
+                    self._pinned.add(self.highlighted)       # node color will be incorrect.
                 else:
                     self._selected.add(self.highlighted)
             return True
