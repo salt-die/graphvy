@@ -25,7 +25,7 @@ class AsyncDynamicBase:
     @property
     def re(self):
         """Choose a random edge from G."""
-        return nth(self.G.edges(), randint(self.G.num_edges()))
+        return self.G.edge(*nth(self.G.iter_edges(), randint(self.G.num_edges())))
 
     def update(self):
         """Apply self.step niter times."""
@@ -64,7 +64,7 @@ class GraphASEP(AsyncDynamicBase):
     @property
     def re(self):
         """Choose a random edge from G."""
-        return nth(self.G.edges(), randint(self.num_edges))
+        return self.G.edge(*nth(self.G.iter_edges(), randint(self.num_edges)))
 
 
 class EdgeCentricGASEP(GraphASEP):

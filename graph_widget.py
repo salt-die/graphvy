@@ -64,8 +64,8 @@ class GraphCanvas(Widget):
     _mouse_pos_disabled = False
 
     _highlighted = None  # For highlighted property.
-    _selected = SelectedSet(color=SELECTED_COLOR)
-    _pinned = PinnedSet(color=PINNED_COLOR)
+    _selected = SelectedSet()
+    _pinned = PinnedSet()
 
     _touches = []
 
@@ -110,7 +110,6 @@ class GraphCanvas(Widget):
         else:
             self.graph_callback = None
 
-    @redraw_canvas_after
     def callback(self, dt):
         self.graph_callback()
 
@@ -188,6 +187,7 @@ class GraphCanvas(Widget):
         """Make new canvas instructions corresponding to node."""
         with self._node_instructions:
             self.nodes[node] = Node(node, self)
+        self.nodes[node].update()
 
     def pre_unmake_node(self, node):
         """
@@ -234,6 +234,7 @@ class GraphCanvas(Widget):
         """Make new canvas instructions corresponding to edge."""
         with self._edge_instructions:
             self.edges[edge] = Edge(edge, self)
+        self.edges[edge].update()
 
     def unmake_edge(self, edge):
         """Remove the canvas instructions corresponding to edge."""
@@ -414,10 +415,10 @@ if __name__ == "__main__":
     class GraphApp(App):
         def build(self):
             G = gt.generation.random_graph(50, lambda: (random.randint(1, 2), random.randint(1, 2)))
-            self.GC = GraphCanvas(G=G, graph_callback=EdgeCentricGASEP)
+            self.graph_canvas = GraphCanvas(G=G, graph_callback=EdgeCentricGASEP)
 
             Window.bind(on_key_down=self.on_key_down, on_key_up=self.on_key_up)
-            return self.GC
+            return self.graph_canvas
 
         def on_key_down(self, *args):
             """
@@ -425,16 +426,16 @@ if __name__ == "__main__":
             buttons in some other widget.
             """
             if args[1] in (LSHIFT, RSHIFT):
-                self.GC.is_selecting = True
+                self.graph_canvas.is_selecting = True
             elif args[1] in (LCTRL, RCTRL):
-                self.GC.ctrl_pressed = True
+                self.graph_canvas.ctrl_pressed = True
             elif args[1] == SPACE:
-                self.GC.pause()
+                self.graph_canvas.pause()
 
         def on_key_up(self, *args):
             if args[1] in (RSHIFT, LSHIFT):
-                self.GC.is_selecting = False
+                self.graph_canvas.is_selecting = False
             elif args[1] in (LCTRL, RCTRL):
-                self.GC.ctrl_pressed = False
+                self.graph_canvas.ctrl_pressed = False
 
     GraphApp().run()

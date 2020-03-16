@@ -98,12 +98,18 @@ class NodeSet(set):
 
 
 class SelectedSet(NodeSet):
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, color=SELECTED_COLOR, **kwargs)
+
     def remove(self, node):
         super().remove(node)
         node.unfreeze()
 
 
 class PinnedSet(NodeSet):
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, color=PINNED_COLOR, **kwargs)
+
     def remove(self, node):
         super().remove(node)
         node.color.rgba = HIGHLIGHTED_NODE
