@@ -90,7 +90,7 @@ class GraphCanvas(Widget):
         # Following attributes set in setup_canvas:
         self.edges = None  # dict from self.G.edges() to Edge instruction group
         self.nodes = None  # dict from self.G.vertices() to Node instruction group
-        self.rect = None
+        self.background = None
         self.select_rect = None
         self._edge_instructions = None
         self._node_instructions = None
@@ -168,7 +168,7 @@ class GraphCanvas(Widget):
 
         with self.canvas.before:
             Color(*BACKGROUND_COLOR)
-            self.rect = Rectangle(size=self.size, pos=self.pos)
+            self.background = Rectangle(size=self.size, pos=self.pos)
 
         self._edge_instructions = CanvasBase()
         with self._edge_instructions:
@@ -245,8 +245,8 @@ class GraphCanvas(Widget):
     def update_canvas(self, *args):
         """Update node coordinates and edge colors."""
         if args:
-            self.rect.size = self.size
-            self.rect.pos = self.pos
+            self.background.size = self.size
+            self.background.pos = self.pos
 
         self.transform_coords()
 
