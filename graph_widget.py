@@ -407,9 +407,8 @@ class GraphCanvas(Widget):
 
 
 if __name__ == "__main__":
-    import random
     import graph_tool as gt
-    from dynamic_graph import EdgeCentricGASEP
+    from dynamic_graph import EdgeCentricGASEP, EdgeFlipGASEP
 
     def erdos_random_graph(nodes, edges, prune=True):
         G = gt.Graph()
@@ -424,8 +423,7 @@ if __name__ == "__main__":
 
     class GraphApp(App):
         def build(self):
-            self.graph_canvas = GraphCanvas(G=erdos_random_graph(50, 100), graph_callback=EdgeCentricGASEP)
-
+            self.graph_canvas = GraphCanvas(G=erdos_random_graph(50, 80), graph_callback=EdgeCentricGASEP)
             Window.bind(on_key_down=self.on_key_down, on_key_up=self.on_key_up)
             return self.graph_canvas
 
