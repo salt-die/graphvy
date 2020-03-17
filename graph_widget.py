@@ -82,6 +82,7 @@ class GraphCanvas(Widget):
 
     def __init__(self, *args, G=None, graph_callback=None, **kwargs):
         self.G = GraphInterface(self) if G is None else GraphInterface(self, G)
+        self.G.set_fast_edge_removal()
         self.G.vp.pos = random_layout(self.G, (1, 1))
         self.G.vp.pinned = self.G.new_vertex_property('bool')
 
@@ -410,10 +411,20 @@ if __name__ == "__main__":
     import graph_tool as gt
     from dynamic_graph import EdgeCentricGASEP
 
+    def erdos_random_graph(nodes, edges, prune=True):
+        G = gt.Graph()
+        G.add_vertex(nodes)
+        for _ in range(edges):
+            G.add_edge(0, 0)
+        gt.generation.random_rewire(G, model='erdos')
+
+        if prune:
+            G = gt.topology.extract_largest_component(G, directed=False, prune=True)
+        return G
+
     class GraphApp(App):
         def build(self):
-            G = gt.generation.random_graph(50, lambda: (random.randint(1, 2), random.randint(1, 2)))
-            self.graph_canvas = GraphCanvas(G=G, graph_callback=EdgeCentricGASEP)
+            self.graph_canvas = GraphCanvas(G=erdos_random_graph(50, 100), graph_callback=EdgeCentricGASEP)
 
             Window.bind(on_key_down=self.on_key_down, on_key_up=self.on_key_up)
             return self.graph_canvas
