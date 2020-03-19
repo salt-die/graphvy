@@ -267,4 +267,5 @@ class Gravity(AsyncDynamicBase, Moves):
 
     def step(self):
         self.particle = self.re
+        flavor = self.flavors[self.particle]
         self.dynamics[flavor]()
