@@ -40,8 +40,8 @@ def redraw_canvas_after(func):
 
 
 def limit(interval):
+    """Limits how quickly a function to once every interval seconds."""
     def deco(func):
-        """Limits how quickly a function can be called."""
         last_call = time.time()
 
         @wraps(func)
@@ -330,9 +330,7 @@ class GraphCanvas(Widget):
 
     @redraw_canvas_after
     def on_touch_move(self, touch):
-        """
-        Zoom if multitouch, else if a node is highlighted, drag it, else move the entire graph.
-        """
+        """Zoom if multitouch, else if a node is highlighted, drag it, else move the entire graph."""
 
         if touch.grab_current is not self:
             return
