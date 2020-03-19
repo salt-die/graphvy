@@ -253,22 +253,18 @@ class Gravity(AsyncDynamicBase, Moves):
         return True
 
     def photon_dynamics(self):
-        if not self.creation() or print('Created.'):
-            self.photon_move() or print('Moved.')
+        if not self.creation():
+            self.photon_move()
 
     def matter_dynamics(self):
-        if not self.annihilation() or print('Annihilated.'):
-            if not self.shrink_space() or print('Contracted.'):
-                self.emit_photon() or print('Emitted.')
+        if not self.annihilation():
+            if not self.shrink_space():
+                self.emit_photon()
 
     def antimatter_dynamics(self):
-        if not self.absorb_photon() or print('Absorbed.'):
-            self.expand_space() or print('Expanded.')
+        if not self.absorb_photon():
+            self.expand_space()
 
     def step(self):
         self.particle = self.re
-        flavor = self.flavors[self.particle]
-        print(flavor)
         self.dynamics[flavor]()
-        arr = self.flavors.get_array()
-        print(f'Photons: {(arr == 0).sum()}, Matter: {(arr == 1).sum()}, Antimatter: {(arr == 2).sum()}')
