@@ -68,6 +68,8 @@ class GraphASEP(AsyncDynamicBase):
 
 
 class Moves:
+    """Mix-in for Dynamic Graphs."""
+
     def head_move(self, out_deg, source, target, multigraph=False):
         """Move source along an out_edge if possible."""
         new_source = nth(source.out_neighbors(), randint(out_deg))
@@ -96,6 +98,7 @@ class EdgeCentricGASEP(GraphASEP, Moves):
     Edge-centric as we'll base our dynamics off of randomly chosen edges rather than randomly chosen
     nodes.  Node-centric dynamics will lead to a different steady-state.
     """
+
     def step(self):
         source, target = edge = self.re
         self.G.remove_edge(edge)  # We'll add edge back if our random move was excluded.
@@ -143,6 +146,8 @@ class Gravity(AsyncDynamicBase, Moves):
     An asynchronous graph that very loosely resembles gravity. (MATTER will attract; ANTIMATTER repulses)
     NOT ACTUAL PHYSICS -- I just like the flavor.
     """
+
+    __slots__ = 'flavors', 'dynamics'
 
     def __init__(self, G, *args, **kwargs):
         super().__init__(G, *args, **kwargs)
