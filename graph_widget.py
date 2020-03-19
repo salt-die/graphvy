@@ -7,6 +7,7 @@ Space to pause/unpause the layout algorithm. Ctrl-Space to pause/unpause the Gra
 ### TODO: degree histogram
 ### TODO: hide/filter nodes
 from functools import wraps
+from random import random
 import time
 
 from kivy.app import App
@@ -111,6 +112,7 @@ class GraphCanvas(Widget):
         else:
             self.graph_callback = None
 
+    @redraw_canvas_after
     def callback(self, dt):
         self.graph_callback()
 
@@ -188,7 +190,7 @@ class GraphCanvas(Widget):
         """Make new canvas instructions corresponding to node."""
         with self._node_instructions:
             self.nodes[node] = Node(node, self)
-        self.nodes[node].update()
+        self.G.vp.pos[node][:] = random(), random()
 
     def pre_unmake_node(self, node):
         """
@@ -197,8 +199,9 @@ class GraphCanvas(Widget):
 
         last = self.G.num_vertices() - 1
         if int(node) != last:
-            last_node = self.nodes.pop(G.vertex(last))
-            last_node_edges = tuple(self.edges.pop(edge) for edge in last_node.all_edges())
+            last_vertex = self.G.vertex(last)
+            last_node = self.nodes.pop(last_vertex)
+            last_node_edges = tuple(self.edges.pop(edge) for edge in last_vertex.all_edges() if edge in self.edges)
             self._last_node_to_pos = last_node, int(node), last_node_edges
 
         instruction = self.nodes.pop(node)
@@ -214,18 +217,21 @@ class GraphCanvas(Widget):
         if self._last_node_to_pos is None:
             return
 
-        node, pos, _edge_instructions = self._last_node_to_pos
+        node, pos, edge_instructions = self._last_node_to_pos
 
         node.vertex = self.G.vertex(pos)  # Update descriptor
         self.nodes[node.vertex] = node    # Update node dict
 
-        for edge_instruction, edge in zip(_edge_instructions, node.vertex.all_edges()):
+        for edge_instruction, edge in zip(edge_instructions, node.vertex.all_edges()):
             edge_instruction.s, edge_instruction.t = edge  # Update descriptor
             self.edges[edge] = edge_instruction            # Update edge dict
 
-            # In case edge index order changed, we should correct edge color by re-freezing/unfreezing the source node:
-            s = edge_instruction.s
-            (s.freeze if self.vp.pinned[s] else s.unfreeze)()
+        # In case edge index order changed, we should correct edge color by re-freezing/unfreezing the source node.
+        # It's important we do this after the above loop or recoloring could try to iterate over edges that have
+        # invalid descriptors still.
+        for edge_instruction in edge_instructions:
+            s = self.nodes[edge_instruction.s]
+            (s.freeze if self.G.vp.pinned[edge_instruction.s] else s.unfreeze)()
 
         self._last_node_to_pos = None
 
@@ -233,7 +239,6 @@ class GraphCanvas(Widget):
         """Make new canvas instructions corresponding to edge."""
         with self._edge_instructions:
             self.edges[edge] = Edge(edge, self)
-        self.edges[edge].update()
 
     def unmake_edge(self, edge):
         """Remove the canvas instructions corresponding to edge."""
@@ -408,7 +413,7 @@ class GraphCanvas(Widget):
 
 if __name__ == "__main__":
     import graph_tool as gt
-    from dynamic_graph import EdgeCentricGASEP, EdgeFlipGASEP
+    from dynamic_graph import EdgeCentricGASEP, EdgeFlipGASEP, Gravity
 
     def erdos_random_graph(nodes, edges, prune=True):
         G = gt.Graph()
@@ -423,7 +428,14 @@ if __name__ == "__main__":
 
     class GraphApp(App):
         def build(self):
-            self.graph_canvas = GraphCanvas(G=erdos_random_graph(50, 80), graph_callback=EdgeCentricGASEP)
+            # self.graph_canvas = GraphCanvas(G=erdos_random_graph(50, 80), graph_callback=EdgeCentricGASEP)
+
+            G = gt.Graph()
+            G.add_vertex(2)
+            G.add_edge(0, 1)
+            G.add_edge(1, 0)
+            self.graph_canvas = GraphCanvas(G=G, graph_callback=Gravity)
+
             Window.bind(on_key_down=self.on_key_down, on_key_up=self.on_key_up)
             return self.graph_canvas
 

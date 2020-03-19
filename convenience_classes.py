@@ -129,7 +129,7 @@ class GraphInterface(Graph):
 
     def add_vertex(self, *args, **kwargs):
         node = super().add_vertex(*args, **kwargs)
-        self.graph_widget.make_vertex(node)
+        self.graph_widget.make_node(node)
         return node
 
     def remove_vertex(self, node, fast=True):
