@@ -197,15 +197,23 @@ class GraphCanvas(Widget):
         """
         Remove the canvas instructions corresponding to node. Prepare last node to take its place.
         """
+        instruction = self.nodes[node]
+
+        if self.highlighted is instruction:
+            self.highlighted = None
+        if instruction in self._pinned:
+            self._pinned.remove(instruction)
+        elif instruction in self._selected:
+            self._selected.remove(instruction)
 
         last = self.G.num_vertices() - 1
         if int(node) != last:
             last_vertex = self.G.vertex(last)
             last_node = self.nodes.pop(last_vertex)
-            last_node_edges = tuple(self.edges.pop(edge) for edge in last_vertex.all_edges() if edge in self.edges)
+            last_node_edges = tuple(self.edges.pop(edge) for edge in last_vertex.all_edges())
             self._last_node_to_pos = last_node, int(node), last_node_edges
 
-        instruction = self.nodes.pop(node)
+        del self.nodes[node]
         self._node_instructions.remove_group(instruction.group_name)
 
     def post_unmake_node(self):
