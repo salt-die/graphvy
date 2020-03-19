@@ -194,9 +194,7 @@ class GraphCanvas(Widget):
         self.G.vp.pos[node][:] = random(), random()
 
     def pre_unmake_node(self, node):
-        """
-        Remove the canvas instructions corresponding to node. Prepare last node to take its place.
-        """
+        """Remove the canvas instructions corresponding to node. Prepare last node to take its place."""
         instruction = self.nodes[node]
 
         if self.highlighted is instruction:
@@ -449,10 +447,8 @@ if __name__ == "__main__":
             return self.graph_canvas
 
         def on_key_down(self, *args):
-            """
-            Will use key presses to change GraphCanvas's modes when testing; Ideally, we'd use
-            buttons in some other widget.
-            """
+            # Will use key presses to change GraphCanvas's modes when testing; Ideally, we'd use
+            # buttons in some other widget.
             if args[1] in (LSHIFT, RSHIFT):
                 self.graph_canvas.is_selecting = True
             elif args[1] in (LCTRL, RCTRL):
