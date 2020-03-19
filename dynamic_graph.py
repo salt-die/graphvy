@@ -141,7 +141,7 @@ ANTIMATTER = 2
 class Gravity(AsyncDynamicBase, Moves):
     """
     An asynchronous graph that very loosely resembles gravity. (MATTER will attract; ANTIMATTER repulses)
-    NOT ACTUAL PHYSICS, I just like the flavor.
+    NOT ACTUAL PHYSICS -- I just like the flavor.
     """
 
     def __init__(self, G, *args, **kwargs):

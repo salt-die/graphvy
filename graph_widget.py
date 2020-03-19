@@ -6,6 +6,7 @@ Space to pause/unpause the layout algorithm. Ctrl-Space to pause/unpause the Gra
 ### TODO: bezier lines (only when paused; computationally heavy)
 ### TODO: degree histogram
 ### TODO: hide/filter nodes
+### TODO: node/edge states visible
 from functools import wraps
 from random import random
 import time
