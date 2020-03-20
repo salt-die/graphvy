@@ -40,7 +40,7 @@ def redraw_canvas_after(func):
 
 
 def limit(interval):
-    """Limits how quickly a function to once every interval seconds."""
+    """Limits how often a function can be called to once every interval seconds."""
     def deco(func):
         last_call = time.time()
 
