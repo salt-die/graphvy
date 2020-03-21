@@ -5,7 +5,7 @@ from kivy.properties import NumericProperty, StringProperty
 
 from kivymd.app import MDApp
 from kivymd.uix.behaviors import BackgroundColorBehavior
-from kivymd.uix.button import MDFloatingActionButton
+from kivymd.uix.button import MDFloatingActionButton, MDFloatingActionButtonSpeedDial
 from kivymd.uix.list import OneLineListItem
 from kivymd.uix.tab import MDTabsBase
 
@@ -15,13 +15,28 @@ from graph_canvas import GraphCanvas
 
 KV = '''
 FloatLayout:
-    GraphCanvas
+    GraphCanvas:
+        id: graph_canvas
 
     PanelButton:
         id: panel_button
         icon:'forwardburger'
         md_bg_color: app.theme_cls.primary_color
-        pos_hint: {'x': .01, 'y': .9}
+        x: dp(20)
+        y: dp(20)
+
+    MDFloatingActionButtonSpeedDial:
+        id: tool_select
+        data: {'drag-variant': 'Grab',               \
+               'selection-drag': 'Select',           \
+               'map-marker-path': 'Show Path',       \
+               'plus-circle-outline': 'Add Node',    \
+               'minus-circle-outline': 'Delete Node',\
+               'vector-polyline-plus': 'Add Edge',   \
+               'vector-polyline-minus': 'Delete Edge'}
+        hint_animation: True
+        icon: 'toolbox-outline'
+        callback: app.select_tool
 
     BoxLayout:
         size_hint: .3, 1
@@ -91,6 +106,9 @@ class Graphvy(MDApp):
         self.root.ids.header.title = 'Graphvy'
         anim = Animation(_anim_progress=0, duration=.7, t='out_cubic')
         anim.start(self)
+
+    def select_tool(self, instance):
+        print(instance.icon)
 
 
 Graphvy().run()

@@ -422,8 +422,10 @@ class GraphCanvas(Widget):
         if self._mouse_pos_disabled or not self.collide_point(mx, my):
             return
 
-        if self.parent and any(widget.collide_point(mx, my)
-                               for widget in self.parent.children if widget is not self):
+        if (self.parent
+            and any(widget.collide_point(mx, my) if not widget.children else
+                    any(child.collide_point(mx,my) for child in widget.children)
+                    for widget in self.parent.children if widget is not self)):
             return
 
         # Check collision with already highlighted node first:
