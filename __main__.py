@@ -9,7 +9,6 @@ from kivymd.uix.button import MDFloatingActionButton, MDFloatingActionButtonSpee
 from kivymd.uix.list import OneLineListItem
 from kivymd.uix.tab import MDTabsBase
 
-import graph_tool as gt
 from graph_canvas import GraphCanvas
 
 
