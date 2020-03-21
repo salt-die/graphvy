@@ -16,6 +16,7 @@ from kivy.clock import Clock
 from kivy.graphics import Color, Rectangle
 from kivy.config import Config
 from kivy.graphics.instructions import CanvasBase
+from kivy.properties import OptionProperty
 from kivy.uix.widget import Widget
 from kivy.core.window import Window
 
@@ -75,6 +76,12 @@ class GraphCanvas(Widget):
 
     graph_callback(G) should return a callable that updates G when called.
     """
+    tool = OptionProperty("Grab", options=["Grab",
+                                           "Select",
+                                           "Pin",
+                                           "Path",
+                                           "AddNode", "DeleteNode",
+                                           "AddEdge", "DeleteEdge"])
 
     _mouse_pos_disabled = False
 
@@ -87,10 +94,6 @@ class GraphCanvas(Widget):
     offset_x = .25
     offset_y = .25
     scale = .5
-
-    is_selecting = False
-    _drag_selection = False  # For is_drag_select property.
-    ctrl_pressed = False
 
     _callback_paused = False
     _layout_paused = False
@@ -119,7 +122,7 @@ class GraphCanvas(Widget):
         self.coords = None  # Set in transform_coords
         self._last_node_to_pos = None  # Set in unmake_node
 
-        self.bind(size=self.update_canvas, pos=self.update_canvas)
+        self.bind(size=self.update_canvas, pos=self.update_canvas, tool=self.retool)
         Window.bind(mouse_pos=self.on_mouse_pos)
 
         self.update_layout = Clock.schedule_interval(self.step_layout, UPDATE_INTERVAL)
@@ -155,33 +158,24 @@ class GraphCanvas(Widget):
 
         self._highlighted = node
 
-    @property
-    def is_drag_select(self):
-        return self._drag_selection
+    def retool(self, instance, value):
+        if value == 'Select':
+            self.select_rect.set_corners()
 
-    @is_drag_select.setter
-    def is_drag_select(self, boolean):
-        """Make select_rect visible or non-visible depending on state."""
-        self._drag_selection = boolean
-        self.select_rect.set_corners()
-        self.select_rect.color.a = int(boolean) * SELECT_RECT_COLOR[-1]
-
-    def pause(self):
-        """Pause/unpause graph_callback if ctrl is pressed or pause/unpause layout."""
-        if self.ctrl_pressed:
-            self._callback_paused = not self._callback_paused
-            if self.graph_callback is not None:
-                if self._callback_paused:
-                    self.update_graph.cancel()
-                else:
-                    self.update_graph()
-            return
-
+    def pause_layout(self):
         self._layout_paused = not self._layout_paused
         if self._layout_paused:
             self.update_layout.cancel()
         else:
             self.update_layout()
+
+    def pause_callback(self):
+        self._callback_paused = not self._callback_paused
+        if self.graph_callback is not None:
+            if self._callback_paused:
+                self.update_graph.cancel()
+            else:
+                self.update_graph()
 
     def setup_canvas(self):
         """Populate the canvas with the initial instructions."""
@@ -226,7 +220,10 @@ class GraphCanvas(Widget):
         if int(node) != last:
             last_vertex = self.G.vertex(last)
             last_node = self.nodes.pop(last_vertex)
-            last_node_edges = tuple(self.edges.pop(edge) for edge in last_vertex.all_edges())
+            # Loops will be repeated twice in all_edges, so we have to check for membership
+            # before we pop
+            last_node_edges = tuple(self.edges.pop(edge) for edge in last_vertex.all_edges()
+                                    if edge in self.edges)
             self._last_node_to_pos = last_node, int(node), last_node_edges
 
         del self.nodes[node]
@@ -320,7 +317,15 @@ class GraphCanvas(Widget):
             touch.multitouch_sim = True
             return True
 
-        if self.ctrl_pressed:
+        if self.tool == 'Select':
+            if self.highlighted is not None and self.highlighted not in self._pinned:
+                if self.highlighted in self._selected:
+                    self._selected.remove(self.highlighted)
+                else:
+                    self._selected.add(self.highlighted)
+            return True
+
+        if self.tool == 'Pin':
             if self.highlighted is not None:
                 if self.highlighted in self._pinned:
                     self._pinned.remove(self.highlighted)
@@ -328,12 +333,8 @@ class GraphCanvas(Widget):
                     self._selected.remove(self.highlighted)  # This order is important else
                     self._pinned.add(self.highlighted)       # node color will be incorrect.
                 else:
-                    self._selected.add(self.highlighted)
+                    self._pinned.add(self.highlighted)
             return True
-
-        if self.is_selecting:
-            self.is_drag_select = True
-            self.highlighted = None
 
         return True
 
@@ -343,7 +344,7 @@ class GraphCanvas(Widget):
         touch.ungrab(self)
         self._touches.remove(touch)
         self._mouse_pos_disabled = False
-        self.is_drag_select = False
+        self.select_rect.color.a = 0
 
     @redraw_canvas_after
     def on_touch_move(self, touch):
@@ -355,10 +356,11 @@ class GraphCanvas(Widget):
         if len(self._touches) > 1:
             return self.transform_on_touch(touch)
 
-        if touch.button == 'right' or self.ctrl_pressed:
+        if touch.button == 'right' or self.tool not in ('Select', 'Grab'):
             return
 
-        if self.is_drag_select:
+        if self.tool == 'Select':
+            self.select_rect.color.a = SELECT_RECT_COLOR[-1]
             return self.on_drag_select(touch)
 
         if self._selected:
@@ -460,16 +462,18 @@ if __name__ == "__main__":
             # Will use key presses to change GraphCanvas's modes when testing; Ideally, we'd use
             # buttons in some other widget.
             if args[1] in (LSHIFT, RSHIFT):
-                self.graph_canvas.is_selecting = True
+                self.graph_canvas.tool = 'Select'
             elif args[1] in (LCTRL, RCTRL):
-                self.graph_canvas.ctrl_pressed = True
+                self.graph_canvas.tool = 'Pin'
             elif args[1] == SPACE:
-                self.graph_canvas.pause()
+                if self.graph_canvas.tool == 'Pin':
+                    self.graph_canvas.pause_callback()
+                else:
+                    self.graph_canvas.pause_layout()
 
         def on_key_up(self, *args):
-            if args[1] in (RSHIFT, LSHIFT):
-                self.graph_canvas.is_selecting = False
-            elif args[1] in (LCTRL, RCTRL):
-                self.graph_canvas.ctrl_pressed = False
+            if args[1] in (RSHIFT, LSHIFT, LCTRL, RCTRL):
+                self.graph_canvas.tool = 'Grab'
+
 
     GraphApp().run()
