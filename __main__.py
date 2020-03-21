@@ -60,13 +60,14 @@ class PanelButton(MDFloatingActionButton):
     def on_touch_up(self, touch):
         if super().on_touch_up(touch):
             self.callback()
+            return True
 
 
 class PanelTabBase(FloatLayout, MDTabsBase, BackgroundColorBehavior):
     title = StringProperty('')
 
 
-class SidePanel(MDApp):
+class Graphvy(MDApp):
     _anim_progress = NumericProperty(0)
 
     def build(self):
@@ -76,6 +77,7 @@ class SidePanel(MDApp):
 
     def on_start(self):
         for i in range(20):
+            # This is just a visual test
             self.root.ids.adjacency_list.add_widget(OneLineListItem(text=f'{i}: {i + 1}, {i + 2}'))
 
     def on_tab_switch(self, tabs, tab, label, text):
@@ -91,4 +93,4 @@ class SidePanel(MDApp):
         anim.start(self)
 
 
-SidePanel().run()
+Graphvy().run()
