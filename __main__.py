@@ -1,9 +1,10 @@
 from kivy.animation import Animation
 from kivy.lang import Builder
 from kivy.uix.floatlayout import FloatLayout
-from kivy.properties import NumericProperty
+from kivy.properties import NumericProperty, StringProperty
 
 from kivymd.app import MDApp
+from kivymd.uix.behaviors import BackgroundColorBehavior
 from kivymd.uix.button import MDFloatingActionButton
 from kivymd.uix.list import OneLineListItem
 from kivymd.uix.tab import MDTabsBase
@@ -34,19 +35,21 @@ FloatLayout:
 
         MDTabs:
             id: side_panel
-            bg_color: [0, 1, 1, 1]
             on_tab_switch: app.on_tab_switch(*args)
 
-            AdjacencyTab:
+            PanelTabBase:
+                title: 'Adjacency List'
                 text: 'ray-start-arrow'
+                md_bg_color: 1, 1, 1, 1
 
                 ScrollView:
                     MDList:
                         id: adjacency_list
 
-
-            FiltersTab:
+            PanelTabBase:
+                title: 'Filters'
                 text: 'filter-outline'
+                md_bg_color: 1, 1, 1, 1
 
 '''
 
@@ -59,13 +62,8 @@ class PanelButton(MDFloatingActionButton):
             self.callback()
 
 
-class AdjacencyTab(FloatLayout, MDTabsBase):
-    title = 'Adjacency List'
-
-
-class FiltersTab(FloatLayout, MDTabsBase):
-    title = 'Node Filters'
-
+class PanelTabBase(FloatLayout, MDTabsBase, BackgroundColorBehavior):
+    title = StringProperty('')
 
 
 class SidePanel(MDApp):

@@ -187,7 +187,7 @@ class GraphCanvas(Widget):
         """Populate the canvas with the initial instructions."""
         self.canvas.clear()
 
-        with self.canvas.before:
+        with self.canvas:
             Color(*BACKGROUND_COLOR)
             self.background = Rectangle(size=self.size, pos=self.pos)
 
@@ -203,6 +203,7 @@ class GraphCanvas(Widget):
 
         with self.canvas.after:
             self.select_rect = Selection()
+            Color(1, 1, 1, 1)
 
     def make_node(self, node):
         """Make new canvas instructions corresponding to node."""
