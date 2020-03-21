@@ -15,7 +15,7 @@ from graph_canvas import GraphCanvas
 
 KV = '''
 FloatLayout:
-    GraphCanvas:
+    GraphCanvas
 
     PanelButton:
         id: panel_button
@@ -86,6 +86,7 @@ class SidePanel(MDApp):
         anim.start(self)
 
     def show_panel(self):
+        self.root.ids.header.title = 'Graphvy'
         anim = Animation(_anim_progress=0, duration=.7, t='out_cubic')
         anim.start(self)
 
