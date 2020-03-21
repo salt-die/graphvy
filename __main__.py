@@ -26,12 +26,13 @@ FloatLayout:
 
     MDFloatingActionButtonSpeedDial:
         id: tool_select
-        data: {'drag-variant': 'Grab',               \
-               'selection-drag': 'Select',           \
-               'map-marker-path': 'Show Path',       \
-               'plus-circle-outline': 'Add Node',    \
-               'minus-circle-outline': 'Delete Node',\
-               'vector-polyline-plus': 'Add Edge',   \
+        data: {'drag-variant'         : 'Grab',       \
+               'selection-drag'       : 'Select',     \
+               'pin'                  : 'Pin',        \
+               'map-marker-path'      : 'Show Path',  \
+               'plus-circle-outline'  : 'Add Node',   \
+               'minus-circle-outline' : 'Delete Node',\
+               'vector-polyline-plus' : 'Add Edge',   \
                'vector-polyline-minus': 'Delete Edge'}
         hint_animation: True
         icon: 'toolbox-outline'
@@ -50,6 +51,11 @@ FloatLayout:
         MDTabs:
             id: side_panel
             on_tab_switch: app.on_tab_switch(*args)
+
+            PanelTabBase:
+                title: 'File'
+                text: 'file-outline'
+                md_bg_color: 1, 1, 1, 1
 
             PanelTabBase:
                 title: 'Adjacency List'
@@ -93,6 +99,7 @@ class Graphvy(MDApp):
         for i in range(20):
             # This is just a visual test
             self.root.ids.adjacency_list.add_widget(OneLineListItem(text=f'{i}: {i + 1}, {i + 2}'))
+        self.hide_panel()
 
     def on_tab_switch(self, tabs, tab, label, text):
         self.root.ids.header.title = tab.title
