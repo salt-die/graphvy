@@ -114,7 +114,7 @@ class Graphvy(MDApp):
         anim.start(self)
 
     def select_tool(self, instance):
-        print(instance.icon)
+        self.root.ids.graph_canvas.tool = self.root.ids.tool_select.data[instance.icon]
 
 
 Graphvy().run()

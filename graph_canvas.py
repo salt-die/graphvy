@@ -79,9 +79,9 @@ class GraphCanvas(Widget):
     tool = OptionProperty("Grab", options=["Grab",
                                            "Select",
                                            "Pin",
-                                           "Path",
-                                           "AddNode", "DeleteNode",
-                                           "AddEdge", "DeleteEdge"])
+                                           "Show Path",
+                                           "Add Node", "Delete Node",
+                                           "Add Edge", "Delete Edge"])
 
     _mouse_pos_disabled = False
 
