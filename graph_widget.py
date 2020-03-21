@@ -19,6 +19,7 @@ from kivy.graphics.instructions import CanvasBase
 from kivy.uix.widget import Widget
 from kivy.core.window import Window
 
+import graph_tool as gt
 from graph_tool.draw import random_layout, sfdp_layout
 import numpy as np
 
@@ -26,6 +27,18 @@ from convenience_classes import Node, Edge, Selection, SelectedSet, PinnedSet, G
 from constants import *
 
 Config.set('input', 'mouse', 'mouse,multitouch_on_demand')
+
+
+def erdos_random_graph(nodes, edges, prune=True):
+    G = gt.Graph()
+    G.add_vertex(nodes)
+    for _ in range(edges):
+        G.add_edge(0, 0)
+    gt.generation.random_rewire(G, model='erdos')
+
+    if prune:
+        G = gt.topology.extract_largest_component(G, directed=False, prune=True)
+    return G
 
 
 def redraw_canvas_after(func):
@@ -83,7 +96,11 @@ class GraphCanvas(Widget):
     _layout_paused = False
 
     def __init__(self, *args, G=None, graph_callback=None, **kwargs):
-        self.G = GraphInterface(self) if G is None else GraphInterface(self, G)
+        if G is None:
+            self.G = GraphInterface(self, erdos_random_graph(50, 80))
+        else:
+            self.G = GraphInterface(self, G)
+
         self.G.set_fast_edge_removal()
         self.G.vp.pos = random_layout(self.G, (1, 1))
         self.G.vp.pinned = self.G.new_vertex_property('bool')
@@ -255,9 +272,8 @@ class GraphCanvas(Widget):
     @limit(UPDATE_INTERVAL)
     def update_canvas(self, *args):
         """Update node coordinates and edge colors."""
-        if args:
-            self.background.size = self.size
-            self.background.pos = self.pos
+        self.background.size = self.size
+        self.background.pos = self.pos
 
         self.transform_coords()
 
@@ -405,6 +421,10 @@ class GraphCanvas(Widget):
         if self._mouse_pos_disabled or not self.collide_point(mx, my):
             return
 
+        if self.parent and any(widget.collide_point(mx, my)
+                               for widget in self.parent.children if widget is not self):
+            return
+
         # Check collision with already highlighted node first:
         if self.highlighted is not None and self.highlighted.collides(mx, my):
             return
@@ -417,23 +437,12 @@ class GraphCanvas(Widget):
 
 
 if __name__ == "__main__":
-    import graph_tool as gt
     from dynamic_graph import EdgeCentricGASEP, EdgeFlipGASEP, Gravity
 
-    def erdos_random_graph(nodes, edges, prune=True):
-        G = gt.Graph()
-        G.add_vertex(nodes)
-        for _ in range(edges):
-            G.add_edge(0, 0)
-        gt.generation.random_rewire(G, model='erdos')
-
-        if prune:
-            G = gt.topology.extract_largest_component(G, directed=False, prune=True)
-        return G
 
     class GraphApp(App):
         def build(self):
-            # self.graph_canvas = GraphCanvas(G=erdos_random_graph(50, 80), graph_callback=EdgeCentricGASEP)
+            # self.graph_canvas = GraphCanvas(graph_callback=EdgeCentricGASEP)
 
             G = gt.Graph()
             G.add_vertex(2)
