@@ -187,7 +187,7 @@ class GraphCanvas(Widget):
         """Populate the canvas with the initial instructions."""
         self.canvas.clear()
 
-        with self.canvas:
+        with self.canvas.before:
             Color(*BACKGROUND_COLOR)
             self.background = Rectangle(size=self.size, pos=self.pos)
 
