@@ -1,13 +1,30 @@
 """Convenience classes for graph widget."""
-from kivy.graphics import Color, Line
 from graph_tool import Graph
+from kivy.graphics import Color, Line
+from kivymd.uix.behaviors import BackgroundColorBehavior
+from kivymd.uix.list import OneLineListItem
 
 from arrow import Arrow
 from constants import *
 
 
+class AdjacencyListItem(OneLineListItem, BackgroundColorBehavior):
+    def __init__(self, node, *args, **kwargs):
+        self.node = node
+
+        index = int(node.vertex)
+        text = f'{index}: {", ".join(map(str, self.node.vertex.out_neighbors()))}'
+
+        super().__init__(*args, text=text, **kwargs)
+
+        self.bind(on_press=self._on_press)
+
+    def _on_press(self, *args):
+        self.node.canvas.highlighted = self.node
+
+
 class Node(Line):
-    __slots__ = 'color', 'vertex', 'canvas', 'group_name'
+    __slots__ = 'color', 'vertex', 'canvas', 'group_name', 'list_item'
 
     def __init__(self, vertex, canvas):
         self.group_name = str(id(self))
@@ -18,6 +35,8 @@ class Node(Line):
         self.color = Color(*NODE_COLOR, group=self.group_name)
         super().__init__(width=NODE_WIDTH, group=self.group_name)
 
+        self.list_item = AdjacencyListItem(self)
+
     def recolor_out_edges(self, line_color, head_color):
         edges = self.canvas.edges
         for edge in self.vertex.out_edges():
@@ -27,12 +46,13 @@ class Node(Line):
     def freeze(self, color=None):
         self.canvas.G.vp.pinned[self.vertex] = 1
         if color is not None:
-            self.color.rgba = color
+            self.color.rgba = self.list_item.md_bg_color = color
         self.recolor_out_edges(HIGHLIGHTED_EDGE, HIGHLIGHTED_HEAD)
 
     def unfreeze(self):
         self.canvas.G.vp.pinned[self.vertex] = 0
         self.color.rgba = NODE_COLOR
+        self.list_item.md_bg_color = TAB_BACKGROUND
         self.recolor_out_edges(EDGE_COLOR, HEAD_COLOR)
 
     def collides(self, mx, my):

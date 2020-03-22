@@ -6,7 +6,6 @@ from kivy.properties import NumericProperty, StringProperty
 from kivymd.app import MDApp
 from kivymd.uix.behaviors import BackgroundColorBehavior
 from kivymd.uix.button import MDFloatingActionButton, MDFloatingActionButtonSpeedDial
-from kivymd.uix.list import OneLineListItem
 from kivymd.uix.tab import MDTabsBase
 
 from graph_canvas import GraphCanvas
@@ -66,20 +65,6 @@ FloatLayout:
                 text: 'filter-outline'
 
 '''
-class AdjacencyListItem(OneLineListItem, BackgroundColorBehavior):
-    def __init__(self, canvas, vertex, *args, **kwargs):
-        self.graph_canvas = canvas
-        self.vertex = vertex
-
-        text = f'{vertex}: {", ".join(map(str, self.graph_canvas.G.vertex(vertex).out_neighbors()))}'
-
-        super().__init__(*args, text=text, **kwargs)
-
-        self.bind(on_press=self._on_press)
-
-    def _on_press(self, *args):
-        gc = self.graph_canvas
-        gc.highlighted = gc.nodes[gc.G.vertex(self.vertex)]
 
 
 
@@ -108,8 +93,10 @@ class Graphvy(MDApp):
 
     def on_start(self):
         gc = self.root.ids.graph_canvas
-        for i in range(gc.G.num_vertices()):
-            self.root.ids.adjacency_list.add_widget(AdjacencyListItem(gc, i))
+        adjacency_list = self.root.ids.adjacency_list
+
+        for node in gc.nodes.values():
+            adjacency_list.add_widget(node.list_item)
         self.hide_panel()
 
     def on_tab_switch(self, tabs, tab, label, text):
