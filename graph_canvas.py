@@ -2,6 +2,7 @@
 Hold shift to drag-select vertices. Ctrl-click to select individual vertices, and again to pin them.
 Space to pause/unpause the layout algorithm. Ctrl-Space to pause/unpause the Graph callback.
 """
+### FIXME: REMOVE/UPDATE ADJACENCYLIST ITEMS FOR DYNAMIC GRAPHS
 ### TODO: path highlighter
 ### TODO: bezier lines (only when paused; computationally heavy)
 ### TODO: degree histogram
