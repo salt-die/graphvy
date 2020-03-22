@@ -1,9 +1,9 @@
 """Constants for graph widget."""
 
-SFDP_SETTINGS = dict(init_step=0.005, # move step; increase for sfdp to converge more quickly
-                     K=0.5,           # preferred edge length
-                     C=0.3,           # relative strength repulsive forces
-                     p=2.0,           # repulsive force exponent
+SFDP_SETTINGS = dict(init_step=0.005,  # move step; increase for sfdp to converge more quickly
+                     K=0.5,            # preferred edge length
+                     C=0.3,            # relative strength repulsive forces
+                     p=2.0,            # repulsive force exponent
                      max_iter=1)
 
 TOOLS = ("Grab", "Select", "Pin", "Show Path", "Add Node", "Delete Node", "Add Edge", "Delete Edge")
@@ -31,7 +31,7 @@ HEAD_COLOR        =  0.26, 0.276, 0.567,   1
 HIGHLIGHTED_EDGE  = 0.760, 0.235, 0.239,   1
 HIGHLIGHTED_HEAD  = 0.770, 0.245, 0.249,   1
 
-SELECT_RECT_COLOR =     1,     1,     1, 0.8 # color of select_rect's outline
+SELECT_RECT_COLOR =     1,     1,     1, 0.8  # color of select_rect's outline
 
 TAB_BACKGROUND    =     1,     1,     1,   1
 
@@ -39,7 +39,7 @@ TAB_BACKGROUND    =     1,     1,     1,   1
 NODE_RADIUS  = 3
 BOUNDS       = NODE_RADIUS * 2
 
-HEAD_SIZE    = 3 # size of arrow heads
+HEAD_SIZE    = 3  # size of arrow heads
 
 NODE_WIDTH   = 3
 EDGE_WIDTH   = 2
