@@ -6,6 +6,16 @@ SFDP_SETTINGS = dict(init_step=0.005, # move step; increase for sfdp to converge
                      p=2.0,           # repulsive force exponent
                      max_iter=1)
 
+TOOLS = ("Grab", "Select", "Pin", "Show Path", "Add Node", "Delete Node", "Add Edge", "Delete Edge")
+TOOL_ICONS = ('drag-variant',
+              'selection-drag',
+              'pin',
+              'map-marker-path',
+              'plus-circle-outline',
+              'minus-circle-outline',
+              'vector-polyline-plus',
+              'vector-polyline-minus')
+
 UPDATE_INTERVAL = 1/60
 
 # Colors
@@ -22,6 +32,8 @@ HIGHLIGHTED_EDGE  = 0.760, 0.235, 0.239,   1
 HIGHLIGHTED_HEAD  = 0.770, 0.245, 0.249,   1
 
 SELECT_RECT_COLOR =     1,     1,     1, 0.8 # color of select_rect's outline
+
+TAB_BACKGROUND    =     1,     1,     1,   1
 
 # Sizes
 NODE_RADIUS  = 3

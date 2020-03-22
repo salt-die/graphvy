@@ -76,12 +76,7 @@ class GraphCanvas(Widget):
 
     graph_callback(G) should return a callable that updates G when called.
     """
-    tool = OptionProperty("Grab", options=["Grab",
-                                           "Select",
-                                           "Pin",
-                                           "Show Path",
-                                           "Add Node", "Delete Node",
-                                           "Add Edge", "Delete Edge"])
+    tool = OptionProperty("Grab", options=TOOLS)
 
     _mouse_pos_disabled = False
 

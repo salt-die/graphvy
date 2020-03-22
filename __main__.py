@@ -10,9 +10,13 @@ from kivymd.uix.list import OneLineListItem
 from kivymd.uix.tab import MDTabsBase
 
 from graph_canvas import GraphCanvas
+from constants import *
 
 
 KV = '''
+#:import TOOL_ICONS constants.TOOL_ICONS
+#:import TOOLS constants.TOOLS
+
 FloatLayout:
     GraphCanvas:
         id: graph_canvas
@@ -26,14 +30,7 @@ FloatLayout:
 
     MDFloatingActionButtonSpeedDial:
         id: tool_select
-        data: {'drag-variant'         : 'Grab',       \
-               'selection-drag'       : 'Select',     \
-               'pin'                  : 'Pin',        \
-               'map-marker-path'      : 'Show Path',  \
-               'plus-circle-outline'  : 'Add Node',   \
-               'minus-circle-outline' : 'Delete Node',\
-               'vector-polyline-plus' : 'Add Edge',   \
-               'vector-polyline-minus': 'Delete Edge'}
+        data: dict(zip(TOOL_ICONS,TOOLS))
         hint_animation: True
         icon: 'toolbox-outline'
         callback: app.select_tool
@@ -55,12 +52,10 @@ FloatLayout:
             PanelTabBase:
                 title: 'File'
                 text: 'file-outline'
-                md_bg_color: 1, 1, 1, 1
 
             PanelTabBase:
                 title: 'Adjacency List'
                 text: 'ray-start-arrow'
-                md_bg_color: 1, 1, 1, 1
 
                 ScrollView:
                     MDList:
@@ -69,7 +64,6 @@ FloatLayout:
             PanelTabBase:
                 title: 'Filters'
                 text: 'filter-outline'
-                md_bg_color: 1, 1, 1, 1
 
 '''
 
@@ -84,6 +78,8 @@ class PanelButton(MDFloatingActionButton):
 
 
 class PanelTabBase(FloatLayout, MDTabsBase, BackgroundColorBehavior):
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, md_bg_color=TAB_BACKGROUND, **kwargs)
     title = StringProperty('')
 
 
