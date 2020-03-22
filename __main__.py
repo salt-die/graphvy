@@ -113,10 +113,5 @@ class Graphvy(MDApp):
     def select_tool(self, instance):
         self.root.ids.graph_canvas.tool = self.root.ids.tool_select.data[instance.icon]
 
-    def highlight_node(self, node):
-        canvas = self.root.ids.graph_canvas
-        vertex = canvas.G.vertex(node)
-        G.highlighted = G.nodes[vertex]
-
 
 Graphvy().run()
