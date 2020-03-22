@@ -15,7 +15,7 @@ class AdjacencyListItem(OneLineListItem, BackgroundColorBehavior):
         index = int(node.vertex)
         text = f'{index}: {", ".join(map(str, self.node.vertex.out_neighbors()))}'
 
-        super().__init__(*args, text=text, **kwargs)
+        super().__init__(*args, text=text, md_bg_color=TAB_BACKGROUND, **kwargs)
 
         self.bind(on_press=self._on_press)
 
@@ -35,7 +35,7 @@ class Node(Line):
         self.color = Color(*NODE_COLOR, group=self.group_name)
         super().__init__(width=NODE_WIDTH, group=self.group_name)
 
-        self.list_item = AdjacencyListItem(self)
+        self.list_item = None  # Set in make_list_item
 
     def recolor_out_edges(self, line_color, head_color):
         edges = self.canvas.edges
@@ -46,18 +46,27 @@ class Node(Line):
     def freeze(self, color=None):
         self.canvas.G.vp.pinned[self.vertex] = 1
         if color is not None:
-            self.color.rgba = self.list_item.md_bg_color = color
+            self.color.rgba = color
+
+            if self.list_item is not None:
+                self.list_item.md_bg_color = color
+
         self.recolor_out_edges(HIGHLIGHTED_EDGE, HIGHLIGHTED_HEAD)
 
     def unfreeze(self):
         self.canvas.G.vp.pinned[self.vertex] = 0
         self.color.rgba = NODE_COLOR
-        self.list_item.md_bg_color = TAB_BACKGROUND
+        if self.list_item is not None:
+            self.list_item.md_bg_color = TAB_BACKGROUND
         self.recolor_out_edges(EDGE_COLOR, HEAD_COLOR)
 
     def collides(self, mx, my):
         x, y = self.canvas.coords[int(self.vertex)]
         return x - BOUNDS <= mx <= x + BOUNDS and y - BOUNDS <= my <= y + BOUNDS
+
+    def make_list_item(self):
+        self.list_item = AdjacencyListItem(self)
+        return self.list_item
 
     def update(self):
         self.circle = *self.canvas.coords[int(self.vertex)], NODE_RADIUS

@@ -95,7 +95,7 @@ class Graphvy(MDApp):
         adjacency_list = self.root.ids.adjacency_list
 
         for node in gc.nodes.values():
-            adjacency_list.add_widget(node.list_item)
+            adjacency_list.add_widget(node.make_list_item())
         self.hide_panel()
 
     def on_tab_switch(self, tabs, tab, label, text):

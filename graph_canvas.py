@@ -12,7 +12,6 @@ from functools import wraps
 from random import random
 import time
 
-from kivy.app import App
 from kivy.clock import Clock
 from kivy.graphics import Color, Rectangle
 from kivy.config import Config
@@ -20,6 +19,7 @@ from kivy.graphics.instructions import CanvasBase
 from kivy.properties import OptionProperty
 from kivy.uix.widget import Widget
 from kivy.core.window import Window
+from kivymd.app import MDApp
 
 import graph_tool as gt
 from graph_tool.draw import random_layout, sfdp_layout
@@ -144,9 +144,9 @@ class GraphCanvas(Widget):
         lit = self.highlighted
         if lit is not None:
             if lit in self._selected:
-                lit.color.rgba = SELECTED_COLOR
+                lit.freeze(SELECTED_COLOR)
             elif lit in self._pinned:
-                lit.color.rgba = PINNED_COLOR
+                lit.freeze(PINNED_COLOR)
             else:
                 lit.unfreeze()
 
@@ -442,7 +442,7 @@ if __name__ == "__main__":
     from dynamic_graph import EdgeCentricGASEP, EdgeFlipGASEP, Gravity
 
 
-    class GraphApp(App):
+    class GraphApp(MDApp):
         def build(self):
             # self.graph_canvas = GraphCanvas(graph_callback=EdgeCentricGASEP)
 
