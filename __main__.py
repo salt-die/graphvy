@@ -66,6 +66,21 @@ FloatLayout:
                 text: 'filter-outline'
 
 '''
+class AdjacencyListItem(OneLineListItem, BackgroundColorBehavior):
+    def __init__(self, canvas, vertex, *args, **kwargs):
+        self.graph_canvas = canvas
+        self.vertex = vertex
+
+        text = f'{vertex}: {", ".join(map(str, self.graph_canvas.G.vertex(vertex).out_neighbors()))}'
+
+        super().__init__(*args, text=text, **kwargs)
+
+        self.bind(on_press=self._on_press)
+
+    def _on_press(self, *args):
+        gc = self.graph_canvas
+        gc.highlighted = gc.nodes[gc.G.vertex(self.vertex)]
+
 
 
 class PanelButton(MDFloatingActionButton):
@@ -92,9 +107,9 @@ class Graphvy(MDApp):
         return root
 
     def on_start(self):
-        for i in range(20):
-            # This is just a visual test
-            self.root.ids.adjacency_list.add_widget(OneLineListItem(text=f'{i}: {i + 1}, {i + 2}'))
+        gc = self.root.ids.graph_canvas
+        for i in range(gc.G.num_vertices()):
+            self.root.ids.adjacency_list.add_widget(AdjacencyListItem(gc, i))
         self.hide_panel()
 
     def on_tab_switch(self, tabs, tab, label, text):
@@ -111,6 +126,11 @@ class Graphvy(MDApp):
 
     def select_tool(self, instance):
         self.root.ids.graph_canvas.tool = self.root.ids.tool_select.data[instance.icon]
+
+    def highlight_node(self, node):
+        canvas = self.root.ids.graph_canvas
+        vertex = canvas.G.vertex(node)
+        G.highlighted = G.nodes[vertex]
 
 
 Graphvy().run()
