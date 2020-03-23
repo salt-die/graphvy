@@ -19,6 +19,7 @@ KV = '''
 FloatLayout:
     GraphCanvas:
         id: graph_canvas
+        adjacency_list: adjacency_list
 
     MDFloatingActionButton:
         id: panel_button
@@ -85,11 +86,8 @@ class Graphvy(MDApp):
         return Builder.load_string(KV)
 
     def on_start(self):
-        gc = self.root.ids.graph_canvas
-        adjacency_list = self.root.ids.adjacency_list
-
-        for node in gc.nodes.values():
-            adjacency_list.add_widget(node.make_list_item())
+        for node in self.root.ids.graph_canvas.nodes.values():
+            self.root.ids.adjacency_list.add_widget(node.make_list_item())
 
     def on_tab_switch(self, tabs, tab, label, text):
         self.root.ids.header.title = tab.title

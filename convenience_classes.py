@@ -14,9 +14,8 @@ class AdjacencyListItem(OneLineListItem, BackgroundColorBehavior):
     def __init__(self, node, *args, **kwargs):
         self.node = node
 
-        text = f'{node.vertex}: {", ".join(map(str, self.node.vertex.out_neighbors()))}'
-
-        super().__init__(*args, text=text, md_bg_color=TAB_BACKGROUND, **kwargs)
+        super().__init__(*args, md_bg_color=TAB_BACKGROUND, **kwargs)
+        self.update_text()
 
         self.bind(on_press=self._on_press)
 
@@ -35,6 +34,9 @@ class AdjacencyListItem(OneLineListItem, BackgroundColorBehavior):
                 canvas._pinned.add(self.node)
         else:
             self.node.canvas.highlighted = self.node
+
+    def update_text(self):
+        self.text = f'{self.node.vertex}: {", ".join(map(str, self.node.vertex.out_neighbors()))}'
 
 
 class Node(Line):
@@ -191,5 +193,6 @@ class GraphInterface(Graph):
         return edge
 
     def remove_edge(self, edge):
-        self.graph_widget.unmake_edge(edge)
+        self.graph_widget.pre_unmake_edge(edge)
         super().remove_edge(edge)
+        self.graph_widget.post_unmake_edge()

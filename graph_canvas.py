@@ -2,12 +2,12 @@
 Hold shift to drag-select vertices. Ctrl-click to select individual vertices, and again to pin them.
 Space to pause/unpause the layout algorithm. Ctrl-Space to pause/unpause the Graph callback.
 """
-### FIXME: REMOVE/UPDATE ADJACENCYLIST ITEMS FOR DYNAMIC GRAPHS
 ### TODO: path highlighter
 ### TODO: bezier lines (only when paused; computationally heavy)
 ### TODO: degree histogram
 ### TODO: hide/filter nodes
 ### TODO: node/edge states visible
+### TODO: delayed resize
 from functools import wraps
 from random import random
 import time
@@ -16,7 +16,7 @@ from kivy.clock import Clock
 from kivy.graphics import Color, Rectangle
 from kivy.config import Config
 from kivy.graphics.instructions import CanvasBase
-from kivy.properties import OptionProperty
+from kivy.properties import OptionProperty, ObjectProperty
 from kivy.uix.widget import Widget
 from kivy.core.window import Window
 from kivymd.app import MDApp
@@ -78,6 +78,7 @@ class GraphCanvas(Widget):
     graph_callback(G) should return a callable that updates G when called.
     """
     tool = OptionProperty("Grab", options=TOOLS)
+    adjacency_list = ObjectProperty(None)
 
     _mouse_pos_disabled = False
 
@@ -117,7 +118,8 @@ class GraphCanvas(Widget):
         self.setup_canvas()
 
         self.coords = None  # Set in transform_coords
-        self._last_node_to_pos = None  # Set in unmake_node
+        self._last_node_to_pos = None  # Set in pre_unmake_node
+        self._source_to_update = None  # Set in pre_unmake_edge
 
         self.bind(size=self.update_canvas, pos=self.update_canvas, tool=self.retool)
         Window.bind(mouse_pos=self.on_mouse_pos)
@@ -201,6 +203,8 @@ class GraphCanvas(Widget):
         with self._node_instructions:
             self.nodes[node] = Node(node, self)
         self.G.vp.pos[node][:] = random(), random()
+        if self.adjacency_list:
+            self.adjacency_list.add_widget(self.nodes[node].make_list_item())
 
     def pre_unmake_node(self, node):
         """Remove the canvas instructions corresponding to node. Prepare last node to take its place."""
@@ -217,14 +221,14 @@ class GraphCanvas(Widget):
         if int(node) != last:
             last_vertex = self.G.vertex(last)
             last_node = self.nodes.pop(last_vertex)
-            # Loops will be repeated twice in all_edges, so we have to check for membership
-            # before we pop
-            last_node_edges = tuple(self.edges.pop(edge) for edge in last_vertex.all_edges()
-                                    if edge in self.edges)
+            # Loops will be repeated twice in all_edges, so we have to check for membership before we pop
+            last_node_edges = tuple(self.edges.pop(edge) for edge in last_vertex.all_edges() if edge in self.edges)
             self._last_node_to_pos = last_node, int(node), last_node_edges
 
-        del self.nodes[node]
+        if self.adjacency_list:
+            self.adjacency_list.remove_widget(self.nodes[node].list_item)
         self._node_instructions.remove_group(instruction.group_name)
+        del self.nodes[node]
 
     def post_unmake_node(self):
         """
@@ -247,10 +251,16 @@ class GraphCanvas(Widget):
 
         # In case edge index order changed, we should correct edge color by re-freezing/unfreezing the source node.
         # It's important we do this after the above loop or recoloring could try to iterate over edges that have
-        # invalid descriptors still.
+        # invalid descriptors.
         for edge_instruction in edge_instructions:
             s = self.nodes[edge_instruction.s]
             (s.freeze if self.G.vp.pinned[edge_instruction.s] else s.unfreeze)()
+
+        if self.adjacency_list:
+            color = node.list_item.md_bg_color
+            self.adjacency_list.remove_widget(node.list_item)
+            self.adjacency_list.add_widget(node.make_list_item(), index=pos)
+            node.list_item.md_bg_color = color
 
         self._last_node_to_pos = None
 
@@ -258,11 +268,20 @@ class GraphCanvas(Widget):
         """Make new canvas instructions corresponding to edge."""
         with self._edge_instructions:
             self.edges[edge] = Edge(edge, self)
+        if self.adjacency_list:
+            self.nodes[self.edges[edge].s].list_item.update_text()
 
-    def unmake_edge(self, edge):
+    def pre_unmake_edge(self, edge):
         """Remove the canvas instructions corresponding to edge."""
+        self._source_to_update = edge.source()
         instruction = self.edges.pop(edge)
         self._edge_instructions.remove_group(instruction.group_name)
+
+    def post_unmake_edge(self):
+        if self.adjacency_list:
+            self.nodes[self._source_to_update].list_item.update_text()
+        self._source_to_update = None
+
 
     @limit(UPDATE_INTERVAL)
     def update_canvas(self, *args):
