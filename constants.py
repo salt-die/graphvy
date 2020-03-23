@@ -7,14 +7,6 @@ SFDP_SETTINGS = dict(init_step=0.005,  # move step; increase for sfdp to converg
                      max_iter=1)
 
 TOOLS = ("Grab", "Select", "Pin", "Show Path", "Add Node", "Delete Node", "Add Edge", "Delete Edge")
-TOOL_ICONS = ('drag-variant',
-              'selection-drag',
-              'pin',
-              'map-marker-path',
-              'plus-circle-outline',
-              'minus-circle-outline',
-              'vector-polyline-plus',
-              'vector-polyline-minus')
 
 UPDATE_INTERVAL = 1/60
 
