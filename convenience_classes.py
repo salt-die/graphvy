@@ -14,7 +14,7 @@ class AdjacencyListItem(OneLineListItem, BackgroundColorBehavior):
     def __init__(self, node, *args, **kwargs):
         self.node = node
 
-        super().__init__(*args, md_bg_color=TAB_BACKGROUND, **kwargs)
+        super().__init__(*args, md_bg_color=LIST_BACKGROUND, **kwargs)
         self.update_text()
 
         self.bind(on_press=self._on_press)
@@ -25,7 +25,7 @@ class AdjacencyListItem(OneLineListItem, BackgroundColorBehavior):
         if canvas.tool == 'Select':
             if self.node in canvas._selected:
                 canvas._selected.remove(self.node)
-            else:
+            elif self.node not in canvas._pinned:
                 canvas._selected.add(self.node)
         elif canvas.tool == 'Pin':
             if self.node in canvas._pinned:
@@ -73,7 +73,7 @@ class Node(Line):
         self.canvas.G.vp.pinned[self.vertex] = 0
         self.color.rgba = NODE_COLOR
         if self.list_item is not None:
-            self.list_item.md_bg_color = TAB_BACKGROUND
+            self.list_item.md_bg_color = LIST_BACKGROUND
         self.recolor_out_edges(EDGE_COLOR, HEAD_COLOR)
 
     def collides(self, mx, my):

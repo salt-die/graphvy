@@ -15,6 +15,7 @@ KV = '''
 #:import TOOL_ICONS constants.TOOL_ICONS
 #:import TOOLS constants.TOOLS
 #:import PANEL_WIDTH constants.PANEL_WIDTH
+#:import LIST_BACKGROUND constants.LIST_BACKGROUND
 
 FloatLayout:
     GraphCanvas:
@@ -45,9 +46,6 @@ FloatLayout:
         MDToolbar:
             id: header
             title: "Graphvy"
-            right_action_items: [['play-circle-outline', lambda _: graph_canvas.pause_callback()],\
-                                 ['play-box-outline', lambda _: graph_canvas.pause_layout()],\
-                                 ['backburger', lambda _: app.animate_panel(-PANEL_WIDTH)]]
 
         MDTabs:
             id: side_panel
@@ -56,10 +54,12 @@ FloatLayout:
             PanelTabBase:
                 title: 'File'
                 text: 'file-outline'
+                md_bg_color: LIST_BACKGROUND
 
             PanelTabBase:
                 title: 'Adjacency List'
                 text: 'ray-start-arrow'
+                md_bg_color: LIST_BACKGROUND
 
                 ScrollView:
                     MDList:
@@ -68,21 +68,26 @@ FloatLayout:
             PanelTabBase:
                 title: 'Filters'
                 text: 'filter-outline'
+                md_bg_color: LIST_BACKGROUND
 
+        MDToolbar:
+            left_action_items: [['play-circle-outline', lambda _: graph_canvas.pause_callback()],\
+                                ['play-box-outline', lambda _: graph_canvas.pause_layout()]]
+            right_action_items: [['backburger', lambda _: app.animate_panel(-PANEL_WIDTH)]]
 '''
 
 
 class PanelTabBase(FloatLayout, MDTabsBase, BackgroundColorBehavior):
     title = StringProperty('')
 
-    def __init__(self, *args, **kwargs):
-        super().__init__(*args, md_bg_color=TAB_BACKGROUND, **kwargs)
-
 
 class Graphvy(MDApp):
     _anim_progress = NumericProperty(-PANEL_WIDTH)
 
     def build(self):
+        self.theme_cls.primary_palette = 'Blue'
+        self.theme_cls.primary_hue = '900'
+
         return Builder.load_string(KV)
 
     def on_start(self):
