@@ -70,9 +70,10 @@ FloatLayout:
 
 
 class PanelTabBase(FloatLayout, MDTabsBase, BackgroundColorBehavior):
+    title = StringProperty('')
+
     def __init__(self, *args, **kwargs):
         super().__init__(*args, md_bg_color=TAB_BACKGROUND, **kwargs)
-    title = StringProperty('')
 
 
 class Graphvy(MDApp):
