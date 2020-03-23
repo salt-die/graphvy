@@ -9,18 +9,32 @@ from constants import *
 
 
 class AdjacencyListItem(OneLineListItem, BackgroundColorBehavior):
+    __slots__ = 'node'
+
     def __init__(self, node, *args, **kwargs):
         self.node = node
 
-        index = int(node.vertex)
-        text = f'{index}: {", ".join(map(str, self.node.vertex.out_neighbors()))}'
+        text = f'{node.vertex}: {", ".join(map(str, self.node.vertex.out_neighbors()))}'
 
         super().__init__(*args, text=text, md_bg_color=TAB_BACKGROUND, **kwargs)
 
         self.bind(on_press=self._on_press)
 
     def _on_press(self, *args):
-        self.node.canvas.highlighted = self.node
+        ###  TODO: When add/delete edge is implemented, we should handle that here too.
+        canvas = self.node.canvas
+        if canvas.tool == 'Select':
+            if self.node in canvas._selected:
+                canvas._selected.remove(self.node)
+            else:
+                canvas._selected.add(self.node)
+        elif canvas.tool == 'Pin':
+            if self.node in canvas._pinned:
+                canvas._pinned.remove(self.node, unfreeze=True)
+            else:
+                canvas._pinned.add(self.node)
+        else:
+            self.node.canvas.highlighted = self.node
 
 
 class Node(Line):
@@ -140,9 +154,12 @@ class PinnedSet(NodeSet):
     def __init__(self, *args, **kwargs):
         super().__init__(*args, color=PINNED_COLOR, **kwargs)
 
-    def remove(self, node):
+    def remove(self, node, unfreeze=False):
         super().remove(node)
-        node.color.rgba = HIGHLIGHTED_NODE
+        if unfreeze:
+            node.unfreeze()
+        else:
+            node.color.rgba = HIGHLIGHTED_NODE
 
 
 class GraphInterface(Graph):

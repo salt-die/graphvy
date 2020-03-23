@@ -5,7 +5,6 @@ from kivy.properties import NumericProperty, StringProperty
 
 from kivymd.app import MDApp
 from kivymd.uix.behaviors import BackgroundColorBehavior
-from kivymd.uix.button import MDFloatingActionButton, MDFloatingActionButtonSpeedDial
 from kivymd.uix.tab import MDTabsBase
 
 from graph_canvas import GraphCanvas
@@ -25,7 +24,7 @@ FloatLayout:
         id: panel_button
         icon:'forwardburger'
         md_bg_color: app.theme_cls.primary_color
-        on_touch_up: app.animate_panel()
+        on_press: app.animate_panel()
         x: dp(20)
         y: dp(20)
 
@@ -38,13 +37,16 @@ FloatLayout:
 
     BoxLayout:
         size_hint: PANEL_WIDTH, 1
+        size_hint_max_x: 400
         pos_hint: {'x': app._anim_progress, 'y': 0}
         orientation: "vertical"
 
         MDToolbar:
             id: header
             title: "Graphvy"
-            right_action_items: [['backburger', lambda _: app.animate_panel(-PANEL_WIDTH)]]
+            right_action_items: [['play-circle-outline', lambda _: graph_canvas.pause_callback()],\
+                                 ['play-box-outline', lambda _: graph_canvas.pause_layout()],\
+                                 ['backburger', lambda _: app.animate_panel(-PANEL_WIDTH)]]
 
         MDTabs:
             id: side_panel
