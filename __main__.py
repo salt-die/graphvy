@@ -15,15 +15,17 @@ from constants import *
 KV = '''
 #:import TOOL_ICONS constants.TOOL_ICONS
 #:import TOOLS constants.TOOLS
+#:import PANEL_WIDTH constants.PANEL_WIDTH
 
 FloatLayout:
     GraphCanvas:
         id: graph_canvas
 
-    PanelButton:
+    MDFloatingActionButton:
         id: panel_button
         icon:'forwardburger'
         md_bg_color: app.theme_cls.primary_color
+        on_touch_up: app.animate_panel()
         x: dp(20)
         y: dp(20)
 
@@ -35,14 +37,14 @@ FloatLayout:
         callback: app.select_tool
 
     BoxLayout:
-        size_hint: .3, 1
+        size_hint: PANEL_WIDTH, 1
         pos_hint: {'x': app._anim_progress, 'y': 0}
         orientation: "vertical"
 
         MDToolbar:
             id: header
             title: "Graphvy"
-            right_action_items: [['backburger', lambda _: app.hide_panel()]]
+            right_action_items: [['backburger', lambda _: app.animate_panel(-PANEL_WIDTH)]]
 
         MDTabs:
             id: side_panel
@@ -67,15 +69,6 @@ FloatLayout:
 '''
 
 
-class PanelButton(MDFloatingActionButton):
-    callback = None
-
-    def on_touch_up(self, touch):
-        if super().on_touch_up(touch):
-            self.callback()
-            return True
-
-
 class PanelTabBase(FloatLayout, MDTabsBase, BackgroundColorBehavior):
     def __init__(self, *args, **kwargs):
         super().__init__(*args, md_bg_color=TAB_BACKGROUND, **kwargs)
@@ -83,12 +76,10 @@ class PanelTabBase(FloatLayout, MDTabsBase, BackgroundColorBehavior):
 
 
 class Graphvy(MDApp):
-    _anim_progress = NumericProperty(0)
+    _anim_progress = NumericProperty(-PANEL_WIDTH)
 
     def build(self):
-        root = Builder.load_string(KV)
-        root.ids.panel_button.callback = self.show_panel
-        return root
+        return Builder.load_string(KV)
 
     def on_start(self):
         gc = self.root.ids.graph_canvas
@@ -96,19 +87,14 @@ class Graphvy(MDApp):
 
         for node in gc.nodes.values():
             adjacency_list.add_widget(node.make_list_item())
-        self.hide_panel()
 
     def on_tab_switch(self, tabs, tab, label, text):
         self.root.ids.header.title = tab.title
 
-    def hide_panel(self):
-        anim = Animation(_anim_progress=-.3, duration=.7, t='out_cubic')
-        anim.start(self)
-
-    def show_panel(self):
-        self.root.ids.header.title = 'Graphvy'
-        anim = Animation(_anim_progress=0, duration=.7, t='out_cubic')
-        anim.start(self)
+    def animate_panel(self, x=0):
+        if x == 0:
+            self.root.ids.header.title = 'Graphvy'
+        Animation(_anim_progress=x, duration=.7, t='out_cubic').start(self)
 
     def select_tool(self, instance):
         self.root.ids.graph_canvas.tool = self.root.ids.tool_select.data[instance.icon]
