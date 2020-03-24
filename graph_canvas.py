@@ -212,6 +212,7 @@ class GraphCanvas(Widget):
 
         if self.highlighted is instruction:
             self.highlighted = None
+
         if instruction in self._pinned:
             self._pinned.remove(instruction)
         elif instruction in self._selected:
@@ -259,7 +260,7 @@ class GraphCanvas(Widget):
         if self.adjacency_list:
             color = node.list_item.md_bg_color
             self.adjacency_list.remove_widget(node.list_item)
-            self.adjacency_list.add_widget(node.make_list_item(), index=pos)
+            self.adjacency_list.add_widget(node.make_list_item(), index=self.G.num_vertices() - pos - 1)
             node.list_item.md_bg_color = color
 
         self._last_node_to_pos = None
@@ -321,6 +322,7 @@ class GraphCanvas(Widget):
         off_x, off_y = (0, 0) if delta else (self.offset_x, self.offset_y)
         return (x / self.width - off_x) / self.scale, (y / self.height - off_y) / self.scale
 
+    @redraw_canvas_after
     def on_touch_down(self, touch):
         if not self.collide_point(*touch.pos):
             return
@@ -333,24 +335,38 @@ class GraphCanvas(Widget):
             touch.multitouch_sim = True
             return True
 
+        highlighted = self.highlighted
+
         if self.tool == 'Select':
-            if self.highlighted is not None and self.highlighted not in self._pinned:
-                if self.highlighted in self._selected:
-                    self._selected.remove(self.highlighted)
+            if highlighted is not None and highlighted not in self._pinned:
+                if highlighted in self._selected:
+                    self._selected.remove(highlighted)
                 else:
-                    self._selected.add(self.highlighted)
+                    self._selected.add(highlighted)
             return True
 
         if self.tool == 'Pin':
-            if self.highlighted is not None:
-                if self.highlighted in self._pinned:
-                    self._pinned.remove(self.highlighted)
-                elif self.highlighted in self._selected:
-                    self._selected.remove(self.highlighted)  # This order is important else
-                    self._pinned.add(self.highlighted)       # node color will be incorrect.
+            if highlighted is not None:
+                if highlighted in self._pinned:
+                    self._pinned.remove(highlighted)
+                elif highlighted in self._selected:
+                    self._selected.remove(highlighted)  # This order is important else
+                    self._pinned.add(highlighted)       # node color will be incorrect.
                 else:
-                    self._pinned.add(self.highlighted)
+                    self._pinned.add(highlighted)
             return True
+
+        if self.tool == 'Add Node':
+            if highlighted is None:
+                vertex = self.G.add_vertex(1)
+                self.G.vp.pos[vertex][:] = *self.invert_coords(touch.x, touch.y),
+                highlighted = self.nodes[vertex]
+                return True
+
+        if self.tool == 'Delete Node':
+            if highlighted is not None:
+                self.G.remove_vertex(highlighted.vertex)
+                return True
 
         return True
 
