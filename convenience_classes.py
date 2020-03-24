@@ -189,8 +189,12 @@ class GraphInterface(Graph):
         return node
 
     def remove_vertex(self, node, fast=True):
-        for edge in node.all_edges():
+        # We do these loops separately so that we don't try to remove the same edge twice.
+        for edge in tuple(node.out_edges()):
             self.remove_edge(edge)
+        for edge in tuple(node.in_edges()):
+            self.remove_edge(edge)
+
         self.graph_widget.pre_unmake_node(node)
         super().remove_vertex(node, fast=True)  # Interface relies on fast=True, we ignore the previous fast value
         self.graph_widget.post_unmake_node()
