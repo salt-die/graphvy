@@ -7,11 +7,12 @@ from math import atan2, sin, cos  # Should be slightly faster than numpy for non
 from kivy.graphics import Color, Line
 from kivy.uix.widget import Widget
 
-
+BASE = np.array([[-3, 0], [-6, 1], [-6, -1]], dtype=float)
 ROTATION = np.zeros((2, 2), dtype=float)  # Used as a buffer for Triangle rotation matrix
+BUFFER = np.zeros((3, 2), dtype=float)    # Buffer for matmul with ROTATION
 
 class Triangle(Line):
-    __slots__ = 'base', 'buffer', 'color', 'group_name'
+    __slots__ = 'base', 'color', 'group_name'
 
     def __init__(self, color, width, size, group_name=None):
         """
@@ -26,17 +27,11 @@ class Triangle(Line):
 
         Tip is off origin so that arrow is less covered by nodes.
         """
-        self.base = np.array([[-3, 0], [-6, 1], [-6, -1]], dtype=float) * size
-        self.buffer = np.zeros_like(self.base)
-
-        if group_name is None:
-            self.group_name = str(id(self))
-        else:
-            self.group_name = group_name
+        self.base =  BASE * size
+        self.group_name = str(id(self)) if group_name is None else group_name
 
         self.color = Color(*color, group=self.group_name)
         super().__init__(close=True, width=width, group=self.group_name)
-
 
     def update(self, x1, y1, x2, y2):
         theta = atan2(y2 - y1, x2 - x1)
@@ -47,10 +42,13 @@ class Triangle(Line):
         ROTATION[0, 1] = sine
         ROTATION[1, 0] = -sine
 
-        np.matmul(self.base, ROTATION, out=self.buffer)
-        np.add(self.buffer, (x2, y2), out=self.buffer)
+        np.matmul(self.base, ROTATION, out=BUFFER)
+        np.add(BUFFER, (x2, y2), out=BUFFER)
 
-        self.points = *self.buffer.reshape(1, -1)[0],
+        self.points = *BUFFER.reshape(1, -1)[0],
+
+    def resize(self, size):
+        self.base = BASE * size
 
 
 class Arrow(Line):
@@ -74,3 +72,6 @@ class Arrow(Line):
     def update(self, x1, y1, x2, y2):
         self.points = x1, y1, x2, y2
         self.head.update(x1, y1, x2, y2)
+
+    def resize_head(self, size):
+        self.head.resize(size)

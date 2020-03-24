@@ -22,7 +22,7 @@ class AdjacencyListItem(OneLineListItem, BackgroundColorBehavior):
         self.bind(on_press=self._on_press)
 
     def _on_press(self, *args):
-        ###  TODO: When add/delete edge is implemented, we should handle that here too.
+        ###  TODO: When add/delete edge and delete node is implemented, we should handle that here too.
         node = self.node
         canvas = node.canvas
         pinned = canvas._pinned
@@ -97,11 +97,13 @@ class Node(Line):
 
 
 class Edge(Arrow):
-    __slots__ = 's', 't', 'canvas'
+    __slots__ = 's', 't', 'canvas', '_directed'
 
-    def __init__(self, edge, canvas):
+    def __init__(self, edge, canvas, directed=True):
         self.s, self.t = edge
         self.canvas = canvas
+        self._directed = directed
+
         if self.canvas.G.vp.pinned[self.s]:
             line_color = HIGHLIGHTED_EDGE
             head_color = HIGHLIGHTED_HEAD
@@ -113,8 +115,19 @@ class Edge(Arrow):
                          width=EDGE_WIDTH,
                          head_size=HEAD_SIZE)
 
+    @property
+    def directed(self):
+        return self._directed
+
+    @directed.setter
+    def directed(self, boolean):
+        self._directed = self.head.color.a = boolean
+
     def update(self):
-        super().update(*self.canvas.coords[int(self.s)], *self.canvas.coords[int(self.t)])
+        x1, y1, x2, y2 = *self.canvas.coords[int(self.s)], *self.canvas.coords[int(self.t)]
+        self.points = x1, y1, x2, y2
+        if self.directed:
+            self.head.update(x1, y1, x2, y2)
 
 
 class Selection(Line):
@@ -189,7 +202,7 @@ class GraphInterface(Graph):
         return node
 
     def remove_vertex(self, node, fast=True):
-        # We do these loops separately so that we don't try to remove the same edge twice.
+        # We do these loops separately so that we don't try to remove the same edge twice. (Loops would be repeated.)
         for edge in tuple(node.out_edges()):
             self.remove_edge(edge)
         for edge in tuple(node.in_edges()):
