@@ -337,36 +337,27 @@ class GraphCanvas(Widget):
 
         highlighted = self.highlighted
 
-        if self.tool == 'Select':
-            if highlighted is not None and highlighted not in self._pinned:
+        if self.tool == 'Select' and highlighted is not None and highlighted not in self._pinned:
+            if highlighted in self._selected:
+                self._selected.remove(highlighted)
+            else:
+                self._selected.add(highlighted)
+
+        elif self.tool == 'Pin' and highlighted is not None:
+            if highlighted in self._pinned:
+                self._pinned.remove(highlighted)
+            else:
                 if highlighted in self._selected:
                     self._selected.remove(highlighted)
-                else:
-                    self._selected.add(highlighted)
-            return True
+                self._pinned.add(highlighted)
 
-        if self.tool == 'Pin':
-            if highlighted is not None:
-                if highlighted in self._pinned:
-                    self._pinned.remove(highlighted)
-                elif highlighted in self._selected:
-                    self._selected.remove(highlighted)  # This order is important else
-                    self._pinned.add(highlighted)       # node color will be incorrect.
-                else:
-                    self._pinned.add(highlighted)
-            return True
+        elif self.tool == 'Add Node' and highlighted is None:
+            vertex = self.G.add_vertex(1)
+            self.G.vp.pos[vertex][:] = self.invert_coords(touch.x, touch.y)
+            self.highlighted = self.nodes[vertex]
 
-        if self.tool == 'Add Node':
-            if highlighted is None:
-                vertex = self.G.add_vertex(1)
-                self.G.vp.pos[vertex][:] = *self.invert_coords(touch.x, touch.y),
-                self.highlighted = self.nodes[vertex]
-                return True
-
-        if self.tool == 'Delete Node':
-            if highlighted is not None:
-                self.G.remove_vertex(highlighted.vertex)
-                return True
+        elif self.tool == 'Delete Node' and highlighted is not None:
+            self.G.remove_vertex(highlighted.vertex)
 
         return True
 
@@ -403,7 +394,7 @@ class GraphCanvas(Widget):
             return True
 
         if self.highlighted is not None:
-            self.G.vp.pos[self.highlighted.vertex][:] = *self.invert_coords(touch.x, touch.y),
+            self.G.vp.pos[self.highlighted.vertex][:] = self.invert_coords(touch.x, touch.y)
             return True
 
         self.offset_x += touch.dx / self.width
@@ -481,6 +472,8 @@ if __name__ == "__main__":
         def build(self):
             # self.graph_canvas = GraphCanvas(graph_callback=EdgeCentricGASEP)
 
+            # self.graph_canvas = GraphCanvas(graph_callback=EdgeFlipGASEP)
+
             G = gt.Graph()
             G.add_vertex(2)
             G.add_edge(0, 1)
@@ -491,8 +484,6 @@ if __name__ == "__main__":
             return self.graph_canvas
 
         def on_key_down(self, *args):
-            # Will use key presses to change GraphCanvas's modes when testing; Ideally, we'd use
-            # buttons in some other widget.
             if args[1] in (LSHIFT, RSHIFT):
                 self.graph_canvas.tool = 'Select'
             elif args[1] in (LCTRL, RCTRL):
