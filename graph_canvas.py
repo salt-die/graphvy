@@ -360,7 +360,7 @@ class GraphCanvas(Widget):
             if highlighted is None:
                 vertex = self.G.add_vertex(1)
                 self.G.vp.pos[vertex][:] = *self.invert_coords(touch.x, touch.y),
-                highlighted = self.nodes[vertex]
+                self.highlighted = self.nodes[vertex]
                 return True
 
         if self.tool == 'Delete Node':
