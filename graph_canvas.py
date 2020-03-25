@@ -82,7 +82,6 @@ class GraphCanvas(Widget):
 
     _mouse_pos_disabled = False
 
-    _highlighted = None  # For highlighted property.
     _selected = SelectedSet()
     _pinned = PinnedSet()
 
@@ -95,23 +94,12 @@ class GraphCanvas(Widget):
     _callback_paused = False
     _layout_paused = False
 
-    # Following attributes set in setup_canvas:
-    edges = None  # dict from self.G.edges() to Edge instruction group
-    nodes = None  # dict from self.G.vertices() to Node instruction group
-    background_color = None
-    _background = None
-    select_rect = None
-    _edge_instructions = None
-    _node_instructions = None
-    _source_color = None
-    _source_circle = None
-
-    coords = None  # Set in transform_coords; screen coordinates of vertex positions
-    _last_node_to_pos = None  # Set in pre_unmake_node
-    _source_to_update = None  # Set in pre_unmake_edge
-    _source = None  # For 'Add/Delete Edge' and 'Show Path' tool
-
     def __init__(self, *args, G=None, graph_callback=None, multigraph=False, **kwargs):
+        none_attrs = ['_highlighted', 'edges', 'nodes', 'background_color', '_background', 'select_rect',
+                      '_edge_instructions', '_node_instructions', '_source_color', '_source_circle', 'coords',
+                      '_last_node_to_pos', '_source_to_update', '_source']
+        self.__dict__.update(dict.fromkeys(none_attrs))
+
         if G is None:
             self.G = GraphInterface(self, erdos_random_graph(50, 80))
         else:
