@@ -111,7 +111,7 @@ class GraphCanvas(Widget):
     _source_to_update = None  # Set in pre_unmake_edge
     _source = None  # For 'Add/Delete Edge' and 'Show Path' tool
 
-    def __init__(self, *args, G=None, graph_callback=None, **kwargs):
+    def __init__(self, *args, G=None, graph_callback=None, multigraph=False, **kwargs):
         if G is None:
             self.G = GraphInterface(self, erdos_random_graph(50, 80))
         else:
@@ -134,6 +134,8 @@ class GraphCanvas(Widget):
             self.update_graph = Clock.schedule_interval(self.callback, 0)
         else:
             self.graph_callback = None
+
+        self.multigraph = multigraph
 
     @redraw_canvas_after
     def callback(self, dt):
@@ -395,8 +397,7 @@ class GraphCanvas(Widget):
                 if self.source is None:
                     self.source = highlighted
                 else:
-                    ### TODO: Remove this check for Multigraphs -- We could check an attribute in the future.
-                    if self.G.edge(self.source.vertex, self.highlighted.vertex) is None:
+                    if self.multigraph or self.G.edge(self.source.vertex, self.highlighted.vertex) is None:
                         self.G.add_edge(self.source.vertex, self.highlighted.vertex)
                     self.source = None
 

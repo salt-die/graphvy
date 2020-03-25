@@ -48,7 +48,7 @@ class AdjacencyListItem(OneLineListItem, BackgroundColorBehavior):
             if canvas.source is None:
                 canvas.source = node
             else:
-                if canvas.G.edge(canvas.source.vertex, node.vertex) is None:
+                if canvas.multigraph or canvas.G.edge(canvas.source.vertex, node.vertex) is None:
                     canvas.G.add_edge(canvas.source.vertex, node.vertex)
                 canvas.source = None
 
