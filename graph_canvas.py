@@ -253,8 +253,7 @@ class GraphCanvas(Widget):
         if int(node) != last:
             last_vertex = self.G.vertex(last)
             last_node = self.nodes.pop(last_vertex)
-            # Loops will be repeated twice in all_edges, so we have to check for membership before we pop
-            last_node_edges = tuple(self.edges.pop(edge) for edge in last_vertex.all_edges() if edge in self.edges)
+            last_node_edges = tuple(self.edges.pop(edge) for edge in set(last_vertex.all_edges()))
             self._last_node_to_pos = last_node, int(node), last_node_edges
 
         if self.adjacency_list:
@@ -277,7 +276,7 @@ class GraphCanvas(Widget):
         node.vertex = self.G.vertex(pos)  # Update descriptor
         self.nodes[node.vertex] = node    # Update node dict
 
-        for edge_instruction, edge in zip(edge_instructions, node.vertex.all_edges()):
+        for edge_instruction, edge in zip(edge_instructions, set(node.vertex.all_edges())):
             edge_instruction.s, edge_instruction.t = edge  # Update descriptor
             self.edges[edge] = edge_instruction            # Update edge dict
 
