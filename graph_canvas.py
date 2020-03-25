@@ -83,7 +83,6 @@ class GraphCanvas(Widget):
     _mouse_pos_disabled = False
 
     _highlighted = None        # For highlighted property.
-    _last_highlighted = None   #          ""
     _selected = SelectedSet()
     _pinned = PinnedSet()
 
@@ -96,6 +95,20 @@ class GraphCanvas(Widget):
     _callback_paused = False
     _layout_paused = False
 
+    # Following attributes set in setup_canvas:
+    edges = None  # dict from self.G.edges() to Edge instruction group
+    nodes = None  # dict from self.G.vertices() to Node instruction group
+    background_color = None
+    _background = None
+    select_rect = None
+    _edge_instructions = None
+    _node_instructions = None
+
+    coords = None  # Set in transform_coords; screen coordinates of vertex positions
+    _last_node_to_pos = None  # Set in pre_unmake_node
+    _source_to_update = None  # Set in pre_unmake_edge
+    _source = None  # For 'Add/Delete Edge' and 'Show Path' tool
+
     def __init__(self, *args, G=None, graph_callback=None, **kwargs):
         if G is None:
             self.G = GraphInterface(self, erdos_random_graph(50, 80))
@@ -107,19 +120,7 @@ class GraphCanvas(Widget):
         self.G.vp.pinned = self.G.new_vertex_property('bool')
 
         super().__init__(*args, **kwargs)
-
-        # Following attributes set in setup_canvas:
-        self.edges = None  # dict from self.G.edges() to Edge instruction group
-        self.nodes = None  # dict from self.G.vertices() to Node instruction group
-        self.background = None
-        self.select_rect = None
-        self._edge_instructions = None
-        self._node_instructions = None
         self.setup_canvas()
-
-        self.coords = None  # Set in transform_coords
-        self._last_node_to_pos = None  # Set in pre_unmake_node
-        self._source_to_update = None  # Set in pre_unmake_edge
 
         self.bind(size=self.update_canvas, pos=self.update_canvas, tool=self.retool)
         Window.bind(mouse_pos=self.on_mouse_pos)
@@ -181,8 +182,8 @@ class GraphCanvas(Widget):
         self.canvas.clear()
 
         with self.canvas.before:
-            Color(*BACKGROUND_COLOR)
-            self.background = Rectangle(size=self.size, pos=self.pos)
+            self.background_color = Color(*BACKGROUND_COLOR)
+            self._background = Rectangle(size=self.size, pos=self.pos)
 
         self._edge_instructions = CanvasBase()
         with self._edge_instructions:
@@ -287,8 +288,8 @@ class GraphCanvas(Widget):
     @limit(UPDATE_INTERVAL)
     def update_canvas(self, *args):
         """Update node coordinates and edge colors."""
-        self.background.size = self.size
-        self.background.pos = self.pos
+        self._background.size = self.size
+        self._background.pos = self.pos
 
         self.transform_coords()
 
