@@ -49,8 +49,8 @@ class AdjacencyListItem(OneLineListItem, BackgroundColorBehavior):
                 canvas.source = node
             else:
                 if canvas.G.edge(canvas.source.vertex, node.vertex) is None:
-                    self.G.add_edge(canvas.source.vertex, node.vertex)
-                self.source = None
+                    canvas.G.add_edge(canvas.source.vertex, node.vertex)
+                canvas.source = None
 
         elif canvas.tool == 'Delete Edge':
             if canvas.source is None:
@@ -58,8 +58,8 @@ class AdjacencyListItem(OneLineListItem, BackgroundColorBehavior):
             else:
                 edge = canvas.G.edge(canvas.source.vertex, node.vertex)
                 if edge is not None:
-                    self.G.remove_edge(edge)
-                self.source = None
+                    canvas.G.remove_edge(edge)
+                canvas.source = None
 
         else:
             canvas.highlighted = node
