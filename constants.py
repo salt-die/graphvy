@@ -13,6 +13,8 @@ UPDATE_INTERVAL = 1/60
 # Colors
 BACKGROUND_COLOR  =     0,     0,     0,   1
 
+SOURCE_COLOR      = 0.770, 0.245, 0.249,   0
+
 NODE_COLOR        = 0.051, 0.278, 0.631,   1
 HIGHLIGHTED_NODE  = 0.758, 0.823,  0.92,   1
 SELECTED_COLOR    = 0.514, 0.646, 0.839,   1
@@ -25,19 +27,22 @@ HIGHLIGHTED_HEAD  = 0.770, 0.245, 0.249,   1
 
 SELECT_RECT_COLOR =     1,     1,     1, 0.8  # color of select_rect's outline
 
-LIST_BACKGROUND =       1,     1,     1,   1  # adjacency list items
+LIST_BACKGROUND   =     1,     1,     1,   1  # adjacency list items
 
 # Sizes
-NODE_RADIUS  = 3
-BOUNDS       = NODE_RADIUS * 2
+SOURCE_RADIUS = 5
+SOURCE_WIDTH  = 5
 
-HEAD_SIZE    = 3  # size of arrow heads
+NODE_RADIUS   = 3
+BOUNDS        = NODE_RADIUS * 2
 
-NODE_WIDTH   = 3
-EDGE_WIDTH   = 2
-SELECT_WIDTH = 1.2
+HEAD_SIZE     = 3  # size of arrow heads
 
-PANEL_WIDTH = .3
+NODE_WIDTH    = 3
+EDGE_WIDTH    = 2
+SELECT_WIDTH  = 1.2
+
+PANEL_WIDTH   = .3
 
 # Keys
 LSHIFT, RSHIFT = 304, 13

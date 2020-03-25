@@ -13,7 +13,7 @@ from random import random
 import time
 
 from kivy.clock import Clock
-from kivy.graphics import Color, Rectangle
+from kivy.graphics import Color, Line, Rectangle
 from kivy.config import Config
 from kivy.graphics.instructions import CanvasBase
 from kivy.properties import OptionProperty, ObjectProperty
@@ -103,6 +103,8 @@ class GraphCanvas(Widget):
     select_rect = None
     _edge_instructions = None
     _node_instructions = None
+    _source_color = None
+    _source_circle = None
 
     coords = None  # Set in transform_coords; screen coordinates of vertex positions
     _last_node_to_pos = None  # Set in pre_unmake_node
@@ -145,7 +147,7 @@ class GraphCanvas(Widget):
     def highlighted(self, node):
         """Freezes highlighted nodes or returns un-highlighted nodes to the proper color."""
         lit = self.highlighted
-        if lit is not None:
+        if lit is not None and lit is not self.source:
             if lit in self._selected:
                 lit.freeze(SELECTED_COLOR)
             elif lit in self._pinned:
@@ -158,9 +160,33 @@ class GraphCanvas(Widget):
 
         self._highlighted = node
 
+    @property
+    def source(self):
+        return self._source
+
+    @source.setter
+    def source(self, node):
+        source = self.source
+        if source is not None:
+            self._source_color.a = 0
+            if source in self._selected:
+                source.freeze(SELECTED_COLOR)
+            elif source in self._pinned:
+                source.freeze(PINNED_COLOR)
+            else:
+                source.unfreeze()
+
+        if node is not None:
+            node.freeze(HIGHLIGHTED_NODE)
+            self._source_circle.circle = *self.coords[int(node.vertex)], SOURCE_RADIUS
+            self._source_color.a = .8
+
+        self._source = node
+
     def retool(self, instance, value):
         if value == 'Select':
             self.select_rect.set_corners()
+        self.source = None
 
     def pause_layout(self):
         self._layout_paused = not self._layout_paused
@@ -192,6 +218,8 @@ class GraphCanvas(Widget):
 
         self._node_instructions = CanvasBase()
         with self._node_instructions:
+            self._source_color = Color(*SOURCE_COLOR)
+            self._source_circle = Line(width=SOURCE_WIDTH)
             self.nodes = {vertex: Node(vertex, self) for vertex in self.G.vertices()}
         self.canvas.add(self._node_instructions)
 
@@ -359,6 +387,30 @@ class GraphCanvas(Widget):
 
         elif self.tool == 'Delete Node' and highlighted is not None:
             self.G.remove_vertex(highlighted.vertex)
+
+        elif self.tool == 'Add Edge':
+            if highlighted is None:
+                self.source = None
+            else:
+                if self.source is None:
+                    self.source = highlighted
+                else:
+                    ### TODO: Remove this check for Multigraphs -- We could check an attribute in the future.
+                    if self.G.edge(self.source.vertex, self.highlighted.vertex) is None:
+                        self.G.add_edge(self.source.vertex, self.highlighted.vertex)
+                    self.source = None
+
+        elif self.tool == 'Delete Edge':
+            if highlighted is None:
+                self.source = None
+            else:
+                if self.source is None:
+                    self.source = highlighted
+                else:
+                    edge = self.G.edge(self.source.vertex, self.highlighted.vertex)
+                    if edge is not None:
+                        self.G.remove_edge(edge)
+                    self.source = None
 
         return True
 
