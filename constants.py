@@ -30,8 +30,8 @@ SELECT_RECT_COLOR =     1,     1,     1, 0.8  # color of select_rect's outline
 LIST_BACKGROUND   =     1,     1,     1,   1  # adjacency list items
 
 # Sizes
-SOURCE_RADIUS = 5
-SOURCE_WIDTH  = 5
+SOURCE_RADIUS = 7
+SOURCE_WIDTH  = 7
 
 NODE_RADIUS   = 3
 BOUNDS        = NODE_RADIUS * 2

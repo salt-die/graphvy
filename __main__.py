@@ -152,4 +152,5 @@ class Graphvy(MDApp):
     def select_tool(self, tool):
         self.root.ids.graph_canvas.tool = tool
 
+
 Graphvy().run()

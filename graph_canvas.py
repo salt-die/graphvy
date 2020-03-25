@@ -82,7 +82,7 @@ class GraphCanvas(Widget):
 
     _mouse_pos_disabled = False
 
-    _highlighted = None        # For highlighted property.
+    _highlighted = None  # For highlighted property.
     _selected = SelectedSet()
     _pinned = PinnedSet()
 

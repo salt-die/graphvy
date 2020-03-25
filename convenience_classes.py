@@ -22,7 +22,6 @@ class AdjacencyListItem(OneLineListItem, BackgroundColorBehavior):
         self.bind(on_press=self._on_press)
 
     def _on_press(self, *args):
-        ###  TODO: When add/delete edge and delete node is implemented, we should handle that here too.
         node = self.node
         canvas = node.canvas
         pinned = canvas._pinned
@@ -33,6 +32,7 @@ class AdjacencyListItem(OneLineListItem, BackgroundColorBehavior):
                 selected.remove(node)
             elif node not in pinned:
                 selected.add(node)
+
         elif canvas.tool == 'Pin':
             if node in pinned:
                 pinned.remove(node, unfreeze=True)
@@ -40,6 +40,27 @@ class AdjacencyListItem(OneLineListItem, BackgroundColorBehavior):
                 if node in selected:
                     selected.remove(node)
                 pinned.add(node)
+
+        elif canvas.tool == 'Delete Node':
+            canvas.G.remove_vertex(node.vertex)
+
+        elif canvas.tool == 'Add Edge':
+            if canvas.source is None:
+                canvas.source = node
+            else:
+                if canvas.G.edge(canvas.source.vertex, node.vertex) is None:
+                    self.G.add_edge(canvas.source.vertex, node.vertex)
+                self.source = None
+
+        elif canvas.tool == 'Delete Edge':
+            if canvas.source is None:
+                canvas.source = node
+            else:
+                edge = canvas.G.edge(canvas.source.vertex, node.vertex)
+                if edge is not None:
+                    self.G.remove_edge(edge)
+                self.source = None
+
         else:
             canvas.highlighted = node
 
