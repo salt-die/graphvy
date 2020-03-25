@@ -508,6 +508,10 @@ class GraphCanvas(Widget):
 if __name__ == "__main__":
     from dynamic_graph import EdgeCentricGASEP, EdgeFlipGASEP, Gravity
 
+    LSHIFT, RSHIFT = 304, 13
+    LCTRL, RCTRL   = 305, 306
+    SPACE          = 32
+
 
     class GraphApp(MDApp):
         def build(self):

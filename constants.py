@@ -43,8 +43,3 @@ EDGE_WIDTH    = 2
 SELECT_WIDTH  = 1.2
 
 PANEL_WIDTH   = .3
-
-# Keys
-LSHIFT, RSHIFT = 304, 13
-LCTRL, RCTRL   = 305, 306
-SPACE          = 32

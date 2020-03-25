@@ -49,8 +49,8 @@ class GraphASEP(AsyncDynamicBase):
 
     __slots__ = 'num_vertices', 'num_edges'
 
-    def __init__(self, G, *, niter=1):
-        super().__init__(G, niter=niter)
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
 
         # The number of edges and vertices remain constant in a GASEP
         self.num_vertices = G.num_vertices()
@@ -149,8 +149,8 @@ class Gravity(AsyncDynamicBase, Moves):
 
     __slots__ = 'flavors', 'dynamics'
 
-    def __init__(self, G, *args, **kwargs):
-        super().__init__(G, *args, **kwargs)
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
         self.flavors = self.G.new_edge_property('int')
         self.dynamics = self.photon_dynamics, self.matter_dynamics, self.antimatter_dynamics
 
