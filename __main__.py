@@ -18,7 +18,6 @@ KV = '''
 #:import PANEL_WIDTH constants.PANEL_WIDTH
 #:import HIGHLIGHTED_NODE constants.HIGHLIGHTED_NODE
 #:import SELECTED_COLOR constants.SELECTED_COLOR
-#:import PINNED_COLOR constants.PINNED_COLOR
 
 FloatLayout:
     GraphCanvas:
@@ -114,38 +113,44 @@ FloatLayout:
             id: grab
             icon: 'drag-variant'
             label: 'Grab'
+
         ToolIcon:
             icon: 'selection-drag'
             label: 'Select'
+
         ToolIcon:
             icon: 'pin'
             label: 'Pin'
+
         ToolIcon:
             icon: 'map-marker-path'
             label: 'Show Path'
+
         ToolIcon:
             icon: 'plus-circle-outline'
             label: 'Add Node'
+
         ToolIcon:
             icon: 'minus-circle-outline'
             label: 'Delete Node'
+
         ToolIcon:
             icon: 'vector-polyline-plus'
             label: 'Add Edge'
+
         ToolIcon:
             icon: 'vector-polyline-minus'
             label: 'Delete Edge'
 
 <ToolIcon>:
-    up_color: app.theme_cls.primary_color
-    down_color: PINNED_COLOR
     group: 'tools'
     allow_no_selection: False
     tooltip_text: self.label
+    tooltip_text_color: app.theme_cls.primary_color
+    tooltip_bg_color: HIGHLIGHTED_NODE
     theme_text_color: 'Custom'
     text_color: HIGHLIGHTED_NODE
     md_bg_color: app.theme_cls.primary_color
-    tooltip_bg_color: app.theme_cls.primary_dark
     on_press: app.select_tool(self.label)
 
 <PanelTabBase>:
@@ -155,11 +160,10 @@ FloatLayout:
 
 class ToolIcon(MDIconButton, ToggleButtonBehavior, MDTooltip, BackgroundColorBehavior):
     label = StringProperty()
-    up_color = ListProperty()
-    down_color = ListProperty()
 
     def on_state(self, instance, value):
-        self.md_bg_color = self.down_color if value == 'down' else self.up_color
+        self.md_bg_color = SELECTED_COLOR if value == 'down' else NODE_COLOR
+        self.text_color = NODE_COLOR if value == 'down' else HIGHLIGHTED_NODE
 
 
 class PanelTabBase(FloatLayout, MDTabsBase, BackgroundColorBehavior):
