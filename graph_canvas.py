@@ -13,7 +13,7 @@ from random import random
 import time
 
 from kivy.clock import Clock
-from kivy.graphics import Color, Line, Rectangle
+from kivy.graphics import Color, Ellipse, Line, Rectangle
 from kivy.config import Config
 from kivy.graphics.instructions import CanvasBase
 from kivy.properties import OptionProperty, ObjectProperty
@@ -351,6 +351,11 @@ class GraphCanvas(Widget):
 
         if touch.button == 'right':
             touch.multitouch_sim = True
+            # We're going to change the color of multitouch dots to match our color scheme:
+            with Window.canvas.after:
+                touch.ud._drawelement = _, ellipse = Color(*PINNED_COLOR), Ellipse(size=(20, 20), segments=15)
+            ellipse.pos = touch.x - 10, touch.y - 10
+
             return True
 
         highlighted = self.highlighted

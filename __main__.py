@@ -19,7 +19,6 @@ KV = '''
 #:import PANEL_WIDTH constants.PANEL_WIDTH
 #:import HIGHLIGHTED_NODE constants.HIGHLIGHTED_NODE
 #:import SELECTED_COLOR constants.SELECTED_COLOR
-#:import PINNED_COLOR constants.PINNED_COLOR
 
 FloatLayout:
     GraphCanvas:
@@ -31,7 +30,7 @@ FloatLayout:
         icon:'forwardburger'
         text_theme_color: 'Custom'
         text_color: app.theme_cls.primary_color
-        md_bg_color: HIGHLIGHTED_NODE
+        md_bg_color: SELECTED_COLOR
         on_release: app.animate_panel()
         x: dp(10) - side_panel.width - side_panel.x
         y: dp(20)
@@ -52,7 +51,7 @@ FloatLayout:
         MDTabs:
             id: side_panel
             on_tab_switch: app.on_tab_switch(*args)
-            color_indicator: PINNED_COLOR
+            color_indicator: HIGHLIGHTED_NODE
 
             PanelTabBase:
                 title: 'File'
@@ -152,7 +151,7 @@ FloatLayout:
     tooltip_text_color: app.theme_cls.primary_color
     tooltip_bg_color: HIGHLIGHTED_NODE
     theme_text_color: 'Custom'
-    text_color: HIGHLIGHTED_NODE
+    text_color: SELECTED_COLOR
     on_press: app.select_tool(self.label)
 
 <PanelTabBase>:
@@ -168,7 +167,7 @@ class ToolIcon(MDIconButton, ToggleButtonBehavior, MDTooltip):
     label = StringProperty()
 
     def on_state(self, instance, value):
-        self.text_color = PINNED_COLOR if value == 'down' else HIGHLIGHTED_NODE
+        self.text_color = HIGHLIGHTED_NODE if value == 'down' else SELECTED_COLOR
 
 
 class PanelTabBase(FloatLayout, MDTabsBase, BackgroundColorBehavior):
@@ -197,8 +196,8 @@ class Graphvy(MDApp):
 
         # Setting the text_color_active/_normal properties in kv lang appears to be bugged
         for child in self.root.ids.side_panel.tab_bar.layout.children:
-            child.text_color_active = PINNED_COLOR
-            child.text_color_normal = HIGHLIGHTED_NODE
+            child.text_color_active = HIGHLIGHTED_NODE
+            child.text_color_normal = SELECTED_COLOR
 
     def on_tab_switch(self, tabs, tab, label, text):
         self.root.ids.header.title = tab.title
