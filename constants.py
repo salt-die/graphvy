@@ -28,6 +28,7 @@ HIGHLIGHTED_HEAD  = 0.770, 0.245, 0.249,   1
 SELECT_RECT_COLOR =     1,     1,     1, 0.8  # color of select_rect's outline
 
 LIST_BACKGROUND   =     1,     1,     1,   1  # adjacency list items
+TAB_INDICATOR     = 0.760, 0.235, 0.239,   1
 
 # Sizes
 SOURCE_RADIUS = 7

@@ -17,6 +17,7 @@ from constants import *
 KV = '''
 #:import PANEL_WIDTH constants.PANEL_WIDTH
 #:import LIST_BACKGROUND constants.LIST_BACKGROUND
+#:import TAB_INDICATOR constants.TAB_INDICATOR
 
 FloatLayout:
     GraphCanvas:
@@ -28,7 +29,7 @@ FloatLayout:
         icon:'forwardburger'
         md_bg_color: app.theme_cls.primary_color
         on_press: app.animate_panel()
-        x: dp(10)
+        x: dp(10) - side_panel.width - side_panel.x
         y: dp(20)
 
     BoxLayout:
@@ -46,6 +47,7 @@ FloatLayout:
         MDTabs:
             id: side_panel
             on_tab_switch: app.on_tab_switch(*args)
+            color_indicator: TAB_INDICATOR
 
             PanelTabBase:
                 title: 'File'
@@ -57,24 +59,28 @@ FloatLayout:
                     text: 'New graph'
                     top: self.parent.top
                     width: self.parent.width
+                    on_press: app.reset()
 
                 MDRectangleFlatIconButton:
                     icon: 'graph-outline'
                     text: 'Load graph...'
                     top: self.parent.top - self.height
                     width: self.parent.width
+                    on_press: app.load_graph()
 
                 MDRectangleFlatIconButton:
                     icon: 'floppy'
                     text: 'Save graph...'
                     top: self.parent.top - self.height * 2
                     width: self.parent.width
+                    on_press: app.save_graph()
 
                 MDRectangleFlatIconButton:
                     icon: 'language-python'
                     text: 'Load rule...'
                     top: self.parent.top - self.height * 3
                     width: self.parent.width
+                    on_press: app.load_rule()
 
             PanelTabBase:
                 title: 'Adjacency List'
@@ -175,6 +181,18 @@ class Graphvy(MDApp):
 
     def select_tool(self, tool):
         self.root.ids.graph_canvas.tool = tool
+
+    def reset(self):
+        print('reset')
+
+    def load_graph(self):
+        print('load graph')
+
+    def save_graph(self):
+        print('save graph')
+
+    def load_rule(self):
+        print('load rule')
 
 
 Graphvy().run()
