@@ -23,12 +23,9 @@ PINNED_COLOR      = 0.770, 0.455, 0.350,   1
 EDGE_COLOR        =  0.16, 0.176, 0.467, 0.8
 HEAD_COLOR        =  0.26, 0.276, 0.567,   1
 HIGHLIGHTED_EDGE  = 0.760, 0.235, 0.239,   1
-HIGHLIGHTED_HEAD  = 0.770, 0.245, 0.249,   1
+HIGHLIGHTED_HEAD  = 0.860, 0.335, 0.339,   1
 
 SELECT_RECT_COLOR =     1,     1,     1, 0.8  # color of select_rect's outline
-
-LIST_BACKGROUND   =     1,     1,     1,   1  # adjacency list items
-TAB_INDICATOR     = 0.760, 0.235, 0.239,   1
 
 # Sizes
 SOURCE_RADIUS = 7

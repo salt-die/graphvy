@@ -16,7 +16,10 @@ class AdjacencyListItem(OneLineListItem, BackgroundColorBehavior):
     def __init__(self, node, *args, **kwargs):
         self.node = node
 
-        super().__init__(*args, md_bg_color=LIST_BACKGROUND, **kwargs)
+        super().__init__(*args,
+                         md_bg_color=HIGHLIGHTED_NODE,
+                         theme_text_color='Custom',
+                         text_color=NODE_COLOR, **kwargs)
         self.update_text()
 
         self.bind(on_press=self._on_press)
@@ -41,25 +44,27 @@ class AdjacencyListItem(OneLineListItem, BackgroundColorBehavior):
                     selected.remove(node)
                 pinned.add(node)
 
-        elif canvas.tool == 'Delete Node':
-            canvas.G.remove_vertex(node.vertex)
+        elif canvas.tool in ('Delete Node', 'Add Edge', 'Delete Edge'):
+            if canvas.tool == 'Delete Node':
+                canvas.G.remove_vertex(node.vertex)
 
-        elif canvas.tool == 'Add Edge':
-            if canvas.source is None:
-                canvas.source = node
-            else:
-                if canvas.multigraph or canvas.G.edge(canvas.source.vertex, node.vertex) is None:
-                    canvas.G.add_edge(canvas.source.vertex, node.vertex)
-                canvas.source = None
+            elif canvas.tool == 'Add Edge':
+                if canvas.source is None:
+                    canvas.source = node
+                else:
+                    if canvas.multigraph or canvas.G.edge(canvas.source.vertex, node.vertex) is None:
+                        canvas.G.add_edge(canvas.source.vertex, node.vertex)
+                    canvas.source = None
 
-        elif canvas.tool == 'Delete Edge':
-            if canvas.source is None:
-                canvas.source = node
-            else:
-                edge = canvas.G.edge(canvas.source.vertex, node.vertex)
-                if edge is not None:
-                    canvas.G.remove_edge(edge)
-                canvas.source = None
+            elif canvas.tool == 'Delete Edge':
+                if canvas.source is None:
+                    canvas.source = node
+                else:
+                    edge = canvas.G.edge(canvas.source.vertex, node.vertex)
+                    if edge is not None:
+                        canvas.G.remove_edge(edge)
+                    canvas.source = None
+            canvas.update_canvas()
 
         else:
             canvas.highlighted = node
@@ -94,7 +99,7 @@ class Node(Line):
             self.color.rgba = color
 
             if self.list_item is not None:
-                self.list_item.md_bg_color = color
+                self.list_item.md_bg_color = [min(c * 1.1, 1) for c in color]
 
         self.recolor_out_edges(HIGHLIGHTED_EDGE, HIGHLIGHTED_HEAD)
 
@@ -102,7 +107,7 @@ class Node(Line):
         self.canvas.G.vp.pinned[self.vertex] = 0
         self.color.rgba = NODE_COLOR
         if self.list_item is not None:
-            self.list_item.md_bg_color = LIST_BACKGROUND
+            self.list_item.md_bg_color = HIGHLIGHTED_NODE
         self.recolor_out_edges(EDGE_COLOR, HEAD_COLOR)
 
     def collides(self, mx, my):

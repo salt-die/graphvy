@@ -16,8 +16,9 @@ from constants import *
 
 KV = '''
 #:import PANEL_WIDTH constants.PANEL_WIDTH
-#:import LIST_BACKGROUND constants.LIST_BACKGROUND
-#:import TAB_INDICATOR constants.TAB_INDICATOR
+#:import HIGHLIGHTED_NODE constants.HIGHLIGHTED_NODE
+#:import SELECTED_COLOR constants.SELECTED_COLOR
+#:import PINNED_COLOR constants.PINNED_COLOR
 
 FloatLayout:
     GraphCanvas:
@@ -27,7 +28,9 @@ FloatLayout:
     MDFloatingActionButton:
         id: panel_button
         icon:'forwardburger'
-        md_bg_color: app.theme_cls.primary_color
+        text_theme_color: 'Custom'
+        text_color: app.theme_cls.primary_color
+        md_bg_color: HIGHLIGHTED_NODE
         on_press: app.animate_panel()
         x: dp(10) - side_panel.width - side_panel.x
         y: dp(20)
@@ -43,16 +46,16 @@ FloatLayout:
         MDToolbar:
             id: header
             title: 'Graphvy'
+            specific_text_color: HIGHLIGHTED_NODE
 
         MDTabs:
             id: side_panel
             on_tab_switch: app.on_tab_switch(*args)
-            color_indicator: TAB_INDICATOR
+            color_indicator: SELECTED_COLOR
 
             PanelTabBase:
                 title: 'File'
                 text: 'file-outline'
-                md_bg_color: LIST_BACKGROUND
 
                 MDRectangleFlatIconButton:
                     icon: 'eraser'
@@ -85,7 +88,6 @@ FloatLayout:
             PanelTabBase:
                 title: 'Adjacency List'
                 text: 'ray-start-arrow'
-                md_bg_color: LIST_BACKGROUND
 
                 ScrollView:
                     MDList:
@@ -94,9 +96,9 @@ FloatLayout:
             PanelTabBase:
                 title: 'Filters'
                 text: 'filter-outline'
-                md_bg_color: LIST_BACKGROUND
 
         MDToolbar:
+            specific_text_color: HIGHLIGHTED_NODE
             left_action_items: [['play-circle-outline', lambda _: graph_canvas.pause_callback()],\
                                 ['play-box-outline', lambda _: graph_canvas.pause_layout()]]
             right_action_items: [['backburger', lambda _: app.animate_panel(-PANEL_WIDTH)]]
@@ -136,13 +138,18 @@ FloatLayout:
 
 <ToolIcon>:
     up_color: app.theme_cls.primary_color
-    down_color: app.theme_cls.primary_dark
+    down_color: PINNED_COLOR
     group: 'tools'
     allow_no_selection: False
     tooltip_text: self.label
+    theme_text_color: 'Custom'
+    text_color: HIGHLIGHTED_NODE
     md_bg_color: app.theme_cls.primary_color
     tooltip_bg_color: app.theme_cls.primary_dark
     on_press: app.select_tool(self.label)
+
+<PanelTabBase>:
+    md_bg_color: HIGHLIGHTED_NODE
 '''
 
 
@@ -170,6 +177,11 @@ class Graphvy(MDApp):
         for node in self.root.ids.graph_canvas.nodes.values():
             self.root.ids.adjacency_list.add_widget(node.make_list_item())
         self.root.ids.grab.state = 'down'
+
+        # Setting the text_color_active/_normal properties in kv lang appears to be bugged
+        for child in self.root.ids.side_panel.tab_bar.layout.children:
+            child.text_color_active = SELECTED_COLOR
+            child.text_color_normal = HIGHLIGHTED_NODE
 
     def on_tab_switch(self, tabs, tab, label, text):
         self.root.ids.header.title = tab.title
