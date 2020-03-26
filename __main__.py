@@ -158,7 +158,7 @@ FloatLayout:
 '''
 
 
-class ToolIcon(MDIconButton, ToggleButtonBehavior, MDTooltip, BackgroundColorBehavior):
+class ToolIcon(MDIconButton, ToggleButtonBehavior, MDTooltip):
     label = StringProperty()
 
     def on_state(self, instance, value):
