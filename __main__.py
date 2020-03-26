@@ -149,7 +149,7 @@ FloatLayout:
     allow_no_selection: False
     tooltip_text: self.label
     tooltip_text_color: NODE_COLOR
-    tooltip_bg_color: HIGHLIGHTED_NODE
+    tooltip_bg_color: SELECTED_COLOR
     theme_text_color: 'Custom'
     text_color: NODE_COLOR
     on_press: app.select_tool(self.label)
