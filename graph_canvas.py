@@ -94,7 +94,7 @@ class GraphCanvas(Widget):
     _callback_paused = False
     _layout_paused = False
 
-    delay = .1
+    delay = .05
 
     def __init__(self, *args, G=None, graph_callback=None, multigraph=False, **kwargs):
         none_attrs = ['_highlighted', 'edges', 'nodes', 'background_color', '_background', 'select_rect',
@@ -115,8 +115,7 @@ class GraphCanvas(Widget):
         self.setup_canvas()
 
         self.resize_event = Clock.schedule_once(lambda dt: None, 0)  # Dummy event to save a conditional
-        self.bind(size=self._delayed_resize, pos=self._delayed_resize)
-        self.bind(tool=self.retool)
+        self.bind(size=self._delayed_resize, pos=self._delayed_resize, tool=self.retool)
         Window.bind(mouse_pos=self.on_mouse_pos)
 
         self.update_layout = Clock.schedule_interval(self.step_layout, UPDATE_INTERVAL)
@@ -179,7 +178,7 @@ class GraphCanvas(Widget):
 
     def _delayed_resize(self, *args):
         self.resize_event.cancel()
-        self.resize_event = Clock.schedule_once(lambda dt: self.update_canvas(), self.delay)
+        self.resize_event = Clock.schedule_once(self.update_canvas, self.delay)
 
     def retool(self, instance, value):
         if value == 'Select':
@@ -311,7 +310,7 @@ class GraphCanvas(Widget):
 
 
     @limit(UPDATE_INTERVAL)
-    def update_canvas(self):
+    def update_canvas(self, dt=None):  # dt for use by kivy Clock
         """Update node coordinates and edge colors."""
         if self.resize_event.is_triggered:
             return

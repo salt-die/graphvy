@@ -227,7 +227,6 @@ class Graphvy(MDApp):
     def _resize(self, *args):
         if self._anim_progress:
             self._anim_progress = -self.root.ids.side_panel.width / self.root.width
-            self.root.canvas.ask_update()
 
     def select_tool(self, tool):
         self.root.ids.graph_canvas.tool = tool
