@@ -2,11 +2,12 @@ from kivy.animation import Animation
 from kivy.lang import Builder
 from kivy.uix.behaviors import ToggleButtonBehavior
 from kivy.uix.floatlayout import FloatLayout
-from kivy.properties import NumericProperty, StringProperty, ListProperty
+from kivy.properties import BooleanProperty, NumericProperty, StringProperty, ListProperty
 
 from kivymd.app import MDApp
 from kivymd.uix.button import MDIconButton
 from kivymd.uix.behaviors import BackgroundColorBehavior
+from kivymd.uix.list import MDList
 from kivymd.uix.tab import MDTabsBase
 from kivymd.uix.tooltip import MDTooltip
 
@@ -30,7 +31,7 @@ FloatLayout:
         text_theme_color: 'Custom'
         text_color: app.theme_cls.primary_color
         md_bg_color: HIGHLIGHTED_NODE
-        on_press: app.animate_panel()
+        on_release: app.animate_panel()
         x: dp(10) - side_panel.width - side_panel.x
         y: dp(20)
 
@@ -61,36 +62,37 @@ FloatLayout:
                     text: 'New graph'
                     top: self.parent.top
                     width: self.parent.width
-                    on_press: app.reset()
+                    on_release: app.reset()
 
                 MDRectangleFlatIconButton:
                     icon: 'graph-outline'
                     text: 'Load graph...'
                     top: self.parent.top - self.height
                     width: self.parent.width
-                    on_press: app.load_graph()
+                    on_release: app.load_graph()
 
                 MDRectangleFlatIconButton:
                     icon: 'floppy'
                     text: 'Save graph...'
                     top: self.parent.top - self.height * 2
                     width: self.parent.width
-                    on_press: app.save_graph()
+                    on_release: app.save_graph()
 
                 MDRectangleFlatIconButton:
                     icon: 'language-python'
                     text: 'Load rule...'
                     top: self.parent.top - self.height * 3
                     width: self.parent.width
-                    on_press: app.load_rule()
+                    on_release: app.load_rule()
 
             PanelTabBase:
                 title: 'Adjacency List'
                 text: 'ray-start-arrow'
 
                 ScrollView:
-                    MDList:
+                    HideableList:
                         id: adjacency_list
+                        is_hidden: True
 
             PanelTabBase:
                 title: 'Filters'
@@ -157,6 +159,10 @@ FloatLayout:
     md_bg_color: HIGHLIGHTED_NODE
 '''
 
+class HideableList(MDList):
+    """List items with hover behavior are properly disabled when list is hidden."""
+    is_hidden = BooleanProperty(True)
+
 
 class ToolIcon(MDIconButton, ToggleButtonBehavior, MDTooltip):
     label = StringProperty()
@@ -167,7 +173,7 @@ class ToolIcon(MDIconButton, ToggleButtonBehavior, MDTooltip):
 
 
 class PanelTabBase(FloatLayout, MDTabsBase, BackgroundColorBehavior):
-    title = StringProperty('')
+    title = StringProperty()
 
 
 class Graphvy(MDApp):
@@ -193,6 +199,9 @@ class Graphvy(MDApp):
     def animate_panel(self, x=0):
         if x == 0:
             self.root.ids.header.title = 'Graphvy'
+            self.root.ids.adjacency_list.is_hidden = False
+        else:
+            self.root.ids.adjacency_list.is_hidden = True
         Animation(_anim_progress=x, duration=.7, t='out_cubic').start(self)
 
     def select_tool(self, tool):

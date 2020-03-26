@@ -3,14 +3,14 @@
 ### TODO: CALCULATE HIGHLIGHT COLORS FROM NORMAL COLORS IF WE IMPLEMENT A COLOR PICKER
 from graph_tool import Graph
 from kivy.graphics import Color, Line
-from kivymd.uix.behaviors import BackgroundColorBehavior
+from kivymd.uix.behaviors import BackgroundColorBehavior, HoverBehavior
 from kivymd.uix.list import OneLineListItem
 
 from arrow import Arrow
 from constants import *
 
 
-class AdjacencyListItem(OneLineListItem, BackgroundColorBehavior):
+class AdjacencyListItem(OneLineListItem, BackgroundColorBehavior, HoverBehavior):
     __slots__ = 'node'
 
     def __init__(self, node, *args, **kwargs):
@@ -22,9 +22,16 @@ class AdjacencyListItem(OneLineListItem, BackgroundColorBehavior):
                          text_color=NODE_COLOR, **kwargs)
         self.update_text()
 
-        self.bind(on_press=self._on_press)
+        self.bind(on_release=self._on_release)
 
-    def _on_press(self, *args):
+    def on_enter(self, *args):
+        if not self.node.canvas.adjacency_list.is_hidden:
+            self.node.canvas.highlighted = self.node
+
+    def on_leave(self, *args):
+        pass
+
+    def _on_release(self, *args):
         node = self.node
         canvas = node.canvas
         pinned = canvas._pinned
@@ -65,9 +72,6 @@ class AdjacencyListItem(OneLineListItem, BackgroundColorBehavior):
                         canvas.G.remove_edge(edge)
                     canvas.source = None
             canvas.update_canvas()
-
-        else:
-            canvas.highlighted = node
 
     def update_text(self):
         self.text = f'{self.node.vertex}: {", ".join(map(str, self.node.vertex.out_neighbors()))}'
