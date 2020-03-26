@@ -169,7 +169,7 @@ class GraphCanvas(Widget):
         if node is not None:
             node.freeze(HIGHLIGHTED_NODE)
             self._source_circle.circle = *self.coords[int(node.vertex)], SOURCE_RADIUS
-            self._source_color.a = .8
+            self._source_color.a = 1
 
         self._source = node
 
@@ -353,7 +353,7 @@ class GraphCanvas(Widget):
             touch.multitouch_sim = True
             # We're going to change the color of multitouch dots to match our color scheme:
             with Window.canvas.after:
-                touch.ud._drawelement = _, ellipse = Color(*SOURCE_COLOR[:3], .8), Ellipse(size=(20, 20), segments=15)
+                touch.ud._drawelement = _, ellipse = Color(*HIGHLIGHTED_EDGE), Ellipse(size=(20, 20), segments=15)
             ellipse.pos = touch.x - 10, touch.y - 10
 
             return True
