@@ -1,5 +1,4 @@
 """Convenience classes for Graphvy"""
-### TODO: CALCULATE HIGHLIGHT COLORS FROM NORMAL COLORS IF WE IMPLEMENT A COLOR PICKER
 from graph_tool import Graph
 from kivy.graphics import Color, Line
 from kivymd.uix.behaviors import BackgroundColorBehavior, HoverBehavior

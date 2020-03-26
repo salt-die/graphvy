@@ -27,13 +27,12 @@ FloatLayout:
         adjacency_list: adjacency_list
 
     BurgerButton:
-        id: panel_button
         icon:'forwardburger'
         text_theme_color: 'Custom'
         text_color: 0, 0, 0, 1
         md_bg_color: NODE_COLOR
         on_release: app.animate_panel()
-        x: dp(10) - side_panel.width - side_panel.x
+        x: dp(10) - side_panel.width/root.width - side_panel.right
         y: dp(20)
 
     BoxLayout:
@@ -51,7 +50,7 @@ FloatLayout:
             specific_text_color: HIGHLIGHTED_NODE
 
         MDTabs:
-            id: side_panel
+            id: tabs
             on_tab_switch: app.on_tab_switch(*args)
             background_color: NODE_COLOR
             color_indicator: HIGHLIGHTED_NODE
@@ -102,11 +101,11 @@ FloatLayout:
             specific_text_color: HIGHLIGHTED_NODE
             left_action_items: [['play-circle-outline', lambda _: graph_canvas.pause_callback()],\
                                 ['play-box-outline', lambda _: graph_canvas.pause_layout()]]
-            right_action_items: [['backburger', lambda _: app.animate_panel(-PANEL_WIDTH)]]
+            right_action_items: [['backburger', lambda _: app.animate_panel(-side_panel.width/root.width)]]
 
     BoxLayout:
         orientation: 'vertical'
-        x: dp(10) + dp(4) + max(0, side_panel.right)
+        x: dp(10) + dp(4) + side_panel.right
         y: dp(96)
         size: self.minimum_size
         spacing: dp(10)
@@ -208,9 +207,11 @@ class Graphvy(MDApp):
         self.root.ids.grab.state = 'down'
 
         # Setting the text_color_active/_normal properties in kv lang appears to be bugged
-        for child in self.root.ids.side_panel.tab_bar.layout.children:
+        for child in self.root.ids.tabs.tab_bar.layout.children:
             child.text_color_active = HIGHLIGHTED_NODE
             child.text_color_normal = SELECTED_COLOR
+
+        self.root.bind(width=self._resize)
 
     def on_tab_switch(self, tabs, tab, label, text):
         self.root.ids.header.title = tab.title
@@ -222,6 +223,11 @@ class Graphvy(MDApp):
         else:
             self.root.ids.adjacency_list.is_hidden = True
         Animation(_anim_progress=x, duration=.7, t='out_cubic').start(self)
+
+    def _resize(self, *args):
+        if self._anim_progress:
+            self._anim_progress = -self.root.ids.side_panel.width / self.root.width
+            self.root.canvas.ask_update()
 
     def select_tool(self, tool):
         self.root.ids.graph_canvas.tool = tool

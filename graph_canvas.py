@@ -7,7 +7,7 @@ Space to pause/unpause the layout algorithm. Ctrl-Space to pause/unpause the Gra
 ### TODO: degree histogram
 ### TODO: hide/filter nodes
 ### TODO: node/edge states visible
-### TODO: delayed resize
+### TODO: default node colors stored in Node/Edge classes to allow changing individual colors or displaying states
 from functools import wraps
 from random import random
 import time
@@ -94,6 +94,8 @@ class GraphCanvas(Widget):
     _callback_paused = False
     _layout_paused = False
 
+    delay = .1
+
     def __init__(self, *args, G=None, graph_callback=None, multigraph=False, **kwargs):
         none_attrs = ['_highlighted', 'edges', 'nodes', 'background_color', '_background', 'select_rect',
                       '_edge_instructions', '_node_instructions', '_source_color', '_source_circle', 'coords',
@@ -112,7 +114,9 @@ class GraphCanvas(Widget):
         super().__init__(*args, **kwargs)
         self.setup_canvas()
 
-        self.bind(size=self.update_canvas, pos=self.update_canvas, tool=self.retool)
+        self.resize_event = Clock.schedule_once(lambda dt: None, 0)  # Dummy event to save a conditional
+        self.bind(size=self._delayed_resize, pos=self._delayed_resize)
+        self.bind(tool=self.retool)
         Window.bind(mouse_pos=self.on_mouse_pos)
 
         self.update_layout = Clock.schedule_interval(self.step_layout, UPDATE_INTERVAL)
@@ -172,6 +176,10 @@ class GraphCanvas(Widget):
             self._source_color.a = 1
 
         self._source = node
+
+    def _delayed_resize(self, *args):
+        self.resize_event.cancel()
+        self.resize_event = Clock.schedule_once(lambda dt: self.update_canvas(), self.delay)
 
     def retool(self, instance, value):
         if value == 'Select':
@@ -303,8 +311,11 @@ class GraphCanvas(Widget):
 
 
     @limit(UPDATE_INTERVAL)
-    def update_canvas(self, *args):
+    def update_canvas(self):
         """Update node coordinates and edge colors."""
+        if self.resize_event.is_triggered:
+            return
+
         self._background.size = self.size
         self._background.pos = self.pos
 
