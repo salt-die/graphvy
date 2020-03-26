@@ -52,6 +52,30 @@ FloatLayout:
                 text: 'file-outline'
                 md_bg_color: LIST_BACKGROUND
 
+                MDRectangleFlatIconButton:
+                    icon: 'eraser'
+                    text: 'New graph'
+                    top: self.parent.top
+                    width: self.parent.width
+
+                MDRectangleFlatIconButton:
+                    icon: 'graph-outline'
+                    text: 'Load graph...'
+                    top: self.parent.top - self.height
+                    width: self.parent.width
+
+                MDRectangleFlatIconButton:
+                    icon: 'floppy'
+                    text: 'Save graph...'
+                    top: self.parent.top - self.height * 2
+                    width: self.parent.width
+
+                MDRectangleFlatIconButton:
+                    icon: 'language-python'
+                    text: 'Load rule...'
+                    top: self.parent.top - self.height * 3
+                    width: self.parent.width
+
             PanelTabBase:
                 title: 'Adjacency List'
                 text: 'ray-start-arrow'
