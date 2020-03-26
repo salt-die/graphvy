@@ -16,7 +16,7 @@ class AdjacencyListItem(OneLineListItem, BackgroundColorBehavior, HoverBehavior)
         self.node = node
 
         super().__init__(*args,
-                         md_bg_color=HIGHLIGHTED_NODE,
+                         md_bg_color=SELECTED_COLOR,
                          theme_text_color='Custom',
                          text_color=NODE_COLOR, **kwargs)
         self.update_text()
@@ -110,7 +110,7 @@ class Node(Line):
         self.canvas.G.vp.pinned[self.vertex] = 0
         self.color.rgba = NODE_COLOR
         if self.list_item is not None:
-            self.list_item.md_bg_color = HIGHLIGHTED_NODE
+            self.list_item.md_bg_color = SELECTED_COLOR
         self.recolor_out_edges(EDGE_COLOR, HEAD_COLOR)
 
     def collides(self, mx, my):

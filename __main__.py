@@ -5,8 +5,8 @@ from kivy.uix.floatlayout import FloatLayout
 from kivy.properties import BooleanProperty, NumericProperty, StringProperty, ListProperty
 
 from kivymd.app import MDApp
-from kivymd.uix.button import MDIconButton
-from kivymd.uix.behaviors import BackgroundColorBehavior
+from kivymd.uix.button import MDIconButton, MDRectangleFlatIconButton
+from kivymd.uix.behaviors import BackgroundColorBehavior, HoverBehavior
 from kivymd.uix.list import MDList
 from kivymd.uix.tab import MDTabsBase
 from kivymd.uix.tooltip import MDTooltip
@@ -19,6 +19,7 @@ KV = '''
 #:import PANEL_WIDTH constants.PANEL_WIDTH
 #:import HIGHLIGHTED_NODE constants.HIGHLIGHTED_NODE
 #:import SELECTED_COLOR constants.SELECTED_COLOR
+#:import PINNED_COLOR constants.PINNED_COLOR
 
 FloatLayout:
     GraphCanvas:
@@ -51,34 +52,34 @@ FloatLayout:
         MDTabs:
             id: side_panel
             on_tab_switch: app.on_tab_switch(*args)
-            color_indicator: SELECTED_COLOR
+            color_indicator: PINNED_COLOR
 
             PanelTabBase:
                 title: 'File'
                 text: 'file-outline'
 
-                MDRectangleFlatIconButton:
+                MenuItem:
                     icon: 'eraser'
                     text: 'New graph'
                     top: self.parent.top
                     width: self.parent.width
                     on_release: app.reset()
 
-                MDRectangleFlatIconButton:
+                MenuItem:
                     icon: 'graph-outline'
                     text: 'Load graph...'
                     top: self.parent.top - self.height
                     width: self.parent.width
                     on_release: app.load_graph()
 
-                MDRectangleFlatIconButton:
+                MenuItem:
                     icon: 'floppy'
                     text: 'Save graph...'
                     top: self.parent.top - self.height * 2
                     width: self.parent.width
                     on_release: app.save_graph()
 
-                MDRectangleFlatIconButton:
+                MenuItem:
                     icon: 'language-python'
                     text: 'Load rule...'
                     top: self.parent.top - self.height * 3
@@ -152,11 +153,10 @@ FloatLayout:
     tooltip_bg_color: HIGHLIGHTED_NODE
     theme_text_color: 'Custom'
     text_color: HIGHLIGHTED_NODE
-    md_bg_color: app.theme_cls.primary_color
     on_press: app.select_tool(self.label)
 
 <PanelTabBase>:
-    md_bg_color: HIGHLIGHTED_NODE
+    md_bg_color: SELECTED_COLOR
 '''
 
 class HideableList(MDList):
@@ -168,12 +168,19 @@ class ToolIcon(MDIconButton, ToggleButtonBehavior, MDTooltip):
     label = StringProperty()
 
     def on_state(self, instance, value):
-        self.md_bg_color = SELECTED_COLOR if value == 'down' else NODE_COLOR
-        self.text_color = NODE_COLOR if value == 'down' else HIGHLIGHTED_NODE
+        self.text_color = PINNED_COLOR if value == 'down' else HIGHLIGHTED_NODE
 
 
 class PanelTabBase(FloatLayout, MDTabsBase, BackgroundColorBehavior):
     title = StringProperty()
+
+
+class MenuItem(MDRectangleFlatIconButton, HoverBehavior):
+    def on_enter(self, *args):
+        self.md_bg_color = HIGHLIGHTED_NODE
+
+    def on_leave(self, *args):
+        self.md_bg_color = self.parent.md_bg_color
 
 
 class Graphvy(MDApp):
@@ -190,7 +197,7 @@ class Graphvy(MDApp):
 
         # Setting the text_color_active/_normal properties in kv lang appears to be bugged
         for child in self.root.ids.side_panel.tab_bar.layout.children:
-            child.text_color_active = SELECTED_COLOR
+            child.text_color_active = PINNED_COLOR
             child.text_color_normal = HIGHLIGHTED_NODE
 
     def on_tab_switch(self, tabs, tab, label, text):
