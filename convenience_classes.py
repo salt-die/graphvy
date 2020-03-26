@@ -1,5 +1,4 @@
 """Convenience classes for Graphvy"""
-### CONSIDER: Node and Edge maybe shouldn't subclass
 ### TODO: CALCULATE HIGHLIGHT COLORS FROM NORMAL COLORS IF WE IMPLEMENT A COLOR PICKER
 from graph_tool import Graph
 from kivy.graphics import Color, Line
