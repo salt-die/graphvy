@@ -353,7 +353,7 @@ class GraphCanvas(Widget):
             touch.multitouch_sim = True
             # We're going to change the color of multitouch dots to match our color scheme:
             with Window.canvas.after:
-                touch.ud._drawelement = _, ellipse = Color(*PINNED_COLOR), Ellipse(size=(20, 20), segments=15)
+                touch.ud._drawelement = _, ellipse = Color(*SOURCE_COLOR[:3], .8), Ellipse(size=(20, 20), segments=15)
             ellipse.pos = touch.x - 10, touch.y - 10
 
             return True

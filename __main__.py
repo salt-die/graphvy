@@ -5,7 +5,7 @@ from kivy.uix.floatlayout import FloatLayout
 from kivy.properties import BooleanProperty, NumericProperty, StringProperty, ListProperty
 
 from kivymd.app import MDApp
-from kivymd.uix.button import MDIconButton, MDRectangleFlatIconButton
+from kivymd.uix.button import MDIconButton, MDRectangleFlatIconButton, MDFloatingActionButton
 from kivymd.uix.behaviors import BackgroundColorBehavior, HoverBehavior
 from kivymd.uix.list import MDList
 from kivymd.uix.tab import MDTabsBase
@@ -17,6 +17,7 @@ from constants import *
 
 KV = '''
 #:import PANEL_WIDTH constants.PANEL_WIDTH
+#:import NODE_COLOR constants.NODE_COLOR
 #:import HIGHLIGHTED_NODE constants.HIGHLIGHTED_NODE
 #:import SELECTED_COLOR constants.SELECTED_COLOR
 
@@ -25,12 +26,12 @@ FloatLayout:
         id: graph_canvas
         adjacency_list: adjacency_list
 
-    MDFloatingActionButton:
+    BurgerButton:
         id: panel_button
         icon:'forwardburger'
         text_theme_color: 'Custom'
-        text_color: app.theme_cls.primary_color
-        md_bg_color: SELECTED_COLOR
+        text_color: 0, 0, 0, 1
+        md_bg_color: NODE_COLOR
         on_release: app.animate_panel()
         x: dp(10) - side_panel.width - side_panel.x
         y: dp(20)
@@ -46,11 +47,13 @@ FloatLayout:
         MDToolbar:
             id: header
             title: 'Graphvy'
+            md_bg_color: NODE_COLOR
             specific_text_color: HIGHLIGHTED_NODE
 
         MDTabs:
             id: side_panel
             on_tab_switch: app.on_tab_switch(*args)
+            background_color: NODE_COLOR
             color_indicator: HIGHLIGHTED_NODE
 
             PanelTabBase:
@@ -61,28 +64,24 @@ FloatLayout:
                     icon: 'eraser'
                     text: 'New graph'
                     top: self.parent.top
-                    width: self.parent.width
                     on_release: app.reset()
 
                 MenuItem:
                     icon: 'graph-outline'
                     text: 'Load graph...'
                     top: self.parent.top - self.height
-                    width: self.parent.width
                     on_release: app.load_graph()
 
                 MenuItem:
                     icon: 'floppy'
                     text: 'Save graph...'
                     top: self.parent.top - self.height * 2
-                    width: self.parent.width
                     on_release: app.save_graph()
 
                 MenuItem:
                     icon: 'language-python'
                     text: 'Load rule...'
                     top: self.parent.top - self.height * 3
-                    width: self.parent.width
                     on_release: app.load_rule()
 
             PanelTabBase:
@@ -99,6 +98,7 @@ FloatLayout:
                 text: 'filter-outline'
 
         MDToolbar:
+            md_bg_color: NODE_COLOR
             specific_text_color: HIGHLIGHTED_NODE
             left_action_items: [['play-circle-outline', lambda _: graph_canvas.pause_callback()],\
                                 ['play-box-outline', lambda _: graph_canvas.pause_layout()]]
@@ -148,15 +148,21 @@ FloatLayout:
     group: 'tools'
     allow_no_selection: False
     tooltip_text: self.label
-    tooltip_text_color: app.theme_cls.primary_color
+    tooltip_text_color: NODE_COLOR
     tooltip_bg_color: HIGHLIGHTED_NODE
     theme_text_color: 'Custom'
-    text_color: SELECTED_COLOR
+    text_color: NODE_COLOR
     on_press: app.select_tool(self.label)
 
 <PanelTabBase>:
     md_bg_color: SELECTED_COLOR
+
+<MenuItem>:
+    width: self.parent.width
+    theme_text_color: 'Custom'
+    text_color: NODE_COLOR
 '''
+
 
 class HideableList(MDList):
     """List items with hover behavior are properly disabled when list is hidden."""
@@ -167,7 +173,7 @@ class ToolIcon(MDIconButton, ToggleButtonBehavior, MDTooltip):
     label = StringProperty()
 
     def on_state(self, instance, value):
-        self.text_color = HIGHLIGHTED_NODE if value == 'down' else SELECTED_COLOR
+        self.text_color = HIGHLIGHTED_NODE if value == 'down' else NODE_COLOR
 
 
 class PanelTabBase(FloatLayout, MDTabsBase, BackgroundColorBehavior):
@@ -182,11 +188,18 @@ class MenuItem(MDRectangleFlatIconButton, HoverBehavior):
         self.md_bg_color = self.parent.md_bg_color
 
 
+class BurgerButton(MDFloatingActionButton, HoverBehavior):
+    def on_enter(self, *args):
+        self.md_bg_color = HIGHLIGHTED_NODE
+
+    def on_leave(self, *args):
+        self.md_bg_color = NODE_COLOR
+
+
 class Graphvy(MDApp):
     _anim_progress = NumericProperty(-PANEL_WIDTH)
 
     def build(self):
-        self.theme_cls.primary_hue = '900'
         return Builder.load_string(KV)
 
     def on_start(self):
