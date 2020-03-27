@@ -187,9 +187,10 @@ FloatLayout:
             required: True
             color_mode: 'custom'
             line_color_focus: HIGHLIGHTED_NODE
-            on_text: random_graph_dialogue.reset_error(self)
+            on_text: random_graph_dialogue.reset_error(self, nedges)
             size_hint: .4, .6
             pos_hint: {'center_x': .5}
+            write_tab: False
 
         MDTextField:
             id: nedges
@@ -199,9 +200,10 @@ FloatLayout:
             required: True
             color_mode: 'custom'
             line_color_focus: HIGHLIGHTED_NODE
-            on_text: random_graph_dialogue.reset_error(self)
+            on_text: random_graph_dialogue.reset_error(self, nnodes)
             size_hint: .4, .6
             pos_hint: {'center_x': .5}
+            write_tab: False
 
         MDRaisedButton:
             text: 'OK'
@@ -258,12 +260,13 @@ class RandomGraphDialogue(ModalView, BackgroundColorBehavior):
             self.dismiss()
         else:
             nodes.error = not nodes.text.isnumeric()
-            nodes.on_focus()
             edges.error = not edges.text.isnumeric()
-            edges.on_focus()
 
-    def reset_error(self, widget):
-        widget.error = False
+    def reset_error(self, widget, other):
+        if widget.text:
+            widget.error = not widget.text[-1].isdigit()
+            if widget.error:
+                widget.text = widget.text[:-1]
 
 
 class Graphvy(MDApp):
