@@ -202,8 +202,6 @@ class Graphvy(MDApp):
         return Builder.load_string(KV)
 
     def on_start(self):
-        for node in self.root.ids.graph_canvas.nodes.values():
-            self.root.ids.adjacency_list.add_widget(node.make_list_item())
         self.root.ids.grab.state = 'down'
 
         # Setting the text_color_active/_normal properties in kv lang appears to be bugged

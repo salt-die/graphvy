@@ -97,25 +97,13 @@ class GraphCanvas(Widget):
     delay = .05
 
     def __init__(self, *args, G=None, graph_callback=None, multigraph=False, **kwargs):
-        none_attrs = ['_highlighted', 'edges', 'nodes', 'background_color', '_background', 'select_rect',
-                      '_edge_instructions', '_node_instructions', '_source_color', '_source_circle', 'coords',
-                      '_last_node_to_pos', '_source_to_update', '_source']
-        self.__dict__.update(dict.fromkeys(none_attrs))
-
-        if G is None:
-            self.G = GraphInterface(self, erdos_random_graph(50, 80))
-        else:
-            self.G = GraphInterface(self, G)
-
-        self.G.set_fast_edge_removal()
-        self.G.vp.pos = random_layout(self.G, (1, 1))
-        self.G.vp.pinned = self.G.new_vertex_property('bool')
-
         super().__init__(*args, **kwargs)
-        self.setup_canvas()
+
+        self.load_graph(G)  # Several attributes set/reset here
 
         self.resize_event = Clock.schedule_once(lambda dt: None, 0)  # Dummy event to save a conditional
-        self.bind(size=self._delayed_resize, pos=self._delayed_resize, tool=self.retool)
+        self.bind(size=self._delayed_resize, pos=self._delayed_resize,
+                  tool=self.retool, adjacency_list=self.populate_adjacency_list)
         Window.bind(mouse_pos=self.on_mouse_pos)
 
         self.update_layout = Clock.schedule_interval(self.step_layout, UPDATE_INTERVAL)
@@ -127,6 +115,31 @@ class GraphCanvas(Widget):
             self.graph_callback = None
 
         self.multigraph = multigraph
+
+    def load_graph(self, G=None, random=(50, 80)):
+        none_attrs = ['_highlighted', 'edges', 'nodes', 'background_color', '_background', 'select_rect',
+                      '_edge_instructions', '_node_instructions', '_source_color', '_source_circle', 'coords',
+                      '_last_node_to_pos', '_source_to_update', '_source']
+        self.__dict__.update(dict.fromkeys(none_attrs))
+
+        if G is None:
+            self.G = GraphInterface(self, erdos_random_graph(*random)) if random else GraphInterface(self)
+        else:
+            self.G = GraphInterface(self, G)
+        self.G.set_fast_edge_removal()
+        if 'pos' not in self.G.vp:
+            self.G.vp.pos = random_layout(self.G, (1, 1))
+        self.G.vp.pinned = self.G.new_vertex_property('bool')
+
+        self.setup_canvas()
+        self.populate_adjacency_list()
+
+    def populate_adjacency_list(self, *args):
+        if self.adjacency_list is not None:
+            self.adjacency_list.clear_widgets()
+
+            for node in self.nodes.values():
+                self.adjacency_list.add_widget(node.make_list_item())
 
     @redraw_canvas_after
     def callback(self, dt):
