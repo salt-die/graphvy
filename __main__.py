@@ -173,9 +173,11 @@ FloatLayout:
     size_hint: .3, .2
     size_hint_min_y: dp(100)
     size_hint_max_y: dp(120)
+    size_hint_max_x: dp(240)
     md_bg_color: NODE_COLOR
     GridLayout:
         padding: dp(10)
+        spacing: dp(10)
         cols: 2
         rows: 2
 
