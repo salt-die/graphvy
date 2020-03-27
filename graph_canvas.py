@@ -87,10 +87,6 @@ class GraphCanvas(Widget):
 
     _touches = []
 
-    offset_x = .25
-    offset_y = .25
-    scale = .5
-
     _callback_paused = False
     _layout_paused = False
 
@@ -127,6 +123,10 @@ class GraphCanvas(Widget):
                       '_edge_instructions', '_node_instructions', '_source_color', '_source_circle', 'coords',
                       '_last_node_to_pos', '_source_to_update', '_source']
         self.__dict__.update(dict.fromkeys(none_attrs))
+
+        self.offset_x = .25
+        self.offset_y = .25
+        self.scale = .5
 
         if G is None:
             self.G = GraphInterface(self, erdos_random_graph(*random)) if random else GraphInterface(self)

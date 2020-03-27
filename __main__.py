@@ -172,7 +172,7 @@ FloatLayout:
     id: random_graph_dialogue
     size_hint: .3, .2
     size_hint_min_y: dp(100)
-    size_hint_max_y: dp(150)
+    size_hint_max_y: dp(120)
     md_bg_color: NODE_COLOR
     GridLayout:
         padding: dp(10)
@@ -182,14 +182,16 @@ FloatLayout:
         MDTextField:
             id: nnodes
             hint_text: 'Nodes'
+            text: '50'
             size_hint: .4, .6
-            on_text: random_graph_dialogue.reset_error(self)
+            on_text: random_graph_dialogue.check_if_digit(self)
 
         MDTextField:
             id: nedges
             hint_text: 'Edges'
+            text: '80'
             size_hint: .4, .6
-            on_text: random_graph_dialogue.reset_error(self)
+            on_text: random_graph_dialogue.check_if_digit(self)
 
         MDRaisedButton:
             text: 'OK'
@@ -257,7 +259,7 @@ class RandomGraphDialogue(ModalView, BackgroundColorBehavior):
             nodes.error = not nodes.text.isnumeric()
             edges.error = not edges.text.isnumeric()
 
-    def reset_error(self, widget):
+    def check_if_digit(self, widget):
         if widget.text:
             widget.error = not widget.text[-1].isdigit()
             if widget.error:
