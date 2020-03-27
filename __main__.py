@@ -182,28 +182,14 @@ FloatLayout:
         MDTextField:
             id: nnodes
             hint_text: 'Nodes'
-            helper_text: 'Integer required'
-            helper_text_mode: 'on_error'
-            required: True
-            color_mode: 'custom'
-            line_color_focus: HIGHLIGHTED_NODE
-            on_text: random_graph_dialogue.reset_error(self, nedges)
             size_hint: .4, .6
-            pos_hint: {'center_x': .5}
-            write_tab: False
+            on_text: random_graph_dialogue.reset_error(self)
 
         MDTextField:
             id: nedges
             hint_text: 'Edges'
-            helper_text: 'Integer required'
-            helper_text_mode: 'on_error'
-            required: True
-            color_mode: 'custom'
-            line_color_focus: HIGHLIGHTED_NODE
-            on_text: random_graph_dialogue.reset_error(self, nnodes)
             size_hint: .4, .6
-            pos_hint: {'center_x': .5}
-            write_tab: False
+            on_text: random_graph_dialogue.reset_error(self)
 
         MDRaisedButton:
             text: 'OK'
@@ -218,6 +204,15 @@ FloatLayout:
             md_bg_color: SELECTED_COLOR
             text_color: NODE_COLOR
             on_release: random_graph_dialogue.dismiss()
+
+<MDTextField>:
+    helper_text: 'Integer required'
+    helper_text_mode: 'on_error'
+    required: True
+    color_mode: 'custom'
+    line_color_focus: HIGHLIGHTED_NODE
+    pos_hint: {'center_x': .5}
+    write_tab: False
 '''
 
 
@@ -262,7 +257,7 @@ class RandomGraphDialogue(ModalView, BackgroundColorBehavior):
             nodes.error = not nodes.text.isnumeric()
             edges.error = not edges.text.isnumeric()
 
-    def reset_error(self, widget, other):
+    def reset_error(self, widget):
         if widget.text:
             widget.error = not widget.text[-1].isdigit()
             if widget.error:
