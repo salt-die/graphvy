@@ -2,6 +2,7 @@ from kivy.animation import Animation
 from kivy.lang import Builder
 from kivy.uix.behaviors import ToggleButtonBehavior
 from kivy.uix.floatlayout import FloatLayout
+from kivy.uix.modalview import ModalView
 from kivy.properties import BooleanProperty, NumericProperty, StringProperty, ListProperty
 
 from kivymd.app import MDApp
@@ -166,6 +167,53 @@ FloatLayout:
     width: self.parent.width
     theme_text_color: 'Custom'
     text_color: NODE_COLOR
+
+<RandomGraphDialogue>:
+    id: random_graph_dialogue
+    size_hint: .3, .2
+    size_hint_min_y: dp(100)
+    size_hint_max_y: dp(150)
+    md_bg_color: NODE_COLOR
+    GridLayout:
+        padding: dp(10)
+        cols: 2
+        rows: 2
+
+        MDTextField:
+            hint_text: 'Nodes'
+            helper_text: 'Required'
+            helper_text_mode: 'on_error'
+            required: True
+            color_mode: 'custom'
+            line_color_focus: HIGHLIGHTED_NODE
+            on_text_validate: app.error_message(self)
+            size_hint: .4, .6
+            pos_hint: {'center_x': .5}
+
+        MDTextField:
+            id: nedges
+            hint_text: 'Edges'
+            helper_text: 'Required'
+            helper_text_mode: 'on_error'
+            required: True
+            color_mode: 'custom'
+            line_color_focus: HIGHLIGHTED_NODE
+            on_text_validate: app.error_message(self)
+            size_hint: .4, .6
+            pos_hint: {'center_x': .5}
+
+        MDRaisedButton:
+            text: 'OK'
+            size_hint: .4, .3
+            md_bg_color: HIGHLIGHTED_NODE
+            text_color: NODE_COLOR
+
+        MDFlatButton:
+            text: 'Cancel'
+            size_hint: .4, .3
+            md_bg_color: SELECTED_COLOR
+            text_color: NODE_COLOR
+            on_release: random_graph_dialogue.dismiss()
 '''
 
 
@@ -190,7 +238,7 @@ class MenuItem(MDRectangleFlatIconButton, HoverBehavior):
         self.md_bg_color = HIGHLIGHTED_NODE
 
     def on_leave(self, *args):
-        self.md_bg_color = self.parent.md_bg_color
+        self.md_bg_color = SELECTED_COLOR
 
 
 class BurgerButton(MDFloatingActionButton, HoverBehavior):
@@ -199,6 +247,10 @@ class BurgerButton(MDFloatingActionButton, HoverBehavior):
 
     def on_leave(self, *args):
         self.md_bg_color = NODE_COLOR
+
+
+class RandomGraphDialogue(ModalView, BackgroundColorBehavior):
+    pass
 
 
 class Graphvy(MDApp):
@@ -237,6 +289,7 @@ class Graphvy(MDApp):
 
     def erdos_reset(self):
         print('erdos random graph')
+        RandomGraphDialogue().open()
 
     def load_graph(self):
         print('load graph')
@@ -246,6 +299,9 @@ class Graphvy(MDApp):
 
     def load_rule(self):
         print('load rule')
+
+    def error_message(self, instance):
+        print('called', instance)
 
 
 Graphvy().run()
