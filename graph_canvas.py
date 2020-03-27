@@ -98,7 +98,6 @@ class GraphCanvas(Widget):
 
     def __init__(self, *args, G=None, graph_callback=None, multigraph=False, **kwargs):
         super().__init__(*args, **kwargs)
-
         self.load_graph(G)  # Several attributes set/reset here
 
         self.resize_event = Clock.schedule_once(lambda dt: None, 0)  # Dummy event to save a conditional
@@ -117,6 +116,13 @@ class GraphCanvas(Widget):
         self.multigraph = multigraph
 
     def load_graph(self, G=None, random=(50, 80)):
+        # Halt layout and graph_rule
+        if getattr(self, 'update_layout', None):
+            self.update_layout.cancel()
+        if getattr(self, 'graph_callback', None):
+            self.update_graph.cancel()
+
+        # Setup interface
         none_attrs = ['_highlighted', 'edges', 'nodes', 'background_color', '_background', 'select_rect',
                       '_edge_instructions', '_node_instructions', '_source_color', '_source_circle', 'coords',
                       '_last_node_to_pos', '_source_to_update', '_source']
@@ -133,6 +139,12 @@ class GraphCanvas(Widget):
 
         self.setup_canvas()
         self.populate_adjacency_list()
+
+        # Resume layout and graph rule
+        if getattr(self, 'update_layout', None):
+            self.update_layout()
+        if getattr(self, 'graph_callback', None):
+            self.update_graph()
 
     def populate_adjacency_list(self, *args):
         if self.adjacency_list is not None:
@@ -513,7 +525,7 @@ class GraphCanvas(Widget):
     def on_mouse_pos(self, *args):
         mx, my = args[-1]
 
-        if self._mouse_pos_disabled or not self.collide_point(mx, my):
+        if self._mouse_pos_disabled or self.coords is None or not self.collide_point(mx, my):
             return
 
         if (self.parent

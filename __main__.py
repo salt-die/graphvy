@@ -180,25 +180,26 @@ FloatLayout:
         rows: 2
 
         MDTextField:
+            id: nnodes
             hint_text: 'Nodes'
-            helper_text: 'Required'
+            helper_text: 'Integer required'
             helper_text_mode: 'on_error'
             required: True
             color_mode: 'custom'
             line_color_focus: HIGHLIGHTED_NODE
-            on_text_validate: app.error_message(self)
+            on_text: random_graph_dialogue.reset_error(self)
             size_hint: .4, .6
             pos_hint: {'center_x': .5}
 
         MDTextField:
             id: nedges
             hint_text: 'Edges'
-            helper_text: 'Required'
+            helper_text: 'Integer required'
             helper_text_mode: 'on_error'
             required: True
             color_mode: 'custom'
             line_color_focus: HIGHLIGHTED_NODE
-            on_text_validate: app.error_message(self)
+            on_text: random_graph_dialogue.reset_error(self)
             size_hint: .4, .6
             pos_hint: {'center_x': .5}
 
@@ -207,6 +208,7 @@ FloatLayout:
             size_hint: .4, .3
             md_bg_color: HIGHLIGHTED_NODE
             text_color: NODE_COLOR
+            on_release: random_graph_dialogue.new_random_graph(nnodes, nedges)
 
         MDFlatButton:
             text: 'Cancel'
@@ -250,7 +252,18 @@ class BurgerButton(MDFloatingActionButton, HoverBehavior):
 
 
 class RandomGraphDialogue(ModalView, BackgroundColorBehavior):
-    pass
+    def new_random_graph(self, nodes, edges):
+        if nodes.text.isnumeric() and edges.text.isnumeric():
+            self.graph_canvas.load_graph(random=(int(nodes.text), int(edges.text)))
+            self.dismiss()
+        else:
+            nodes.error = not nodes.text.isnumeric()
+            nodes.on_focus()
+            edges.error = not edges.text.isnumeric()
+            edges.on_focus()
+
+    def reset_error(self, widget):
+        widget.error = False
 
 
 class Graphvy(MDApp):
@@ -288,8 +301,9 @@ class Graphvy(MDApp):
         self.root.ids.graph_canvas.tool = tool
 
     def erdos_reset(self):
-        print('erdos random graph')
-        RandomGraphDialogue().open()
+        dialogue = RandomGraphDialogue()
+        dialogue.graph_canvas = self.root.ids.graph_canvas
+        dialogue.open()
 
     def load_graph(self):
         print('load graph')
@@ -299,9 +313,5 @@ class Graphvy(MDApp):
 
     def load_rule(self):
         print('load rule')
-
-    def error_message(self, instance):
-        print('called', instance)
-
 
 Graphvy().run()
