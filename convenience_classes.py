@@ -23,7 +23,8 @@ class AdjacencyListItem(OneLineListItem, BackgroundColorBehavior, HoverBehavior)
         self.bind(on_release=self._on_release)
 
     def on_enter(self, *args):
-        if not self.node.canvas.adjacency_list.is_hidden:
+        adjacency_list = self.node.canvas.adjacency_list
+        if not adjacency_list.is_hidden and adjacency_list.is_selected:
             self.node.canvas.highlighted = self.node
 
     def on_leave(self, *args):

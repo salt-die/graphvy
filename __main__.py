@@ -97,7 +97,6 @@ FloatLayout:
                 ScrollView:
                     HideableList:
                         id: adjacency_list
-                        is_hidden: True
 
             PanelTabBase:
                 title: 'Filters'
@@ -223,6 +222,7 @@ FloatLayout:
 class HideableList(MDList):
     """List items with hover behavior are properly disabled when list is hidden."""
     is_hidden = BooleanProperty(True)
+    is_selected = BooleanProperty(False)
 
 
 class ToolIcon(MDIconButton, ToggleButtonBehavior, MDTooltip):
@@ -286,6 +286,7 @@ class Graphvy(MDApp):
 
     def on_tab_switch(self, tabs, tab, label, text):
         self.root.ids.header.title = tab.title
+        self.root.ids.adjacency_list.is_selected = tab.title == 'Adjacency List'
 
     def animate_panel(self, x=0):
         if x == 0:
