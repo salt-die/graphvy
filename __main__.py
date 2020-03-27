@@ -63,24 +63,30 @@ FloatLayout:
                     icon: 'eraser'
                     text: 'New graph'
                     top: self.parent.top
-                    on_release: app.reset()
+                    on_release: graph_canvas.load_graph(random=False)
+
+                MenuItem:
+                    icon: 'vector-polyline'
+                    text: 'New random graph...'
+                    top: self.parent.top - self.height
+                    on_release: app.erdos_reset()
 
                 MenuItem:
                     icon: 'graph-outline'
                     text: 'Load graph...'
-                    top: self.parent.top - self.height
+                    top: self.parent.top - self.height * 2
                     on_release: app.load_graph()
 
                 MenuItem:
                     icon: 'floppy'
                     text: 'Save graph...'
-                    top: self.parent.top - self.height * 2
+                    top: self.parent.top - self.height * 3
                     on_release: app.save_graph()
 
                 MenuItem:
                     icon: 'language-python'
                     text: 'Load rule...'
-                    top: self.parent.top - self.height * 3
+                    top: self.parent.top - self.height * 4
                     on_release: app.load_rule()
 
             PanelTabBase:
@@ -229,8 +235,8 @@ class Graphvy(MDApp):
     def select_tool(self, tool):
         self.root.ids.graph_canvas.tool = tool
 
-    def reset(self):
-        print('reset')
+    def erdos_reset(self):
+        print('erdos random graph')
 
     def load_graph(self):
         print('load graph')
