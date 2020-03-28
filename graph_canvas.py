@@ -17,6 +17,7 @@ from kivy.graphics import Color, Ellipse, Line, Rectangle
 from kivy.config import Config
 from kivy.graphics.instructions import CanvasBase
 from kivy.properties import OptionProperty, ObjectProperty
+from kivy.uix.layout import Layout
 from kivy.uix.widget import Widget
 from kivy.core.window import Window
 from kivymd.app import MDApp
@@ -528,10 +529,8 @@ class GraphCanvas(Widget):
         if self._mouse_pos_disabled or self.coords is None or not self.collide_point(mx, my):
             return
 
-        if (self.parent
-            and any(widget.collide_point(mx, my) if not widget.children else
-                    any(child.collide_point(mx,my) for child in widget.children)
-                    for widget in self.parent.children if widget is not self)):
+        if any(widget.collide_point(mx, my) for widget in self.walk()
+               if widget is not self and not isinstance(widget, Layout)):
             return
 
         # Check collision with already highlighted node first:

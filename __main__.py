@@ -1,19 +1,20 @@
 from kivy.animation import Animation
 from kivy.lang import Builder
 from kivy.uix.behaviors import ToggleButtonBehavior
-from kivy.uix.floatlayout import FloatLayout
 from kivy.uix.modalview import ModalView
-from kivy.properties import BooleanProperty, NumericProperty, StringProperty, ListProperty
-
+from kivy.properties import (BooleanProperty,
+                             ListProperty,
+                             NumericProperty,
+                             ObjectProperty,
+                             StringProperty)
 from kivymd.app import MDApp
-from kivymd.uix.button import MDIconButton, MDRectangleFlatIconButton, MDFloatingActionButton
+from kivymd.uix.button import MDFloatingActionButton, MDIconButton, MDRectangleFlatIconButton
 from kivymd.uix.behaviors import BackgroundColorBehavior, HoverBehavior
-from kivymd.uix.list import MDList
-from kivymd.uix.tab import MDTabsBase
 from kivymd.uix.tooltip import MDTooltip
 
-from graph_canvas import GraphCanvas
 from constants import *
+from graph_canvas import GraphCanvas
+from md_filechooser import FileChooser
 
 
 KV = '''
@@ -150,6 +151,7 @@ FloatLayout:
             label: 'Delete Edge'
 
 <ToolIcon>:
+    app: app
     group: 'tools'
     allow_no_selection: False
     tooltip_text: self.label
@@ -171,27 +173,28 @@ FloatLayout:
     id: random_graph_dialogue
     size_hint: .3, .2
     size_hint_min_y: dp(100)
-    size_hint_max_y: dp(120)
-    size_hint_max_x: dp(240)
+    size_hint_max_y: dp(110)
+    size_hint_max_x: dp(255)
     md_bg_color: NODE_COLOR
+
     GridLayout:
-        padding: dp(10)
-        spacing: dp(10)
+        padding: dp(5)
+        spacing: dp(5)
         cols: 2
         rows: 2
 
-        MDTextField:
+        IntInput:
             id: nnodes
             hint_text: 'Nodes'
             text: '50'
-            size_hint: .4, .6
+            size_hint: .4, .5
             on_text: random_graph_dialogue.check_if_digit(self)
 
-        MDTextField:
+        IntInput:
             id: nedges
             hint_text: 'Edges'
             text: '80'
-            size_hint: .4, .6
+            size_hint: .4, .5
             on_text: random_graph_dialogue.check_if_digit(self)
 
         MDRaisedButton:
@@ -208,32 +211,34 @@ FloatLayout:
             text_color: NODE_COLOR
             on_release: random_graph_dialogue.dismiss()
 
-<MDTextField>:
+<IntInput@MDTextField>:
     helper_text: 'Integer required'
     helper_text_mode: 'on_error'
     required: True
     color_mode: 'custom'
     line_color_focus: HIGHLIGHTED_NODE
-    pos_hint: {'center_x': .5}
     write_tab: False
+
+<HideableList@MDList>:
+    is_hidden: True
+    is_selected: False
+
+<PanelTabBase@FloatLayout+MDTabsBase+BackgroundColorBehavior>:
+    title: ''
 '''
-
-
-class HideableList(MDList):
-    """List items with hover behavior are properly disabled when list is hidden."""
-    is_hidden = BooleanProperty(True)
-    is_selected = BooleanProperty(False)
 
 
 class ToolIcon(MDIconButton, ToggleButtonBehavior, MDTooltip):
     label = StringProperty()
+    app = ObjectProperty()
+
+    def on_enter(self, *args):
+        if self.app.is_file_selecting:  # Prevents tooltips from covering files in the filechooser.
+            return
+        super().on_enter(*args)
 
     def on_state(self, instance, value):
         self.text_color = HIGHLIGHTED_NODE if value == 'down' else NODE_COLOR
-
-
-class PanelTabBase(FloatLayout, MDTabsBase, BackgroundColorBehavior):
-    title = StringProperty()
 
 
 class MenuItem(MDRectangleFlatIconButton, HoverBehavior):
@@ -270,6 +275,8 @@ class RandomGraphDialogue(ModalView, BackgroundColorBehavior):
 
 class Graphvy(MDApp):
     _anim_progress = NumericProperty(-PANEL_WIDTH)
+    file_manager = None
+    is_file_selecting = False
 
     def build(self):
         return Builder.load_string(KV)
@@ -308,13 +315,37 @@ class Graphvy(MDApp):
         dialogue.graph_canvas = self.root.ids.graph_canvas
         dialogue.open()
 
+    def create_file_manager(self):
+        self.file_manager = FileChooser(exit_chooser=self.exit_chooser,
+                                        select_path=self.select_path,
+                                        size_hint=(.8,.8))
+
+    def exit_chooser(self, *args):
+        self.file_manager.dismiss()
+        self.is_file_selecting = False
+
+    def select_path(self, path, is_save):
+        print(path, is_save)
+
     def load_graph(self):
-        print('load graph')
+        if not self.file_manager:
+            self.create_file_manager()
+        self.is_file_selecting = True
+        ### TODO: add more appropriate default path; use pathlib; pass appropriate extensions
+        self.file_manager.show('/')
 
     def save_graph(self):
         print('save graph')
+        if not self.file_manager:
+            self.create_file_manager()
+        self.is_file_selecting = True
+        self.file_manager.show('/', saving=True)
 
     def load_rule(self):
         print('load rule')
+        if not self.file_manager:
+            self.create_file_manager()
+        self.is_file_selecting = True
+        self.file_manager.show('/')
 
 Graphvy().run()
