@@ -86,6 +86,10 @@ KV = """
                     color_mode: 'custom'
                     line_color_focus: HIGHLIGHTED_NODE
                     write_tab: False
+                    helper_text: "File doesn't exist"
+                    helper_text_mode: 'on_error'
+                    on_text: fm.reset_error()
+                    on_focus: fm.reset_error()
 
                 MDRaisedButton:
                     id: accept
@@ -263,9 +267,17 @@ class FileChooser(BackgroundColorBehavior, ModalView):
 
     def select_file(self, *args):
         is_save = self.ids.accept.text == 'Save'
-        self.select_path(os.path.join(self.current_path, self.ids.file_name.text), is_save)
+        file = os.path.join(self.current_path, self.ids.file_name.text)
+        if not is_save and not os.path.isfile(file):
+            self.ids.file_name.error = True
+            self.ids.file_name.focus = True
+            return
+        self.select_path(file, is_save)
         self.ids.file_name.text = ''
         self.dismiss()
+
+    def reset_error(self):
+        self.ids.file_name.error = False
 
 
 Builder.load_string(KV)
