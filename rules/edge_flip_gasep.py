@@ -1,0 +1,1 @@
+from dynamic_graph import EdgeFlipGASEP as rule
