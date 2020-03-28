@@ -148,11 +148,13 @@ class FileChooser(BackgroundColorBehavior, ModalView):
         self.is_open = False
         super().dismiss(*args, **kwargs)
 
-    def show(self, path, saving=False, ext=None):
+    def show(self, path, saving=None, ext=None):
         """Forms the body of a directory tree.
         :param path: The path to the directory that will be opened in the file manager.
         """
-        self.ids.accept.text = 'Save' if saving else 'Load'
+        if saving is not None:
+            self.ids.accept.text = 'Save' if saving else 'Load'
+
 
         self.ext = [] if ext is None else ext
 
@@ -234,10 +236,11 @@ class FileChooser(BackgroundColorBehavior, ModalView):
 
     def select_dir_or_file(self, path):
         """Called by tap on the name of the directory or file."""
-        self.ids.file_name.text = path
-
-        self.current_path = path
-        self.show(path)
+        if os.path.isfile(path):
+            self.current_path, self.ids.file_name.text = os.path.split(path)
+        else:
+            self.current_path = path
+        self.show(self.current_path)
 
     def back(self):
         """Returning to the branch down in the directory tree."""
@@ -257,7 +260,8 @@ class FileChooser(BackgroundColorBehavior, ModalView):
 
     def select_file(self, *args):
         is_save = self.ids.accept.text == 'Save'
-        self.select_path(self.current_path, is_save)
+        self.select_path(os.path.join(self.current_path, self.ids.file_name.text), is_save)
+        self.ids.file_name.text = ''
         self.dismiss()
 
 

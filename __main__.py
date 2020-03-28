@@ -332,7 +332,7 @@ class Graphvy(MDApp):
             self.create_file_manager()
         self.is_file_selecting = True
         ### TODO: add more appropriate default path; use pathlib; pass appropriate extensions
-        self.file_manager.show('/')
+        self.file_manager.show('/', saving=False)
 
     def save_graph(self):
         print('save graph')
@@ -346,6 +346,6 @@ class Graphvy(MDApp):
         if not self.file_manager:
             self.create_file_manager()
         self.is_file_selecting = True
-        self.file_manager.show('/')
+        self.file_manager.show('/', saving=False)
 
 Graphvy().run()
