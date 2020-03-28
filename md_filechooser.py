@@ -165,8 +165,8 @@ class FileChooser(BackgroundColorBehavior, ModalView):
         if saving is not None:
             self.ids.accept.text = 'Save' if saving else 'Load'
 
-
-        self.ext = [] if ext is None else ext
+        if ext is not None:
+            self.ext = ext
 
         dirs, files = self.get_content(path)
 
