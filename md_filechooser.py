@@ -169,28 +169,20 @@ class FileChooser(BackgroundColorBehavior, ModalView):
             self.ext = ext
 
         dirs, files = self.get_content(path)
+        if dirs is None and files is None:  # directory is unavailable
+            return
 
         self.current_path = path
         manager_list = []
 
-        if dirs == [] and files == []:  # selected directory
-            pass
-        elif not dirs and not files:  # directory is unavailable
-            return
-
-        is_dir = True
-        for name in chain(dirs, (None,), files):
-            if name is None:
-                is_dir = False
-                continue
-
+        for name in chain(dirs, files):
             _path = path + name if path == '/' else f'{path}/{name}'
 
-            if is_dir:
+            if os.path.isfile(_path):
+                icon = 'file-outline'
+            else:
                 access_string = self.get_access_string(_path)
                 icon = 'folder-lock' if 'r' not in access_string else 'folder'
-            else:
-                icon = 'file-outline'
 
             manager_list.append({'viewclass': 'BodyManager',
                                  'path': _path,
@@ -242,13 +234,14 @@ class FileChooser(BackgroundColorBehavior, ModalView):
                                 pass
                         else:
                             files.append(content)
-            return dirs, files
+            return sorted(dirs), sorted(files)
         except OSError:
             self.history.pop()
             return None, None
 
     def select_dir_or_file(self, path):
         """Called by tap on the name of the directory or file."""
+
         if os.path.isfile(path):
             self.current_path, self.ids.file_name.text = os.path.split(path)
             self.ids.file_name.focus = True

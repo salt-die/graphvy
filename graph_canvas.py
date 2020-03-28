@@ -76,7 +76,7 @@ class GraphCanvas(Widget):
     """
     Dynamic graph layout widget.  Layout updates as graph changes.
 
-    graph_callback(G) should return a callable that updates G when called.
+    rule(G) should return a callable that updates G when called.
     """
     tool = OptionProperty("Grab", options=TOOLS)
     adjacency_list = ObjectProperty(None)
@@ -88,12 +88,12 @@ class GraphCanvas(Widget):
 
     _touches = []
 
-    _callback_paused = False
+    _callback_paused = True
     _layout_paused = False
 
     delay = .05
 
-    def __init__(self, *args, G=None, graph_callback=None, multigraph=False, **kwargs):
+    def __init__(self, *args, G=None, rule=None, multigraph=False, **kwargs):
         super().__init__(*args, **kwargs)
         self.load_graph(G)  # Several attributes set/reset here
 
@@ -104,25 +104,25 @@ class GraphCanvas(Widget):
 
         self.update_layout = Clock.schedule_interval(self.step_layout, UPDATE_INTERVAL)
 
-        if graph_callback is not None:
-            self.graph_callback = graph_callback(self.G)
-            self.update_graph = Clock.schedule_interval(self.callback, 0)
-        else:
-            self.graph_callback = None
+        self.load_rule(rule)
 
         self.multigraph = multigraph
 
     def load_graph(self, G=None, random=(50, 80)):
         # Halt layout and graph_rule
-        if getattr(self, 'update_layout', None):
-            self.update_layout.cancel()
-        if getattr(self, 'graph_callback', None):
-            self.update_graph.cancel()
+        layout_needs_unpause = False
+        callback_needs_unpause = False
+        if getattr(self, 'update_layout', None) and not self._layout_paused:
+            self.pause_layout()
+            layout_needs_unpause = True
+        if getattr(self, 'rule_callback', None) and not self._callback_paused:
+            self.pause_callback()
+            callback_needs_unpause = True
 
         # Setup interface
         none_attrs = ['_highlighted', 'edges', 'nodes', 'background_color', '_background', 'select_rect',
                       '_edge_instructions', '_node_instructions', '_source_color', '_source_circle', 'coords',
-                      '_last_node_to_pos', '_source_to_update', '_source']
+                      '_last_node_to_pos', '_source_to_update', '_source', 'rule_callback']
         self.__dict__.update(dict.fromkeys(none_attrs))
 
         self.offset_x = .25
@@ -142,10 +142,12 @@ class GraphCanvas(Widget):
         self.populate_adjacency_list()
 
         # Resume layout and graph rule
-        if getattr(self, 'update_layout', None):
-            self.update_layout()
-        if getattr(self, 'graph_callback', None):
-            self.update_graph()
+        if layout_needs_unpause:
+            self.pause_layout()
+        if getattr(self, 'rule', None):
+            self.load_rule(self.rule)
+            if callback_needs_unpause:
+                self.pause_callback()
 
     def populate_adjacency_list(self, *args):
         if self.adjacency_list is not None:
@@ -154,9 +156,21 @@ class GraphCanvas(Widget):
             for node in self.nodes.values():
                 self.adjacency_list.add_widget(node.make_list_item())
 
+    def load_rule(self, rule):
+        self.rule = rule
+        if rule is None:
+            return
+
+        if not self._callback_paused:
+            self.pause_callback()
+
+        self.rule_callback = rule(self.G)
+        self.update_graph = Clock.schedule_interval(self.callback, 0)
+        self.update_graph.cancel()
+
     @redraw_canvas_after
     def callback(self, dt):
-        self.graph_callback()
+        self.rule_callback()
 
     @property
     def highlighted(self):
@@ -220,7 +234,7 @@ class GraphCanvas(Widget):
 
     def pause_callback(self):
         self._callback_paused = not self._callback_paused
-        if self.graph_callback is not None:
+        if self.rule_callback is not None:
             if self._callback_paused:
                 self.update_graph.cancel()
             else:
@@ -529,8 +543,10 @@ class GraphCanvas(Widget):
         if self._mouse_pos_disabled or self.coords is None or not self.collide_point(mx, my):
             return
 
-        if not self.adjacency_list.is_hidden and any(widget.collide_point(mx, my) for widget in self.walk()
-                                                     if widget is not self and not isinstance(widget, Layout)):
+        if (self.adjacency_list
+            and not self.adjacency_list.is_hidden
+            and any(widget.collide_point(mx, my) for widget in self.walk()
+                    if widget is not self and not isinstance(widget, Layout))):
             return
 
         # Check collision with already highlighted node first:
@@ -554,15 +570,15 @@ if __name__ == "__main__":
 
     class GraphApp(MDApp):
         def build(self):
-            # self.graph_canvas = GraphCanvas(graph_callback=EdgeCentricGASEP)
+            # self.graph_canvas = GraphCanvas(rule=EdgeCentricGASEP)
 
-            # self.graph_canvas = GraphCanvas(graph_callback=EdgeFlipGASEP)
+            # self.graph_canvas = GraphCanvas(rule=EdgeFlipGASEP)
 
             G = gt.Graph()
             G.add_vertex(2)
             G.add_edge(0, 1)
             G.add_edge(1, 0)
-            self.graph_canvas = GraphCanvas(G=G, graph_callback=Gravity)
+            self.graph_canvas = GraphCanvas(G=G, rule=Gravity)
 
             Window.bind(on_key_down=self.on_key_down, on_key_up=self.on_key_up)
             return self.graph_canvas

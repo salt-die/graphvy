@@ -41,33 +41,7 @@ class AsyncDynamicBase:
         return self.step()
 
 
-class GraphASEP(AsyncDynamicBase):
-    """
-    Totally Asymmetric Simple Exclusion Process (TASEP) is normally defined on a 1-D lattice. Our
-    Graph TASEP (GASEP) moves these dynamics to a graph with the particles represented by edges.
-    """
-
-    __slots__ = 'num_vertices', 'num_edges'
-
-    def __init__(self, *args, **kwargs):
-        super().__init__(*args, **kwargs)
-
-        # The number of edges and vertices remain constant in a GASEP
-        self.num_vertices = G.num_vertices()
-        self.num_edges = G.num_edges()
-
-    @property
-    def rv(self):
-        """Choose a random vertex from G."""
-        return self.G.vertex(randint(self.num_vertices))
-
-    @property
-    def re(self):
-        """Choose a random edge from G."""
-        return self.G.edge(*nth(self.G.iter_edges(), randint(self.num_edges)))
-
-
-class Moves:
+class GASEPBase(AsyncDynamicBase):
     """Mix-in for Dynamic Graphs."""
 
     def head_move(self, out_deg, source, target, multigraph=False):
@@ -93,13 +67,16 @@ class Moves:
             return True
 
 
-class EdgeCentricGASEP(GraphASEP, Moves):
+class EdgeCentricGASEP(GASEPBase):
     """
     Edge-centric as we'll base our dynamics off of randomly chosen edges rather than randomly chosen
     nodes.  Node-centric dynamics will lead to a different steady-state.
     """
 
     def step(self):
+        if not self.G.num_edges():
+            return
+
         source, target = edge = self.re
         self.G.remove_edge(edge)  # We'll add edge back if our random move was excluded.
 
@@ -118,10 +95,13 @@ class EdgeCentricGASEP(GraphASEP, Moves):
             self.G.add_edge(source, target)
 
 
-class EdgeFlipGASEP(GraphASEP, Moves):
+class EdgeFlipGASEP(GASEPBase):
     """Same as EdgeCentricGASEP, but with one extra move(edges can flip orientation)."""
 
     def step(self):
+        if not self.G.num_edges():
+            return
+
         source, target = edge = self.re
         self.G.remove_edge(edge)  # We'll add edge back if our random move was excluded.
 
@@ -141,7 +121,7 @@ MATTER = 1
 ANTIMATTER = 2
 
 
-class Gravity(AsyncDynamicBase, Moves):
+class Gravity(GASEPBase):
     """
     An asynchronous graph that very loosely resembles gravity. (MATTER will attract; ANTIMATTER repulses)
     NOT ACTUAL PHYSICS -- I just like the flavor.
@@ -271,6 +251,9 @@ class Gravity(AsyncDynamicBase, Moves):
             self.expand_space()
 
     def step(self):
+        if not self.G.num_edges():
+            return
+
         self.particle = self.re
         flavor = self.flavors[self.particle]
         self.dynamics[flavor]()

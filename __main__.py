@@ -1,3 +1,5 @@
+import os
+
 from kivy.animation import Animation
 from kivy.lang import Builder
 from kivy.uix.behaviors import ToggleButtonBehavior
@@ -11,6 +13,9 @@ from kivymd.app import MDApp
 from kivymd.uix.button import MDFloatingActionButton, MDIconButton, MDRectangleFlatIconButton
 from kivymd.uix.behaviors import BackgroundColorBehavior, HoverBehavior
 from kivymd.uix.tooltip import MDTooltip
+
+import dill
+import graph_tool as gt
 
 from constants import *
 from graph_canvas import GraphCanvas
@@ -325,24 +330,39 @@ class Graphvy(MDApp):
         self.is_file_selecting = False
 
     def select_path(self, path, is_save):
-        print(path, is_save)
+        gc = self.root.ids.graph_canvas
+
+        if os.path.splitext(path)[1] == '.py':
+            with open(path, 'r') as code:
+                code = code.read()
+
+            l = {}
+            exec(code, None, l)
+            gc.load_rule(l['rule'])
+            return
+
+        if not is_save:
+            gc.load_graph(G=gt.load_graph(path, fmt='gt'))
+            return
+
+        gc.G.save(path, fmt='gt')
 
     def load_graph(self):
         if not self.file_manager:
             self.create_file_manager()
         self.is_file_selecting = True
-        self.file_manager.show(save=False, ext=['gt'])
+        self.file_manager.show(path=os.path.join(os.getcwd(), 'graphs'), save=False, ext=['.gt'])
 
     def save_graph(self):
         if not self.file_manager:
             self.create_file_manager()
         self.is_file_selecting = True
-        self.file_manager.show(save=True, ext=['gt'])
+        self.file_manager.show(path=os.path.join(os.getcwd(), 'graphs'), save=True, ext=['.gt'])
 
     def load_rule(self):
         if not self.file_manager:
             self.create_file_manager()
         self.is_file_selecting = True
-        self.file_manager.show(save=False, ext=['rule'])
+        self.file_manager.show(path=os.path.join(os.getcwd(), 'rules'), save=False, ext=['.py'])
 
 Graphvy().run()
