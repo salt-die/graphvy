@@ -331,18 +331,18 @@ class Graphvy(MDApp):
         if not self.file_manager:
             self.create_file_manager()
         self.is_file_selecting = True
-        self.file_manager.show(saving=False, ext=['gt'])
+        self.file_manager.show(save=False, ext=['gt'])
 
     def save_graph(self):
         if not self.file_manager:
             self.create_file_manager()
         self.is_file_selecting = True
-        self.file_manager.show(saving=True, ext=['gt'])
+        self.file_manager.show(save=True, ext=['gt'])
 
     def load_rule(self):
         if not self.file_manager:
             self.create_file_manager()
         self.is_file_selecting = True
-        self.file_manager.show(saving=False, ext=['rule'])
+        self.file_manager.show(save=False, ext=['rule'])
 
 Graphvy().run()

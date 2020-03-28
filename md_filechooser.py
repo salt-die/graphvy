@@ -155,15 +155,15 @@ class FileChooser(BackgroundColorBehavior, ModalView):
         self.ids.file_name.text = ''
         super().dismiss(*args, **kwargs)
 
-    def show(self, path=None, saving=None, ext=None):
+    def show(self, path=None, save=None, ext=None):
         """Forms the body of a directory tree.
         :param path: The path to the directory that will be opened in the file manager.
         """
         if path is None:
             path = os.getcwd()
 
-        if saving is not None:
-            self.ids.accept.text = 'Save' if saving else 'Load'
+        if save is not None:
+            self.ids.accept.text = 'Save' if save else 'Load'
 
         if ext is not None:
             self.ext = ext
