@@ -86,6 +86,7 @@ KV = """
                     on_text_validate: fm.select_file()
                     color_mode: 'custom'
                     line_color_focus: HIGHLIGHTED_NODE
+                    hint_text: 'Enter file name:'
                     write_tab: False
                     helper_text: "File doesn't exist"
                     helper_text_mode: 'on_error'
