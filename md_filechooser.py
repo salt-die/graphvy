@@ -6,6 +6,7 @@ Modifications to allow preferred colors and sizing.  Slightly different if loadi
 from itertools import chain
 import os
 
+from kivy.clock import Clock
 from kivy.metrics import dp
 from kivy.lang import Builder
 from kivy.properties import (BooleanProperty,
@@ -150,6 +151,7 @@ class FileChooser(BackgroundColorBehavior, ModalView):
 
     def dismiss(self, *args, **kwargs):
         self.is_open = False
+        self.ids.file_name.text = ''
         super().dismiss(*args, **kwargs)
 
     def show(self, path=None, saving=None, ext=None):
@@ -199,6 +201,9 @@ class FileChooser(BackgroundColorBehavior, ModalView):
         if not self.is_open:
             self.is_open = True
             self.open()
+            def focus(dt):
+                self.ids.file_name.focus = True
+            Clock.schedule_once(focus, 0)  # The focus animation will get interrupted if we don't schedule it.
 
     def count_ext(self, path):
         ext = os.path.splitext(path)[1]
@@ -245,6 +250,7 @@ class FileChooser(BackgroundColorBehavior, ModalView):
         """Called by tap on the name of the directory or file."""
         if os.path.isfile(path):
             self.current_path, self.ids.file_name.text = os.path.split(path)
+            self.ids.file_name.focus = True
         else:
             self.current_path = path
         self.show(self.current_path)
@@ -273,7 +279,6 @@ class FileChooser(BackgroundColorBehavior, ModalView):
             self.ids.file_name.focus = True
             return
         self.select_path(file, is_save)
-        self.ids.file_name.text = ''
         self.dismiss()
 
     def reset_error(self):
