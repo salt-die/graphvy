@@ -529,8 +529,8 @@ class GraphCanvas(Widget):
         if self._mouse_pos_disabled or self.coords is None or not self.collide_point(mx, my):
             return
 
-        if any(widget.collide_point(mx, my) for widget in self.walk()
-               if widget is not self and not isinstance(widget, Layout)):
+        if not self.adjacency_list.is_hidden and any(widget.collide_point(mx, my) for widget in self.walk()
+                                                     if widget is not self and not isinstance(widget, Layout)):
             return
 
         # Check collision with already highlighted node first:

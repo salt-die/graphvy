@@ -331,21 +331,21 @@ class Graphvy(MDApp):
         if not self.file_manager:
             self.create_file_manager()
         self.is_file_selecting = True
-        ### TODO: add more appropriate default path; use pathlib; pass appropriate extensions
-        self.file_manager.show('/', saving=False)
+        ### TODO: pass appropriate extensions
+        self.file_manager.show(saving=False)
 
     def save_graph(self):
         print('save graph')
         if not self.file_manager:
             self.create_file_manager()
         self.is_file_selecting = True
-        self.file_manager.show('/', saving=True)
+        self.file_manager.show(saving=True)
 
     def load_rule(self):
         print('load rule')
         if not self.file_manager:
             self.create_file_manager()
         self.is_file_selecting = True
-        self.file_manager.show('/', saving=False)
+        self.file_manager.show(saving=False)
 
 Graphvy().run()
