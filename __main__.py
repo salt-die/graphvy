@@ -330,6 +330,7 @@ class Graphvy(MDApp):
         self.is_file_selecting = False
 
     def select_path(self, path, is_save):
+        self.is_file_selecting = False
         gc = self.root.ids.graph_canvas
 
         if os.path.splitext(path)[1] == '.py':
