@@ -169,8 +169,7 @@ class FileChooser(BackgroundColorBehavior, ModalView):
         manager_list = []
 
         default = {'viewclass': 'DirContents', 'select': self.select_dir_or_file}
-        rv_data = [ChainMap({'name': name, 'icon': icon}, default) for name, icon in chain(dirs, files)]
-        self.ids.rv.data = rv_data
+        self.ids.rv.data = [ChainMap({'name': name, 'icon': icon}, default) for name, icon in chain(dirs, files)]
 
         if not self.is_open:
             self.is_open = True
