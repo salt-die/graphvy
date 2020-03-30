@@ -22,7 +22,6 @@ KV = """
 #: import SELECTED_COLOR constants.SELECTED_COLOR
 #: import NODE_COLOR constants.NODE_COLOR
 
-
 <FileChooser>
     id: fc
     auto_dismiss: False
@@ -92,7 +91,6 @@ KV = """
                     text_color: NODE_COLOR
                     on_release: fc.exit_chooser(1)
 
-
 <DirContents@BoxLayout>
     icon: ''
     select: lambda *args: None
@@ -109,7 +107,6 @@ KV = """
             text_color: NODE_COLOR
 
     MDSeparator
-
 
 <BoxBG@BoxLayout+BackgroundColorBehavior>
     md_bg_color: NODE_COLOR
