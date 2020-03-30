@@ -59,7 +59,7 @@ KV = """
                 specific_text_color: HIGHLIGHTED_NODE
                 title: root.current_path
                 right_action_items: [['close-box', lambda x: root.exit_chooser(1)]]
-                left_action_items: [['chevron-left', lambda x: root.back()]]
+                left_action_items: [['chevron-up', lambda x: root.up()]]
 
             RecycleView:
                 id: rv
@@ -132,7 +132,6 @@ KV = """
 
 
 class FileChooser(BackgroundColorBehavior, ModalView):
-    icon = StringProperty("check")
     exit_chooser = ObjectProperty(lambda x: None)
     select_path = ObjectProperty(lambda *args: None)
     ext = ListProperty()
@@ -143,10 +142,6 @@ class FileChooser(BackgroundColorBehavior, ModalView):
 
     def __init__(self, **kwargs):
         super().__init__(**kwargs)
-        self.history = []  # directory navigation history
-        # If False - do not add a directory to the history -
-        # The user moves down the tree.
-        self.history_flag = True
         toolbar_label = self.ids.toolbar.children[1].children[0]
         toolbar_label.font_style = 'Subtitle1'
 
@@ -199,13 +194,13 @@ class FileChooser(BackgroundColorBehavior, ModalView):
             Clock.schedule_once(focus, 0)  # The focus animation will get interrupted if we don't schedule it.
 
     def count_ext(self, path):
-        ext = os.path.splitext(path)[1]
+        _, ext = os.path.splitext(path)
         return ext and (ext.lower() in self.ext or ext.upper() in self.ext)
 
     def get_access_string(self, path):
         if self.use_access:
             access_data = {'r': os.R_OK, 'w': os.W_OK, 'x': os.X_OK}
-            return ''.join(key if os.access(path, value) else '-' for key, value in access_data.items())
+            return ''.join(key for key, value in access_data.items() if os.access(path, value))
         return ''
 
     def get_content(self, path):
@@ -215,28 +210,16 @@ class FileChooser(BackgroundColorBehavior, ModalView):
             files = []
             dirs = []
 
-            if self.history_flag:
-                self.history.append(path)
-            else:
-                self.history_flag = True
-
             for content in os.listdir(path):
                 if os.path.isdir(os.path.join(path, content)):
                     if self.search in ('all', 'dirs'):
                         dirs.append(content)
-                else:
-                    if self.search in ('all', 'files'):
-                        if self.ext:
-                            try:
-                                if self.count_ext(content):
-                                    files.append(content)
-                            except IndexError:
-                                pass
-                        else:
-                            files.append(content)
+                elif self.search in ('all', 'files'):
+                    if not self.ext or self.count_ext(content):
+                        files.append(content)
+
             return sorted(dirs), sorted(files)
         except OSError:
-            self.history.pop()
             return None, None
 
     def select_dir_or_file(self, path):
@@ -249,21 +232,9 @@ class FileChooser(BackgroundColorBehavior, ModalView):
             self.current_path = path
         self.show(self.current_path)
 
-    def back(self):
-        """Returning to the branch down in the directory tree."""
-
-        if len(self.history) == 1:
-            path, end = os.path.split(self.history[0])
-            if end == "":
-                self.dismiss()
-                self.exit_chooser(1)
-                return
-            self.history[0] = path
-        else:
-            self.history.pop()
-            path = self.history[-1]
-        self.history_flag = False
-        self.select_dir_or_file(path)
+    def up(self):
+        """Go up a level in the directory tree."""
+        self.select_dir_or_file(os.path.abspath(os.path.join(self.current_path, os.path.pardir)))
 
     def select_file(self, *args):
         is_save = self.ids.accept.text == 'Save'
