@@ -3,6 +3,7 @@ Modified MDFileManager from https://github.com/HeaTTheatR/KivyMD/blob/master/kiv
 
 Modifications to allow preferred colors and sizing.  Slightly different if loading or saving.
 """
+from collections import ChainMap
 from itertools import chain
 import os
 
@@ -21,28 +22,9 @@ KV = """
 #: import SELECTED_COLOR constants.SELECTED_COLOR
 #: import NODE_COLOR constants.NODE_COLOR
 
-<BodyManager@BoxLayout>
-    icon: 'folder'
-    path: ''
-    background_normal: ''
-    background_down: ''
-    dir_or_file_name: ''
-    events_callback: lambda x: None
-    orientation: 'vertical'
-
-    ModifiedOneLineIconListItem:
-        text: root.dir_or_file_name
-        on_release: root.events_callback(root.path)
-
-        IconLeftWidget:
-            icon: root.icon
-            theme_text_color: "Custom"
-            text_color: NODE_COLOR
-
-    MDSeparator
 
 <FileChooser>
-    id: fm
+    id: fc
     auto_dismiss: False
     pos_hint: {'center_x':.5, 'center_y':.5}
     md_bg_color: SELECTED_COLOR
@@ -83,15 +65,15 @@ KV = """
 
                 MDTextField:
                     id: file_name
-                    on_text_validate: fm.select_file()
+                    on_text_validate: fc.select_file()
                     color_mode: 'custom'
                     line_color_focus: HIGHLIGHTED_NODE
                     hint_text: 'File name:'
                     write_tab: False
                     helper_text: "File doesn't exist"
                     helper_text_mode: 'on_error'
-                    on_text: fm.reset_error()
-                    on_focus: fm.reset_error()
+                    on_text: fc.reset_error()
+                    on_focus: fc.reset_error()
 
                 MDRaisedButton:
                     id: accept
@@ -100,7 +82,7 @@ KV = """
                     pos_hint: {'center_y': .5}
                     md_bg_color: HIGHLIGHTED_NODE
                     text_color: NODE_COLOR
-                    on_release: fm.select_file()
+                    on_release: fc.select_file()
 
                 MDFlatButton:
                     text: 'Cancel'
@@ -108,7 +90,26 @@ KV = """
                     pos_hint: {'center_y': .5}
                     md_bg_color: SELECTED_COLOR
                     text_color: NODE_COLOR
-                    on_release: fm.exit_chooser(1)
+                    on_release: fc.exit_chooser(1)
+
+
+<DirContents@BoxLayout>
+    icon: ''
+    select: lambda *args: None
+    name: ''
+    orientation: 'vertical'
+
+    ModifiedOneLineIconListItem:
+        text: root.name
+        on_release: root.select(root.name, from_name=True)
+
+        IconLeftWidget:
+            icon: root.icon
+            theme_text_color: "Custom"
+            text_color: NODE_COLOR
+
+    MDSeparator
+
 
 <BoxBG@BoxLayout+BackgroundColorBehavior>
     md_bg_color: NODE_COLOR
@@ -170,22 +171,10 @@ class FileChooser(BackgroundColorBehavior, ModalView):
         self.current_path = path
         manager_list = []
 
-        for name in chain(dirs, files):
-            _path = path + name if path == '/' else f'{path}/{name}'
+        default = {'viewclass': 'DirContents', 'select': self.select_dir_or_file}
+        rv_data = [ChainMap({'name': name, 'icon': icon}, default) for name, icon in chain(dirs, files)]
+        self.ids.rv.data = rv_data
 
-            if os.path.isfile(_path):
-                icon = 'file-outline'
-            else:
-                access_string = self.get_access_string(_path)
-                icon = 'folder-lock' if 'r' not in access_string else 'folder'
-
-            manager_list.append({'viewclass': 'BodyManager',
-                                 'path': _path,
-                                 'icon': icon,
-                                 'dir_or_file_name': name,
-                                 'events_callback': self.select_dir_or_file})
-
-        self.ids.rv.data = manager_list
         if not self.is_open:
             self.is_open = True
             self.open()
@@ -204,32 +193,40 @@ class FileChooser(BackgroundColorBehavior, ModalView):
         return ''
 
     def get_content(self, path):
-        """Returns a list of the type [[Folder List], [file list]]."""
+        """Returns two lists of tuples -- [[(dir, icon), ...], [(file, icon), ...]]"""
 
         try:
-            files = []
             dirs = []
+            files = []
 
             for content in os.listdir(path):
+                if content.startswith('.'):  # Skip hidden files
+                    continue
+
                 if os.path.isdir(os.path.join(path, content)):
-                    if self.search in ('all', 'dirs'):
-                        dirs.append(content)
-                elif self.search in ('all', 'files'):
+                    if self.search != 'files':
+                        access_string = self.get_access_string(os.path.join(path, content))
+                        icon = 'folder-lock' if 'r' not in access_string else 'folder'
+                        dirs.append((content, icon))
+                elif self.search != 'dirs':
                     if not self.ext or self.count_ext(content):
-                        files.append(content)
+                        files.append((content, 'file-outline'))
 
             return sorted(dirs), sorted(files)
         except OSError:
             return None, None
 
-    def select_dir_or_file(self, path):
+    def select_dir_or_file(self, path, from_name=False):
         """Called by tap on the name of the directory or file."""
+        if from_name:
+            path = f'/{path}' if self.current_path == '/' else f'{self.current_path}/{path}'
 
         if os.path.isfile(path):
             self.current_path, self.ids.file_name.text = os.path.split(path)
             self.ids.file_name.focus = True
         else:
             self.current_path = path
+
         self.show(self.current_path)
 
     def up(self):
