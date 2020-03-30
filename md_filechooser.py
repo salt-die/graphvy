@@ -197,7 +197,7 @@ class FileChooser(BackgroundColorBehavior, ModalView):
             files = []
 
             for content in os.listdir(path):
-                if content.startswith('.'):  # Skip hidden files
+                if content.startswith('.'):  # Skip hidden content
                     continue
 
                 if os.path.isdir(os.path.join(path, content)):
