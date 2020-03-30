@@ -4,17 +4,12 @@ from kivy.animation import Animation
 from kivy.lang import Builder
 from kivy.uix.behaviors import ToggleButtonBehavior
 from kivy.uix.modalview import ModalView
-from kivy.properties import (BooleanProperty,
-                             ListProperty,
-                             NumericProperty,
-                             ObjectProperty,
-                             StringProperty)
+from kivy.properties import NumericProperty, ObjectProperty, StringProperty
 from kivymd.app import MDApp
 from kivymd.uix.button import MDFloatingActionButton, MDIconButton, MDRectangleFlatIconButton
 from kivymd.uix.behaviors import BackgroundColorBehavior, HoverBehavior
 from kivymd.uix.tooltip import MDTooltip
 
-import dill
 import graph_tool as gt
 
 from constants import *

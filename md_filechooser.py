@@ -45,9 +45,9 @@ KV = """
             RecycleView:
                 id: rv
                 key_viewclass: 'viewclass'
-                key_size: 'height'
-                bar_width: dp(4)
+                bar_width: dp(5)
                 bar_color: NODE_COLOR
+
                 RecycleBoxLayout:
                     padding: dp(10)
                     default_size: None, dp(48)
@@ -161,8 +161,9 @@ class FileChooser(BackgroundColorBehavior, ModalView):
         if ext is not None:
             self.ext = ext
 
-        dirs, files = self.get_content(path)
-        if dirs is None and files is None:  # directory is unavailable
+        try:
+            dirs, files = self.get_content(path)
+        except OSError:  # directory is unavailable
             return
 
         self.current_path = path
@@ -189,28 +190,25 @@ class FileChooser(BackgroundColorBehavior, ModalView):
         return ''
 
     def get_content(self, path):
-        """Returns two lists of tuples -- [[(dir, icon), ...], [(file, icon), ...]]"""
+        """Returns two lists of 2-tuples -- [[(dir, icon), ...], [(file, icon), ...]]"""
 
-        try:
-            dirs = []
-            files = []
+        dirs = []
+        files = []
 
-            for content in os.listdir(path):
-                if content.startswith('.'):  # Skip hidden content
-                    continue
+        for content in os.listdir(path):
+            if content.startswith('.'):  # Skip hidden content
+                continue
 
-                if os.path.isdir(os.path.join(path, content)):
-                    if self.search != 'files':
-                        access_string = self.get_access_string(os.path.join(path, content))
-                        icon = 'folder-lock' if 'r' not in access_string else 'folder'
-                        dirs.append((content, icon))
-                elif self.search != 'dirs':
-                    if not self.ext or self.count_ext(content):
-                        files.append((content, 'file-outline'))
+            if os.path.isdir(os.path.join(path, content)):
+                if self.search != 'files':
+                    access_string = self.get_access_string(os.path.join(path, content))
+                    icon = 'folder-lock' if 'r' not in access_string else 'folder'
+                    dirs.append((content, icon))
+            elif self.search != 'dirs':
+                if not self.ext or self.count_ext(content):
+                    files.append((content, 'file-outline'))
 
-            return sorted(dirs), sorted(files)
-        except OSError:
-            return None, None
+        return sorted(dirs), sorted(files)
 
     def select_dir_or_file(self, path, from_name=False):
         """Called by tap on the name of the directory or file."""
