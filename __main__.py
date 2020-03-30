@@ -280,7 +280,6 @@ class RandomGraphDialogue(ModalView, BackgroundColorBehavior):
 
 class Graphvy(MDApp):
     _anim_progress = NumericProperty(-PANEL_WIDTH)
-    file_manager = None
     is_file_selecting = False
 
     def build(self):
@@ -293,6 +292,10 @@ class Graphvy(MDApp):
         for child in self.root.ids.tabs.tab_bar.layout.children:
             child.text_color_active = HIGHLIGHTED_NODE
             child.text_color_normal = SELECTED_COLOR
+
+        self.file_manager = FileChooser(exit_chooser=self.exit_chooser,
+                                        select_path=self.select_path,
+                                        size_hint=(.8,.8))
 
         self.root.bind(width=self._resize)
 
@@ -320,14 +323,9 @@ class Graphvy(MDApp):
         dialogue.graph_canvas = self.root.ids.graph_canvas
         dialogue.open()
 
-    def create_file_manager(self):
-        self.file_manager = FileChooser(exit_chooser=self.exit_chooser,
-                                        select_path=self.select_path,
-                                        size_hint=(.8,.8))
-
     def exit_chooser(self, *args):
-        self.file_manager.dismiss()
         self.is_file_selecting = False
+        self.file_manager.dismiss()
 
     def select_path(self, path, is_save):
         self.is_file_selecting = False
@@ -349,20 +347,14 @@ class Graphvy(MDApp):
         gc.G.save(path, fmt='gt')
 
     def load_graph(self):
-        if not self.file_manager:
-            self.create_file_manager()
         self.is_file_selecting = True
         self.file_manager.show(path=os.path.join(os.getcwd(), 'graphs'), save=False, ext=['.gt'])
 
     def save_graph(self):
-        if not self.file_manager:
-            self.create_file_manager()
         self.is_file_selecting = True
         self.file_manager.show(path=os.path.join(os.getcwd(), 'graphs'), save=True, ext=['.gt'])
 
     def load_rule(self):
-        if not self.file_manager:
-            self.create_file_manager()
         self.is_file_selecting = True
         self.file_manager.show(path=os.path.join(os.getcwd(), 'rules'), save=False, ext=['.py'])
 
