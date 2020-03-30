@@ -8,6 +8,7 @@ Space to pause/unpause the layout algorithm. Ctrl-Space to pause/unpause the Gra
 ### TODO: hide/filter nodes
 ### TODO: node/edge states visible
 ### TODO: default node colors stored in Node/Edge classes to allow changing individual colors or displaying states
+### TODO: recycleview for adjacencylist
 from functools import wraps
 from random import random
 import time
@@ -150,11 +151,12 @@ class GraphCanvas(Widget):
                 self.pause_callback()
 
     def populate_adjacency_list(self, *args):
-        if self.adjacency_list is not None:
-            self.adjacency_list.clear_widgets()
+        if self.adjacency_list is None:
+            return
 
-            for node in self.nodes.values():
-                self.adjacency_list.add_widget(node.make_list_item())
+        self.adjacency_list.clear_widgets()
+        for node in self.nodes.values():
+            self.adjacency_list.add_widget(node.make_list_item())
 
     def load_rule(self, rule):
         self.rule = rule
