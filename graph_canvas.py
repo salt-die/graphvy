@@ -2,13 +2,6 @@
 Hold shift to drag-select vertices. Ctrl-click to select individual vertices, and again to pin them.
 Space to pause/unpause the layout algorithm. Ctrl-Space to pause/unpause the Graph callback.
 """
-### TODO: path highlighter
-### TODO: bezier lines (only when paused; computationally heavy)
-### TODO: degree histogram
-### TODO: hide/filter nodes
-### TODO: node/edge states visible
-### TODO: default node colors stored in Node/Edge classes to allow changing individual colors or displaying states
-### TODO: recycleview for adjacencylist
 from functools import wraps
 from random import random
 import time
