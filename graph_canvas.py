@@ -163,6 +163,14 @@ class GraphCanvas(Widget):
         self.update_graph = Clock.schedule_interval(self.callback, 0)
         self.update_graph.cancel()
 
+    def previous_state(self, node):
+        if node in self._selected:
+            node.freeze(SELECTED_COLOR)
+        elif node in self._pinned:
+            node.freeze(PINNED_COLOR)
+        else:
+            node.unfreeze()
+
     @redraw_canvas_after
     def callback(self, dt):
         self.rule_callback()
@@ -176,12 +184,7 @@ class GraphCanvas(Widget):
         """Freezes highlighted nodes or returns un-highlighted nodes to the proper color."""
         lit = self.highlighted
         if lit is not None and lit is not self.source:
-            if lit in self._selected:
-                lit.freeze(SELECTED_COLOR)
-            elif lit in self._pinned:
-                lit.freeze(PINNED_COLOR)
-            else:
-                lit.unfreeze()
+            self.previous_state(lit)
 
         if node is not None:
             node.freeze(HIGHLIGHTED_NODE)
@@ -197,12 +200,7 @@ class GraphCanvas(Widget):
         source = self.source
         if source is not None:
             self._source_color.a = 0
-            if source in self._selected:
-                source.freeze(SELECTED_COLOR)
-            elif source in self._pinned:
-                source.freeze(PINNED_COLOR)
-            else:
-                source.unfreeze()
+            self.previous_state(source)
 
         if node is not None:
             node.freeze(HIGHLIGHTED_NODE)
