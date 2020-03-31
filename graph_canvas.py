@@ -113,10 +113,10 @@ class GraphCanvas(Widget):
         # Halt layout and graph_rule
         layout_needs_unpause = False
         callback_needs_unpause = False
-        if getattr(self, 'update_layout', None) and not self._layout_paused:
+        if hasattr(self, 'update_layout') and not self._layout_paused:
             self.pause_layout()
             layout_needs_unpause = True
-        if getattr(self, 'rule_callback', None) and not self._callback_paused:
+        if hasattr(self, 'rule_callback') and not self._callback_paused:
             self.pause_callback()
             callback_needs_unpause = True
 
