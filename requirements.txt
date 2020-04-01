@@ -1,3 +1,4 @@
 Kivy>=2.0.0rc1
-kivymd>=0.104.0
+kivym==0.104.0
 numpy>=1.18.1
+palettable>=3.3.0
