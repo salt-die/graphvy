@@ -3,14 +3,6 @@ import numpy as np
 from constants import NODE_COLOR, EDGE_COLOR
 
 
-class ConstantMap:
-    def __init__(self, color):
-        self.color = color
-
-    def __getitem__(self, key):
-        return self.color
-
-
 class ContinuousMap:
     def __init__(self, colormap, start, end):
         self.scale = end - start
@@ -28,7 +20,7 @@ def get_colormap(states=1, end=None, *, for_nodes=True):
     """
     if end is None:
         if states == 1:
-            return ConstantMap(NODE_COLOR if for_nodes else EDGE_COLOR)
+            return [NODE_COLOR if for_nodes else EDGE_COLOR]
         if states <= 10:
             colors = getattr(palettable.cartocolors.qualitative, f'Vivid_{states}').mpl_colors
             return [(*color, 1) for color in colors]
