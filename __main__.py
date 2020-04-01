@@ -103,6 +103,10 @@ FloatLayout:
                 title: 'Filters'
                 text: 'filter-outline'
 
+            PanelTabBase:
+                title: 'Colors'
+                text: 'palette-outline'
+
         MDToolbar:
             md_bg_color: NODE_COLOR
             specific_text_color: HIGHLIGHTED_NODE
