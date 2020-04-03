@@ -107,6 +107,18 @@ FloatLayout:
                 title: 'Colors'
                 text: 'palette-outline'
 
+                MDDropDownItem:
+                    id: node_colors
+                    text: 'Node properties...'
+                    top: self.parent.top
+                    #on_release: app.build_property_menu(nodes=True)
+
+                MDDropDownItem:
+                    id: edge_colors
+                    text: 'Edge properties...'
+                    top: self.parent.top - self.height
+                    #on_release: app.build_property_menu(nodes=False)
+
         MDToolbar:
             md_bg_color: NODE_COLOR
             specific_text_color: HIGHLIGHTED_NODE
@@ -356,5 +368,8 @@ class Graphvy(MDApp):
     def load_rule(self):
         self.is_file_selecting = True
         self.file_manager.show(path=os.path.join(os.getcwd(), 'rules'), save=False, ext=['.py'])
+
+    def build_property_menu(self, nodes):
+        pass
 
 Graphvy().run()

@@ -4,26 +4,26 @@ A Line canvas instruction with an arrow at the end.
 import numpy as np
 from math import atan2, sin, cos  # Should be slightly faster than numpy for non-arrays.
 
-from kivy.graphics import Color, Line
+from kivy.graphics import Color, Line, Triangle
 from kivy.uix.widget import Widget
 
-BASE = np.array([[-3, 0], [-6, 1], [-6, -1]], dtype=float)
+BASE = np.array([[-1, 0], [-4, 1], [-4, -1]], dtype=float)
 ROTATION = np.zeros((2, 2), dtype=float)  # Used as a buffer for Triangle rotation matrix
 BUFFER = np.zeros((3, 2), dtype=float)    # Buffer for matmul with ROTATION
 
-class Triangle(Line):
+class ArrowHead(Triangle):
     __slots__ = 'base', 'color', 'group_name'
 
-    def __init__(self, color, width, size, group_name=None):
+    def __init__(self, color, size, group_name=None):
         """
-        Triangle points are: (-3, 0), (-6, 1), (-6, -1). Looks like:
+        Triangle points are: (-1, 0), (-4, 1), (-4, -1). Looks like:
         (Two characters per x unit, One line per y unit, O is origin)
 
-                           |
-               o           |
-            ---------o-----O---
-               o           |
-                           |
+                        |
+               o        |
+            ---------o--O---
+               o        |
+                        |
 
         Tip is off origin so that arrow is less covered by nodes.
         """
@@ -31,7 +31,7 @@ class Triangle(Line):
         self.group_name = str(id(self)) if group_name is None else group_name
 
         self.color = Color(*color, group=self.group_name)
-        super().__init__(close=True, width=width, group=self.group_name)
+        super().__init__(group=self.group_name)
 
     def update(self, x1, y1, x2, y2):
         theta = atan2(y2 - y1, x2 - x1)
@@ -60,7 +60,7 @@ class Arrow(Line):
         self.color = Color(*line_color, group=self.group_name)
         super().__init__(width=width, group=self.group_name)
 
-        self.head = Triangle(color=head_color, width=width, size=head_size, group_name=self.group_name)
+        self.head = ArrowHead(color=head_color, size=head_size, group_name=self.group_name)
 
     def update(self, x1, y1, x2, y2):
         self.points = x1, y1, x2, y2

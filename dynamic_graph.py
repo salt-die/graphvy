@@ -133,8 +133,11 @@ class Gravity(GASEPBase):
         self.edge_states = {'flavors': (3, )}
 
         super().__init__(*args, **kwargs)
-        self.flavors = self.G.new_edge_property('int')
-        self.G.flavors = self.flavors
+
+        if 'flavors' not in self.G.ep:
+            self.flavors = self.G.new_edge_property('int')
+            self.G.ep.flavors = self.flavors
+
         self.dynamics = self.photon_dynamics, self.matter_dynamics, self.antimatter_dynamics
 
     def photon_move(self):

@@ -32,7 +32,7 @@ SOURCE_WIDTH  = 7
 NODE_RADIUS   = 3
 BOUNDS        = NODE_RADIUS * 2
 
-HEAD_SIZE     = 2.5  # size of arrow heads
+HEAD_SIZE     = 5  # size of arrow heads
 
 NODE_WIDTH    = 3
 EDGE_WIDTH    = 2

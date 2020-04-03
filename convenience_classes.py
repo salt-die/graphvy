@@ -102,7 +102,7 @@ class Node(Line):
             self.color.rgba = color
 
             if self.list_item is not None:
-                self.list_item.md_bg_color = [min(c * 1.1, 1) for c in color]
+                self.list_item.md_bg_color = tuple(min(c * 1.2, 1) for c in color)
 
         self.update_out_edges()
 
@@ -142,7 +142,7 @@ class Edge(Arrow):
             line_color = HIGHLIGHTED_EDGE
         else:
             line_color = canvas.edge_colormap[canvas.edge_colors[edge]]
-        head_color = [min(c * 1.1, 1) for c in line_color]
+        head_color = tuple(min(c * 1.2, 1) for c in line_color)
 
         super().__init__(line_color=line_color, head_color=head_color, width=EDGE_WIDTH, head_size=HEAD_SIZE)
 
