@@ -4,7 +4,7 @@ SFDP_SETTINGS = dict(init_step=0.005,  # move step; increase for sfdp to converg
                      K=0.5,            # preferred edge length
                      C=0.3,            # relative strength repulsive forces
                      p=2.0,            # repulsive force exponent
-                     max_iter=1)
+                     max_iter=2)
 
 TOOLS = ("Grab", "Select", "Pin", "Show Path", "Add Node", "Delete Node", "Add Edge", "Delete Edge")
 

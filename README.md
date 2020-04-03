@@ -5,6 +5,10 @@ To load arbitrary rules for dynamic graphs, one needs a py file that defines a l
 `rule(G)` (where G is our graph) returns a callable that updates `G` when called.  Any imported files should be placed
 in cwd of `__main__`.
 
+To allow proper coloring of edge/node states, rules should have attributes `node_states`, `edge_states` that are dicts
+with keys being the names of the node/edge properties and values being 1 or 2-tuples of either number of states or the
+range of the states (if continuous valued).  These attributes are only needed for coloring; optional otherwise.
+
 
 #TODO
 

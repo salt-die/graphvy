@@ -127,11 +127,14 @@ class Gravity(GASEPBase):
     NOT ACTUAL PHYSICS -- I just like the flavor.
     """
 
-    __slots__ = 'flavors', 'dynamics'
+    __slots__ = 'edge_states', 'flavors', 'dynamics'
 
     def __init__(self, *args, **kwargs):
+        self.edge_states = {'flavors': (3, )}
+
         super().__init__(*args, **kwargs)
         self.flavors = self.G.new_edge_property('int')
+        self.G.flavors = self.flavors
         self.dynamics = self.photon_dynamics, self.matter_dynamics, self.antimatter_dynamics
 
     def photon_move(self):
