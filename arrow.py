@@ -54,20 +54,13 @@ class Triangle(Line):
 class Arrow(Line):
     __slots__ = 'group_name', 'color', 'head'
 
-    def __init__(self,
-                 line_color,
-                 head_color,
-                 width,
-                 head_size):
-
+    def __init__(self, line_color, head_color, width, head_size):
         self.group_name = str(id(self))
+
         self.color = Color(*line_color, group=self.group_name)
         super().__init__(width=width, group=self.group_name)
 
-        self.head = Triangle(color=head_color,
-                             width=width,
-                             size=head_size,
-                             group_name=self.group_name)
+        self.head = Triangle(color=head_color, width=width, size=head_size, group_name=self.group_name)
 
     def update(self, x1, y1, x2, y2):
         self.points = x1, y1, x2, y2

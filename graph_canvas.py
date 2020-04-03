@@ -21,6 +21,7 @@ from graph_tool.draw import random_layout, sfdp_layout
 import numpy as np
 
 from convenience_classes import Node, Edge, Selection, SelectedSet, PinnedSet, GraphInterface
+from colormap import get_colormap
 from constants import *
 
 Config.set('input', 'mouse', 'mouse,multitouch_on_demand')
@@ -128,9 +129,13 @@ class GraphCanvas(Widget):
         else:
             self.G = GraphInterface(self, G)
         self.G.set_fast_edge_removal()
+
         if 'pos' not in self.G.vp:
             self.G.vp.pos = random_layout(self.G, (1, 1))
         self.G.vp.pinned = self.G.new_vertex_property('bool')
+
+        self.set_node_colormap()
+        self.set_edge_colormap()
 
         self.setup_canvas()
         self.populate_adjacency_list()
@@ -150,6 +155,14 @@ class GraphCanvas(Widget):
         self.adjacency_list.clear_widgets()
         for node in self.nodes.values():
             self.adjacency_list.add_widget(node.make_list_item())
+
+    def set_node_colormap(self, property_=None, states=1, end=None):
+        self.node_colors = self.G.new_vertex_property('bool') if property_ is None else property_
+        self.node_colormap = get_colormap(states=states, end=end, for_nodes=True)
+
+    def set_edge_colormap(self, property_=None, states=1, end=None):
+        self.edge_colors = self.G.new_edge_property('bool') if property_ is None else property_
+        self.edge_colormap = get_colormap(states=states, end=end, for_nodes=False)
 
     def load_rule(self, rule):
         self.rule = rule

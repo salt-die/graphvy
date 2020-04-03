@@ -85,16 +85,16 @@ class Node(Line):
         self.vertex = vertex
         self.canvas = canvas
 
-        self.color = Color(*NODE_COLOR, group=self.group_name)
+        color = canvas.node_colormap[canvas.node_colors[vertex]]
+        self.color = Color(*color, group=self.group_name)
         super().__init__(width=NODE_WIDTH, group=self.group_name)
 
         self.list_item = None  # Set in make_list_item
 
-    def recolor_out_edges(self, line_color, head_color):
+    def update_out_edges(self):
         edges = self.canvas.edges
         for edge in self.vertex.out_edges():
-            edges[edge].color.rgba = line_color
-            edges[edge].head.color.rgba = head_color
+            edges[edge].update()
 
     def freeze(self, color=None):
         self.canvas.G.vp.pinned[self.vertex] = 1
@@ -104,14 +104,15 @@ class Node(Line):
             if self.list_item is not None:
                 self.list_item.md_bg_color = [min(c * 1.1, 1) for c in color]
 
-        self.recolor_out_edges(HIGHLIGHTED_EDGE, HIGHLIGHTED_HEAD)
+        self.update_out_edges()
 
     def unfreeze(self):
-        self.canvas.G.vp.pinned[self.vertex] = 0
-        self.color.rgba = NODE_COLOR
+        canvas = self.canvas
+        canvas.G.vp.pinned[self.vertex] = 0
+        self.color.rgba = canvas.node_colormap[canvas.node_colors[self.vertex]]
         if self.list_item is not None:
             self.list_item.md_bg_color = SELECTED_COLOR
-        self.recolor_out_edges(EDGE_COLOR, HEAD_COLOR)
+        self.update_out_edges()
 
     def collides(self, mx, my):
         x, y = self.canvas.coords[int(self.vertex)]
@@ -122,27 +123,28 @@ class Node(Line):
         return self.list_item
 
     def update(self):
-        self.circle = *self.canvas.coords[int(self.vertex)], NODE_RADIUS
+        canvas = self.canvas
+        if not canvas.G.vp.pinned[self.vertex]:
+            self.color.rgba = canvas.node_colormap[canvas.node_colors[self.vertex]]
+        self.circle = *canvas.coords[int(self.vertex)], NODE_RADIUS
 
 
 class Edge(Arrow):
-    __slots__ = 's', 't', 'canvas', '_directed'
+    __slots__ = 'edge', 's', 't', 'canvas', '_directed'
 
     def __init__(self, edge, canvas, directed=True):
+        self.edge = edge
         self.s, self.t = edge
         self.canvas = canvas
         self._directed = directed
 
         if self.canvas.G.vp.pinned[self.s]:
             line_color = HIGHLIGHTED_EDGE
-            head_color = HIGHLIGHTED_HEAD
         else:
-            line_color = EDGE_COLOR
-            head_color = HEAD_COLOR
-        super().__init__(line_color=line_color,
-                         head_color=head_color,
-                         width=EDGE_WIDTH,
-                         head_size=HEAD_SIZE)
+            line_color = canvas.edge_colormap[canvas.edge_colors[edge]]
+        head_color = [min(c * 1.1, 1) for c in line_color]
+
+        super().__init__(line_color=line_color, head_color=head_color, width=EDGE_WIDTH, head_size=HEAD_SIZE)
 
     @property
     def directed(self):
@@ -157,6 +159,14 @@ class Edge(Arrow):
         self.points = x1, y1, x2, y2
         if self.directed:
             self.head.update(x1, y1, x2, y2)
+
+        if self.canvas.G.vp.pinned[self.s]:
+            color = HIGHLIGHTED_EDGE
+        else:
+            color = self.canvas.edge_colormap[self.canvas.edge_colors[self.edge]]
+        hcolor =  tuple(min(c * 1.2, 1) for c in color)
+        self.color.rgba = color
+        self.head.color.rgba = hcolor
 
 
 class Selection(Line):
