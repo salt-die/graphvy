@@ -3,8 +3,9 @@ import os
 from kivy.animation import Animation
 from kivy.lang import Builder
 from kivy.uix.behaviors import ToggleButtonBehavior
+from kivy.uix.boxlayout import BoxLayout
 from kivy.uix.modalview import ModalView
-from kivy.properties import NumericProperty, ObjectProperty, StringProperty
+from kivy.properties import ListProperty, NumericProperty, ObjectProperty, StringProperty
 from kivymd.app import MDApp
 from kivymd.uix.button import MDFloatingActionButton, MDIconButton, MDRectangleFlatIconButton
 from kivymd.uix.behaviors import BackgroundColorBehavior, HoverBehavior
@@ -107,17 +108,19 @@ FloatLayout:
                 title: 'Colors'
                 text: 'palette-outline'
 
-                MDDropDownItem:
+                MenuItem:
                     id: node_colors
+                    icon: 'circle-outline'
                     text: 'Node properties...'
                     top: self.parent.top
-                    #on_release: app.build_property_menu(nodes=True)
+                    on_release: app.build_property_menu(self, nodes=True)
 
-                MDDropDownItem:
+                MenuItem:
                     id: edge_colors
+                    icon: 'ray-start-arrow'
                     text: 'Edge properties...'
                     top: self.parent.top - self.height
-                    #on_release: app.build_property_menu(nodes=False)
+                    on_release: app.build_property_menu(self, nodes=False)
 
         MDToolbar:
             md_bg_color: NODE_COLOR
@@ -227,6 +230,11 @@ FloatLayout:
             text_color: NODE_COLOR
             on_release: random_graph_dialogue.dismiss()
 
+<PropertyMenu>:
+    id: prop_menu
+    size_hint: .3, .8
+    md_bg_color: NODE_COLOR
+
 <IntInput@MDTextField>:
     helper_text: 'Integer required'
     helper_text_mode: 'on_error'
@@ -274,6 +282,8 @@ class BurgerButton(MDFloatingActionButton, HoverBehavior):
 
 
 class RandomGraphDialogue(ModalView, BackgroundColorBehavior):
+    graph_canvas = ObjectProperty()
+
     def new_random_graph(self, nodes, edges):
         if nodes.text.isnumeric() and edges.text.isnumeric():
             self.graph_canvas.load_graph(random=(int(nodes.text), int(edges.text)))
@@ -287,6 +297,42 @@ class RandomGraphDialogue(ModalView, BackgroundColorBehavior):
             widget.error = not widget.text[-1].isdigit()
             if widget.error:
                 widget.text = widget.text[:-1]
+
+
+class PropertyMenu(ModalView, BackgroundColorBehavior):
+    graph_canvas = ObjectProperty()
+    items = ListProperty()
+
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        self.layout = BoxLayout()
+        self.add_widget(self.layout)
+        self.bind(items=self._add_items)
+
+    def _add_items(self, *args):
+        self.layout.clear_widgets()
+        for item in items:
+            self.layout.add_widget(MenuItem(text=item))
+
+    def color_property(self, nodes, property_name):
+        graph_canvas = self.graph_canvas
+
+        if nodes:
+            property_map = graph_canvas.G.vp[property_name]
+            attr = 'node_states'
+            set_map = graph_canvas.set_node_colormap
+        else:
+            property_map = graph_canvas.G.ep[property_name]
+            attr = 'edge_states'
+            set_map = graph_canvas.set_edge_colormap
+
+        if (graph_canvas.rule is not None
+            and (states := getattr(graph_canvas.rule_callback, attr, None))
+            and (n_states := states.get(property_name))):
+            set_map(property_map, *n_states)
+        else:
+            array = property_map.get_array()
+            set_map(property_map, array.min(), array.max())
 
 
 class Graphvy(MDApp):
@@ -306,7 +352,7 @@ class Graphvy(MDApp):
 
         self.file_manager = FileChooser(exit_chooser=self.exit_chooser,
                                         select_path=self.select_path,
-                                        size_hint=(.8,.8))
+                                        size_hint=(.8, .8))
 
         self.root.bind(width=self._resize)
 
@@ -330,8 +376,7 @@ class Graphvy(MDApp):
         self.root.ids.graph_canvas.tool = tool
 
     def erdos_reset(self):
-        dialogue = RandomGraphDialogue()
-        dialogue.graph_canvas = self.root.ids.graph_canvas
+        dialogue = RandomGraphDialogue(graph_canvas=self.root.ids.graph_canvas)
         dialogue.open()
 
     def exit_chooser(self, *args):
@@ -369,7 +414,20 @@ class Graphvy(MDApp):
         self.is_file_selecting = True
         self.file_manager.show(path=os.path.join(os.getcwd(), 'rules'), save=False, ext=['.py'])
 
-    def build_property_menu(self, nodes):
-        pass
+    def build_property_menu(self, instance, nodes=True):
+        gc = self.root.ids.graph_canvas
+
+        if nodes:
+            properties = [prop for prop in gc.G.vp if prop not in ('pos', 'pinned')]
+        else:
+            properties = list(gc.G.ep)
+
+        if not properties:
+            properties = ['No properties.']
+
+        prop_menu = PropertyMenu(graph_canvas=gc, items=properties)
+        prop_menu.open()
+        print(properties)
+
 
 Graphvy().run()

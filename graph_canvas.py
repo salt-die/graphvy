@@ -177,6 +177,7 @@ class GraphCanvas(Widget):
         self.update_graph.cancel()
 
     def previous_state(self, node):
+        """Return a highlighted node to its previous state."""
         if node in self._selected:
             node.freeze(SELECTED_COLOR)
         elif node in self._pinned:
