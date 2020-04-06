@@ -138,13 +138,7 @@ class Edge(Arrow):
         self.canvas = canvas
         self._directed = directed
 
-        if self.canvas.G.vp.pinned[self.s]:
-            line_color = HIGHLIGHTED_EDGE
-        else:
-            line_color = canvas.edge_colormap[canvas.edge_colors[edge]]
-        head_color = tuple(min(c * 1.2, 1) for c in line_color)
-
-        super().__init__(line_color=line_color, head_color=head_color, width=EDGE_WIDTH, head_size=HEAD_SIZE)
+        super().__init__(width=EDGE_WIDTH, head_size=HEAD_SIZE)
 
     @property
     def directed(self):

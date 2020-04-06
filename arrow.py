@@ -54,7 +54,7 @@ class ArrowHead(Triangle):
 class Arrow(Line):
     __slots__ = 'group_name', 'color', 'head'
 
-    def __init__(self, line_color, head_color, width, head_size):
+    def __init__(self, width, head_size, line_color=(0, 0, 0, 0), head_color=(0, 0, 0, 0)):
         self.group_name = str(id(self))
 
         self.color = Color(*line_color, group=self.group_name)
