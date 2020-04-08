@@ -3,6 +3,7 @@ Hold shift to drag-select vertices. Ctrl-click to select individual vertices, an
 Space to pause/unpause the layout algorithm. Ctrl-Space to pause/unpause the Graph callback.
 """
 from functools import wraps
+from math import hypot
 from random import random
 import time
 
@@ -510,11 +511,11 @@ class GraphCanvas(Widget):
 
         cx = (touch.x - ax) / self.width
         cy = (touch.y - ay) / self.height
-        current_length = (cx**2 + cy**2)**.5
+        current_length = hypot(cx, cy)
 
         px = (touch.px - ax) / self.width
         py = (touch.py - ay) / self.height
-        previous_length = (px**2 + py**2)**.5
+        previous_length = hypot(px, py)
 
         self.scale += current_length - previous_length
 
