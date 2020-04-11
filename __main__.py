@@ -112,16 +112,16 @@ FloatLayout:
                 text: 'palette-outline'
 
                 ColoredDropdownItem:
-                    top: self.parent.top
+                    top: self.parent.top + self.height * 0
                     size_hint: 1, None
-                    text: 'Color nodes by...'
-                    on_release: app.open_property_menu(self)
+                    text: 'Color edges by...'
+                    on_press: app.open_property_menu(self, nodes=False)
 
                 ColoredDropdownItem:
                     top: self.parent.top - self.height
                     size_hint: 1, None
-                    text: 'Color edges by...'
-                    on_release: app.open_property_menu(self, nodes=False)
+                    text: 'Color nodes by...'
+                    on_press: app.open_property_menu(self)
 
         MDToolbar:
             md_bg_color: NODE_COLOR
@@ -274,7 +274,14 @@ class MenuItem(MDRectangleFlatIconButton, MenuItemHoverBehavior):
 
 
 class HoverListItem(OneLineListItem, MenuItemHoverBehavior, BackgroundColorBehavior):
-    pass
+    def on_touch_up(self, touch):  # We allow ourselves to dispatch 'on_release' even if the touch didn't start on item.
+        self.last_touch = touch
+        self._do_release()
+
+        if self.collide_point(*touch.pos):
+            self.dispatch('on_release')
+            return True
+        return
 
 
 class BurgerButton(MDFloatingActionButton, MenuItemHoverBehavior):
@@ -401,7 +408,6 @@ class Graphvy(MDApp):
             properties = [prop for prop in gc.G.vp if prop not in ('pos', 'pinned')]
         else:
             properties = list(gc.G.ep)
-            print(properties)
 
         if not properties:
             return
