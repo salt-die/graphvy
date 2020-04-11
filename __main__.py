@@ -9,6 +9,8 @@ from kivy.properties import ListProperty, NumericProperty, ObjectProperty, Strin
 from kivymd.app import MDApp
 from kivymd.uix.button import MDFloatingActionButton, MDIconButton, MDRectangleFlatIconButton
 from kivymd.uix.behaviors import BackgroundColorBehavior, HoverBehavior
+from kivymd.uix.list import OneLineListItem
+from kivymd.uix.menu import MDDropdownMenu
 from kivymd.uix.tooltip import MDTooltip
 
 import graph_tool as gt
@@ -16,6 +18,7 @@ import graph_tool as gt
 from constants import *
 from graph_canvas import GraphCanvas
 from md_filechooser import FileChooser
+from colored_drop_down_item import ColoredDropdownItem
 
 
 KV = '''
@@ -108,19 +111,17 @@ FloatLayout:
                 title: 'Colors'
                 text: 'palette-outline'
 
-                MenuItem:
-                    id: node_colors
-                    icon: 'circle-outline'
-                    text: 'Node properties...'
+                ColoredDropdownItem:
                     top: self.parent.top
-                    on_release: app.build_property_menu(self, nodes=True)
+                    size_hint: 1, None
+                    text: 'Color nodes by...'
+                    on_release: app.open_property_menu(self)
 
-                MenuItem:
-                    id: edge_colors
-                    icon: 'ray-start-arrow'
-                    text: 'Edge properties...'
+                ColoredDropdownItem:
                     top: self.parent.top - self.height
-                    on_release: app.build_property_menu(self, nodes=False)
+                    size_hint: 1, None
+                    text: 'Color edges by...'
+                    on_release: app.open_property_menu(self, nodes=False)
 
         MDToolbar:
             md_bg_color: NODE_COLOR
@@ -230,11 +231,6 @@ FloatLayout:
             text_color: NODE_COLOR
             on_release: random_graph_dialogue.dismiss()
 
-<PropertyMenu>:
-    id: prop_menu
-    size_hint: .3, .8
-    md_bg_color: NODE_COLOR
-
 <IntInput@MDTextField>:
     helper_text: 'Integer required'
     helper_text_mode: 'on_error'
@@ -265,7 +261,7 @@ class ToolIcon(MDIconButton, ToggleButtonBehavior, MDTooltip):
         self.text_color = HIGHLIGHTED_NODE if value == 'down' else NODE_COLOR
 
 
-class MenuItem(MDRectangleFlatIconButton, HoverBehavior):
+class MenuItemHoverBehavior(HoverBehavior):
     def on_enter(self, *args):
         self.md_bg_color = HIGHLIGHTED_NODE
 
@@ -273,10 +269,15 @@ class MenuItem(MDRectangleFlatIconButton, HoverBehavior):
         self.md_bg_color = SELECTED_COLOR
 
 
-class BurgerButton(MDFloatingActionButton, HoverBehavior):
-    def on_enter(self, *args):
-        self.md_bg_color = HIGHLIGHTED_NODE
+class MenuItem(MDRectangleFlatIconButton, MenuItemHoverBehavior):
+    pass
 
+
+class HoverListItem(OneLineListItem, MenuItemHoverBehavior, BackgroundColorBehavior):
+    pass
+
+
+class BurgerButton(MDFloatingActionButton, MenuItemHoverBehavior):
     def on_leave(self, *args):
         self.md_bg_color = NODE_COLOR
 
@@ -299,40 +300,17 @@ class RandomGraphDialogue(ModalView, BackgroundColorBehavior):
                 widget.text = widget.text[:-1]
 
 
-class PropertyMenu(ModalView, BackgroundColorBehavior):
-    graph_canvas = ObjectProperty()
-    items = ListProperty()
+class ColoredMenu(MDDropdownMenu):
+    """Displays properties we can use to color nodes or edges."""
 
-    def __init__(self, *args, **kwargs):
-        super().__init__(*args, **kwargs)
-        self.layout = BoxLayout()
-        self.add_widget(self.layout)
-        self.bind(items=self._add_items)
+    def create_menu_items(self):
+        self.menu.ids.box.clear_widgets()
 
-    def _add_items(self, *args):
-        self.layout.clear_widgets()
-        for item in items:
-            self.layout.add_widget(MenuItem(text=item))
-
-    def color_property(self, nodes, property_name):
-        graph_canvas = self.graph_canvas
-
-        if nodes:
-            property_map = graph_canvas.G.vp[property_name]
-            attr = 'node_states'
-            set_map = graph_canvas.set_node_colormap
-        else:
-            property_map = graph_canvas.G.ep[property_name]
-            attr = 'edge_states'
-            set_map = graph_canvas.set_edge_colormap
-
-        if (graph_canvas.rule is not None
-            and (states := getattr(graph_canvas.rule_callback, attr, None))
-            and (n_states := states.get(property_name))):
-            set_map(property_map, *n_states)
-        else:
-            array = property_map.get_array()
-            set_map(property_map, array.min(), array.max())
+        for data in self.items:
+            item = HoverListItem(text=data.get("text", ""), theme_text_color='Custom', text_color=NODE_COLOR)
+            if self.callback:
+                item.bind(on_release=self.callback)
+            self.menu.ids.box.add_widget(item)
 
 
 class Graphvy(MDApp):
@@ -353,6 +331,8 @@ class Graphvy(MDApp):
         self.file_manager = FileChooser(exit_chooser=self.exit_chooser,
                                         select_path=self.select_path,
                                         size_hint=(.8, .8))
+
+        self.prop_menu = ColoredMenu(caller=self.root, position='auto', width_mult=2, background_color=SELECTED_COLOR)
 
         self.root.bind(width=self._resize)
 
@@ -414,20 +394,46 @@ class Graphvy(MDApp):
         self.is_file_selecting = True
         self.file_manager.show(path=os.path.join(os.getcwd(), 'rules'), save=False, ext=['.py'])
 
-    def build_property_menu(self, instance, nodes=True):
+    def open_property_menu(self, instance, nodes=True):
         gc = self.root.ids.graph_canvas
 
         if nodes:
             properties = [prop for prop in gc.G.vp if prop not in ('pos', 'pinned')]
         else:
             properties = list(gc.G.ep)
+            print(properties)
 
         if not properties:
-            properties = ['No properties.']
+            return
 
-        prop_menu = PropertyMenu(graph_canvas=gc, items=properties)
-        prop_menu.open()
-        print(properties)
+        self.prop_menu.caller = instance
+
+        def callback(instance):
+            property_name = instance.text
+            if property_name == 'default':
+                return gc.set_node_colormap() if nodes else gc.set_edge_colormap()
+
+            if nodes:
+                property_map = gc.G.vp[property_name]
+                attr = 'node_states'
+                set_map = gc.set_node_colormap
+            else:
+                property_map = gc.G.ep[property_name]
+                attr = 'edge_states'
+                set_map = gc.set_edge_colormap
+
+            if (gc.rule is not None
+                and (states := getattr(gc.rule_callback, attr, None))
+                and (n_states := states.get(property_name))):  # Check if property states are explicitly set by graph rule.
+                set_map(property_map, *n_states)
+            else:
+                array = property_map.get_array()
+                set_map(property_map, array.min(), array.max())
+
+        self.prop_menu.callback = callback
+        self.prop_menu.items = [{'text': property_} for property_ in properties]
+        self.prop_menu.set_menu_properties(0)
+        self.prop_menu.open()
 
 
 Graphvy().run()
