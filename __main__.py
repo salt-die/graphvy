@@ -265,15 +265,16 @@ class MenuItemHoverBehavior(HoverBehavior):
     def on_enter(self, *args):
         self.md_bg_color = HIGHLIGHTED_NODE
 
+
+class MenuItem(MDRectangleFlatIconButton, MenuItemHoverBehavior):
     def on_leave(self, *args):
         self.md_bg_color = SELECTED_COLOR
 
 
-class MenuItem(MDRectangleFlatIconButton, MenuItemHoverBehavior):
-    pass
-
-
 class HoverListItem(OneLineListItem, MenuItemHoverBehavior, BackgroundColorBehavior):
+    def on_leave(self, *args):
+        self.md_bg_color = 0, 0, 0, 0
+
     def on_touch_up(self, touch):  # We allow ourselves to dispatch 'on_release' even if the touch didn't start on item.
         self.last_touch = touch
         self._do_release()
