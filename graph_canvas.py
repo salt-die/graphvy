@@ -89,8 +89,6 @@ class GraphCanvas(Widget):
 
     delay = .05
 
-
-
     def __init__(self, *args, G=None, rule=None, multigraph=False, **kwargs):
         self.touch_down_dict = {'Grab': lambda touch: None,
                                 'Select': self.select_touch_down,
