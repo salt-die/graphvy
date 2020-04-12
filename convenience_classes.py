@@ -3,40 +3,10 @@ from random import random
 
 from graph_tool import Graph
 from kivy.graphics import Color, Line
-from kivymd.uix.behaviors import BackgroundColorBehavior, HoverBehavior
-from kivymd.uix.list import OneLineListItem
 
 from arrow import Arrow
 from constants import *
-
-
-class AdjacencyListItem(OneLineListItem, BackgroundColorBehavior, HoverBehavior):
-    __slots__ = 'node'
-
-    def __init__(self, node, *args, **kwargs):
-        self.node = node
-
-        super().__init__(*args,
-                         md_bg_color=SELECTED_COLOR,
-                         theme_text_color='Custom',
-                         text_color=NODE_COLOR, **kwargs)
-        self.update_text()
-
-        self.bind(on_release=self._on_release)
-
-    def on_enter(self, *args):
-        adjacency_list = self.node.canvas.adjacency_list
-        if not adjacency_list.is_hidden and adjacency_list.is_selected:
-            self.node.canvas.highlighted = self.node
-
-    def on_leave(self, *args):
-        pass
-
-    def _on_release(self, *args):
-        self.node.canvas.touch_down_dict[self.node.canvas.tool]()
-
-    def update_text(self):
-        self.text = f'{self.node.vertex}: {", ".join(map(str, self.node.vertex.out_neighbors()))}'
+from ui_widgets import AdjacencyListItem
 
 
 class Node(Line):

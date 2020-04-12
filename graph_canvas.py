@@ -132,6 +132,8 @@ class GraphCanvas(Widget):
 
         if G is None:
             self.G = GraphInterface(self, erdos_random_graph(*random)) if random else GraphInterface(self)
+        elif isinstance(G, str):
+            self.G = GraphInterface(self, gt.load_graph(G, fmt='gt'))
         else:
             self.G = GraphInterface(self, G)
         self.G.set_fast_edge_removal()

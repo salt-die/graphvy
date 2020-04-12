@@ -2,23 +2,15 @@ import os
 
 from kivy.animation import Animation
 from kivy.lang import Builder
-from kivy.uix.behaviors import ToggleButtonBehavior
-from kivy.uix.boxlayout import BoxLayout
-from kivy.uix.modalview import ModalView
-from kivy.properties import ListProperty, NumericProperty, ObjectProperty, StringProperty
+
+from kivy.properties import NumericProperty
 from kivymd.app import MDApp
-from kivymd.uix.button import MDFloatingActionButton, MDIconButton, MDRectangleFlatIconButton
-from kivymd.uix.behaviors import BackgroundColorBehavior, HoverBehavior
-from kivymd.uix.list import OneLineListItem
-from kivymd.uix.menu import MDDropdownMenu
-from kivymd.uix.tooltip import MDTooltip
 
-import graph_tool as gt
-
-from constants import *
+from constants import PANEL_WIDTH, HIGHLIGHTED_NODE, SELECTED_COLOR
+from colored_drop_down_item import ColoredDropdownItem
 from graph_canvas import GraphCanvas
 from md_filechooser import FileChooser
-from colored_drop_down_item import ColoredDropdownItem
+from ui_widgets import ToolIcon, MenuItem, BurgerButton, RandomGraphDialogue, ColoredMenu
 
 
 KV = '''
@@ -248,79 +240,6 @@ FloatLayout:
 '''
 
 
-class ToolIcon(MDIconButton, ToggleButtonBehavior, MDTooltip):
-    label = StringProperty()
-    app = ObjectProperty()
-
-    def on_enter(self, *args):
-        if self.app.is_file_selecting:  # Prevents tooltips from covering files in the filechooser.
-            return
-        super().on_enter(*args)
-
-    def on_state(self, instance, value):
-        self.text_color = HIGHLIGHTED_NODE if value == 'down' else NODE_COLOR
-
-
-class MenuItemHoverBehavior(HoverBehavior):
-    def on_enter(self, *args):
-        self.md_bg_color = HIGHLIGHTED_NODE
-
-
-class MenuItem(MDRectangleFlatIconButton, MenuItemHoverBehavior):
-    def on_leave(self, *args):
-        self.md_bg_color = SELECTED_COLOR
-
-
-class HoverListItem(OneLineListItem, MenuItemHoverBehavior, BackgroundColorBehavior):
-    def on_leave(self, *args):
-        self.md_bg_color = 0, 0, 0, 0
-
-    def on_touch_up(self, touch):  # We allow ourselves to dispatch 'on_release' even if the touch didn't start on item.
-        self.last_touch = touch
-        self._do_release()
-
-        if self.collide_point(*touch.pos):
-            self.dispatch('on_release')
-            return True
-        return
-
-
-class BurgerButton(MDFloatingActionButton, MenuItemHoverBehavior):
-    def on_leave(self, *args):
-        self.md_bg_color = NODE_COLOR
-
-
-class RandomGraphDialogue(ModalView, BackgroundColorBehavior):
-    graph_canvas = ObjectProperty()
-
-    def new_random_graph(self, nodes, edges):
-        if nodes.text.isnumeric() and edges.text.isnumeric():
-            self.graph_canvas.load_graph(random=(int(nodes.text), int(edges.text)))
-            self.dismiss()
-        else:
-            nodes.error = not nodes.text.isnumeric()
-            edges.error = not edges.text.isnumeric()
-
-    def check_if_digit(self, widget):
-        if widget.text:
-            widget.error = not widget.text[-1].isdigit()
-            if widget.error:
-                widget.text = widget.text[:-1]
-
-
-class ColoredMenu(MDDropdownMenu):
-    """Displays properties we can use to color nodes or edges."""
-
-    def create_menu_items(self):
-        self.menu.ids.box.clear_widgets()
-
-        for data in self.items:
-            item = HoverListItem(text=data.get("text", ""), theme_text_color='Custom', text_color=NODE_COLOR)
-            if self.callback:
-                item.bind(on_release=self.callback)
-            self.menu.ids.box.add_widget(item)
-
-
 class Graphvy(MDApp):
     _anim_progress = NumericProperty(-PANEL_WIDTH)
     is_file_selecting = False
@@ -385,7 +304,7 @@ class Graphvy(MDApp):
             return
 
         if not is_save:
-            gc.load_graph(G=gt.load_graph(path, fmt='gt'))
+            gc.load_graph(G=path)
             return
 
         gc.G.save(path, fmt='gt')
@@ -405,16 +324,6 @@ class Graphvy(MDApp):
     def open_property_menu(self, instance, nodes=True):
         gc = self.root.ids.graph_canvas
 
-        if nodes:
-            properties = [prop for prop in gc.G.vp if prop not in ('pos', 'pinned')]
-        else:
-            properties = list(gc.G.ep)
-
-        if not properties:
-            return
-
-        self.prop_menu.caller = instance
-
         def callback(instance):
             property_name = instance.text
             if property_name == 'default':
@@ -429,16 +338,21 @@ class Graphvy(MDApp):
                 attr = 'edge_states'
                 set_map = gc.set_edge_colormap
 
+            # Check if property states are explicitly set by graph rule; if not, use states min and max values.
             if (gc.rule is not None
                 and (states := getattr(gc.rule_callback, attr, None))
-                and (n_states := states.get(property_name))):  # Check if property states are explicitly set by graph rule.
+                and (n_states := states.get(property_name))):
                 set_map(property_map, *n_states)
             else:
                 array = property_map.get_array()
                 set_map(property_map, array.min(), array.max())
 
+        self.prop_menu.caller = instance
         self.prop_menu.callback = callback
-        self.prop_menu.items = [{'text': property_} for property_ in properties]
+
+        properties = gc.G.vp if nodes else gc.G.ep
+        self.prop_menu.items = [{'text': property_} for property_ in properties if property_ not in ('pos', 'pinned')]
+
         self.prop_menu.set_menu_properties(0)
         self.prop_menu.open()
 
