@@ -92,7 +92,7 @@ class GraphCanvas(Widget):
 
 
     def __init__(self, *args, G=None, rule=None, multigraph=False, **kwargs):
-        self.touch_down_dict = {'Grab': lambda: None,
+        self.touch_down_dict = {'Grab': lambda touch: None,
                                 'Select': self.select_touch_down,
                                 'Pin': self.pin_touch_down,
                                 'Add Node': self.add_node_touch_down,
@@ -102,9 +102,9 @@ class GraphCanvas(Widget):
 
         super().__init__(*args, **kwargs)
 
+        self.resize_event = Clock.schedule_once(lambda dt: None, 0)  # Dummy event to save a conditional
         self.load_graph(G)  # Several attributes set/reset here
 
-        self.resize_event = Clock.schedule_once(lambda dt: None, 0)  # Dummy event to save a conditional
         self.bind(size=self._delayed_resize, pos=self._delayed_resize,
                   tool=self.retool, adjacency_list=self.populate_adjacency_list)
         Window.bind(mouse_pos=self.on_mouse_pos)
@@ -129,7 +129,7 @@ class GraphCanvas(Widget):
         # Setup interface
         none_attrs = ['_highlighted', 'edges', 'nodes', 'background_color', '_background', 'select_rect',
                       '_edge_instructions', '_node_instructions', '_source_color', '_source_circle', 'coords',
-                      '_last_node_to_pos', '_source_to_update', '_source', 'rule_callback']
+                      '_source', 'rule_callback']
         self.__dict__.update(dict.fromkeys(none_attrs))
 
         self.offset_x = .25
@@ -150,6 +150,7 @@ class GraphCanvas(Widget):
         self.set_edge_colormap()
 
         self.setup_canvas()
+        self.update_canvas()
         self.populate_adjacency_list()
 
         # Resume layout and graph rule
@@ -289,91 +290,6 @@ class GraphCanvas(Widget):
             self.select_rect = Selection()
             Color(1, 1, 1, 1)
 
-    def make_node(self, node):
-        """Make new canvas instructions corresponding to node."""
-        with self._node_instructions:
-            self.nodes[node] = Node(node, self)
-        self.G.vp.pos[node][:] = random(), random()
-        if self.adjacency_list:
-            self.adjacency_list.add_widget(self.nodes[node].make_list_item())
-
-    def pre_unmake_node(self, node):
-        """Remove the canvas instructions corresponding to node. Prepare last node to take its place."""
-        instruction = self.nodes[node]
-
-        if self.highlighted is instruction:
-            self.highlighted = None
-
-        if instruction in self._pinned:
-            self._pinned.remove(instruction)
-        elif instruction in self._selected:
-            self._selected.remove(instruction)
-
-        last = self.G.num_vertices() - 1
-        if int(node) != last:
-            last_vertex = self.G.vertex(last)
-            last_node = self.nodes.pop(last_vertex)
-            last_node_edges = tuple(self.edges.pop(edge) for edge in set(last_vertex.all_edges()))
-            self._last_node_to_pos = last_node, int(node), last_node_edges
-
-        if self.adjacency_list:
-            self.adjacency_list.remove_widget(self.nodes[node].list_item)
-        self._node_instructions.remove_group(instruction.group_name)
-        del self.nodes[node]
-
-    def post_unmake_node(self):
-        """
-        Swap the vertex descriptor of the last node and edge descriptors of all edges adjacent to
-        it and fix our node and edge dictionary that used these descriptors. (Node deletion
-        invalidated these descriptors.)
-        """
-
-        if self._last_node_to_pos is None:
-            return
-
-        node, pos, edge_instructions = self._last_node_to_pos
-
-        node.vertex = self.G.vertex(pos)  # Update descriptor
-        self.nodes[node.vertex] = node    # Update node dict
-
-        for edge_instruction, edge in zip(edge_instructions, set(node.vertex.all_edges())):
-            edge_instruction.s, edge_instruction.t = edge  # Update descriptor
-            self.edges[edge] = edge_instruction            # Update edge dict
-
-        # In case edge index order changed, we should correct edge color by re-freezing/unfreezing the source node.
-        # It's important we do this after the above loop or recoloring could try to iterate over edges that have
-        # invalid descriptors.
-        for edge_instruction in edge_instructions:
-            s = self.nodes[edge_instruction.s]
-            (s.freeze if self.G.vp.pinned[edge_instruction.s] else s.unfreeze)()
-
-        if self.adjacency_list:
-            color = node.list_item.md_bg_color
-            self.adjacency_list.remove_widget(node.list_item)
-            self.adjacency_list.add_widget(node.make_list_item(), index=self.G.num_vertices() - pos - 1)
-            node.list_item.md_bg_color = color
-
-        self._last_node_to_pos = None
-
-    def make_edge(self, edge):
-        """Make new canvas instructions corresponding to edge."""
-        with self._edge_instructions:
-            self.edges[edge] = Edge(edge, self)
-        if self.adjacency_list:
-            self.nodes[self.edges[edge].s].list_item.update_text()
-
-    def pre_unmake_edge(self, edge):
-        """Remove the canvas instructions corresponding to edge."""
-        self._source_to_update = edge.source()
-        instruction = self.edges.pop(edge)
-        self._edge_instructions.remove_group(instruction.group_name)
-
-    def post_unmake_edge(self):
-        if self.adjacency_list:
-            self.nodes[self._source_to_update].list_item.update_text()
-        self._source_to_update = None
-
-
     @limit(UPDATE_INTERVAL)
     def update_canvas(self, dt=None):  # dt for use by kivy Clock
         """Update node coordinates and edge colors."""
@@ -415,14 +331,14 @@ class GraphCanvas(Widget):
         off_x, off_y = (0, 0) if delta else (self.offset_x, self.offset_y)
         return (x / self.width - off_x) / self.scale, (y / self.height - off_y) / self.scale
 
-    def select_touch_down(self):
+    def select_touch_down(self, touch=None):
         if self.highlighted is not None and self.highlighted not in self._pinned:
             if self.highlighted in self._selected:
                 self._selected.remove(self.highlighted)
             else:
                 self._selected.add(self.highlighted)
 
-    def pin_touch_down(self):
+    def pin_touch_down(self, touch=None):
         if self.highlighted is not None:
             if self.highlighted in self._pinned:
                 self._pinned.remove(self.highlighted)
@@ -432,19 +348,19 @@ class GraphCanvas(Widget):
                 self._pinned.add(self.highlighted)
 
     @redraw_canvas_after
-    def add_node_touch_down(self):
+    def add_node_touch_down(self, touch):
         if self.highlighted is None:
             vertex = self.G.add_vertex(1)
             self.G.vp.pos[vertex][:] = self.invert_coords(touch.x, touch.y)
             self.highlighted = self.nodes[vertex]
 
     @redraw_canvas_after
-    def delete_node_touch_down(self):
+    def delete_node_touch_down(self, touch=None):
          if self.highlighted is not None:
             self.G.remove_vertex(self.highlighted.vertex)
 
     @redraw_canvas_after
-    def add_edge_touch_down(self):
+    def add_edge_touch_down(self, touch=None):
         if self.highlighted is None:
             self.source = None
         else:
@@ -456,7 +372,7 @@ class GraphCanvas(Widget):
                 self.source = None
 
     @redraw_canvas_after
-    def delete_edge_touch_down(self):
+    def delete_edge_touch_down(self, touch=None):
         if self.highlighted is None:
             self.source = None
         else:
@@ -487,7 +403,7 @@ class GraphCanvas(Widget):
 
         highlighted = self.highlighted
 
-        self.touch_down_dict[self.tool]()
+        self.touch_down_dict[self.tool](touch)
         return True
 
     def on_touch_up(self, touch):
