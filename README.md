@@ -18,6 +18,4 @@ range of the states (if continuous-valued).  These attributes are only needed fo
 * bezier lines (only when paused; computationally heavy)
 * degree histogram
 * hide/filter nodes
-* node/edge states visible - generate a gradient depending on the type of property map -- allow user customization after
-* default node colors stored in Node/Edge classes to allow changing individual colors or displaying states
 * recycleview for adjacencylist
