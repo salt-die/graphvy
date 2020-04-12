@@ -7,7 +7,7 @@ from math import atan2, sin, cos  # Should be slightly faster than numpy for non
 from kivy.graphics import Color, Line, Triangle
 from kivy.uix.widget import Widget
 
-BASE = np.array([[-1, 0], [-4, 1], [-4, -1]], dtype=float)
+BASE = np.array([[-0.5, 0], [-4, 1], [-4, -1]], dtype=float)
 ROTATION = np.zeros((2, 2), dtype=float)  # Used as a buffer for Triangle rotation matrix
 BUFFER = np.zeros((3, 2), dtype=float)    # Buffer for matmul with ROTATION
 
@@ -16,7 +16,7 @@ class ArrowHead(Triangle):
 
     def __init__(self, color, size, group_name=None):
         """
-        Triangle points are: (-1, 0), (-4, 1), (-4, -1). Looks like:
+        Triangle points are: (-0.5, 0), (-4, 1), (-4, -1). Looks like:
         (Two characters per x unit, One line per y unit, O is origin)
 
                         |
