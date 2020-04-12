@@ -31,46 +31,7 @@ class AdjacencyListItem(OneLineListItem, BackgroundColorBehavior, HoverBehavior)
         pass
 
     def _on_release(self, *args):
-        node = self.node
-        canvas = node.canvas
-        pinned = canvas._pinned
-        selected = canvas._selected
-
-        if canvas.tool == 'Select':
-            if node in selected:
-                selected.remove(node)
-            elif node not in pinned:
-                selected.add(node)
-
-        elif canvas.tool == 'Pin':
-            if node in pinned:
-                pinned.remove(node, unfreeze=True)
-            else:
-                if node in selected:
-                    selected.remove(node)
-                pinned.add(node)
-
-        elif canvas.tool in ('Delete Node', 'Add Edge', 'Delete Edge'):
-            if canvas.tool == 'Delete Node':
-                canvas.G.remove_vertex(node.vertex)
-
-            elif canvas.tool == 'Add Edge':
-                if canvas.source is None:
-                    canvas.source = node
-                else:
-                    if canvas.multigraph or canvas.G.edge(canvas.source.vertex, node.vertex) is None:
-                        canvas.G.add_edge(canvas.source.vertex, node.vertex)
-                    canvas.source = None
-
-            elif canvas.tool == 'Delete Edge':
-                if canvas.source is None:
-                    canvas.source = node
-                else:
-                    edge = canvas.G.edge(canvas.source.vertex, node.vertex)
-                    if edge is not None:
-                        canvas.G.remove_edge(edge)
-                    canvas.source = None
-            canvas.update_canvas()
+        self.node.canvas.touch_down_dict[self.node.canvas.tool]()
 
     def update_text(self):
         self.text = f'{self.node.vertex}: {", ".join(map(str, self.node.vertex.out_neighbors()))}'

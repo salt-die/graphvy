@@ -89,8 +89,19 @@ class GraphCanvas(Widget):
 
     delay = .05
 
+
+
     def __init__(self, *args, G=None, rule=None, multigraph=False, **kwargs):
+        self.touch_down_dict = {'Grab': lambda: None,
+                                'Select': self.select_touch_down,
+                                'Pin': self.pin_touch_down,
+                                'Add Node': self.add_node_touch_down,
+                                'Delete Node': self.delete_node_touch_down,
+                                'Add Edge': self.add_edge_touch_down,
+                                'Delete Edge': self.delete_edge_touch_down}
+
         super().__init__(*args, **kwargs)
+
         self.load_graph(G)  # Several attributes set/reset here
 
         self.resize_event = Clock.schedule_once(lambda dt: None, 0)  # Dummy event to save a conditional
@@ -404,7 +415,59 @@ class GraphCanvas(Widget):
         off_x, off_y = (0, 0) if delta else (self.offset_x, self.offset_y)
         return (x / self.width - off_x) / self.scale, (y / self.height - off_y) / self.scale
 
+    def select_touch_down(self):
+        if self.highlighted is not None and self.highlighted not in self._pinned:
+            if self.highlighted in self._selected:
+                self._selected.remove(self.highlighted)
+            else:
+                self._selected.add(self.highlighted)
+
+    def pin_touch_down(self):
+        if self.highlighted is not None:
+            if self.highlighted in self._pinned:
+                self._pinned.remove(self.highlighted)
+            else:
+                if self.highlighted in self._selected:
+                    self._selected.remove(self.highlighted)
+                self._pinned.add(self.highlighted)
+
     @redraw_canvas_after
+    def add_node_touch_down(self):
+        if self.highlighted is None:
+            vertex = self.G.add_vertex(1)
+            self.G.vp.pos[vertex][:] = self.invert_coords(touch.x, touch.y)
+            self.highlighted = self.nodes[vertex]
+
+    @redraw_canvas_after
+    def delete_node_touch_down(self):
+         if self.highlighted is not None:
+            self.G.remove_vertex(self.highlighted.vertex)
+
+    @redraw_canvas_after
+    def add_edge_touch_down(self):
+        if self.highlighted is None:
+            self.source = None
+        else:
+            if self.source is None:
+                self.source = self.highlighted
+            else:
+                if self.multigraph or self.G.edge(self.source.vertex, self.highlighted.vertex) is None:
+                    self.G.add_edge(self.source.vertex, self.highlighted.vertex)
+                self.source = None
+
+    @redraw_canvas_after
+    def delete_edge_touch_down(self):
+        if self.highlighted is None:
+            self.source = None
+        else:
+            if self.source is None:
+                self.source = self.highlighted
+            else:
+                edge = self.G.edge(self.source.vertex, self.highlighted.vertex)
+                if edge is not None:
+                    self.G.remove_edge(edge)
+                self.source = None
+
     def on_touch_down(self, touch):
         if not self.collide_point(*touch.pos):
             return
@@ -424,51 +487,7 @@ class GraphCanvas(Widget):
 
         highlighted = self.highlighted
 
-        if self.tool == 'Select' and highlighted is not None and highlighted not in self._pinned:
-            if highlighted in self._selected:
-                self._selected.remove(highlighted)
-            else:
-                self._selected.add(highlighted)
-
-        elif self.tool == 'Pin' and highlighted is not None:
-            if highlighted in self._pinned:
-                self._pinned.remove(highlighted)
-            else:
-                if highlighted in self._selected:
-                    self._selected.remove(highlighted)
-                self._pinned.add(highlighted)
-
-        elif self.tool == 'Add Node' and highlighted is None:
-            vertex = self.G.add_vertex(1)
-            self.G.vp.pos[vertex][:] = self.invert_coords(touch.x, touch.y)
-            self.highlighted = self.nodes[vertex]
-
-        elif self.tool == 'Delete Node' and highlighted is not None:
-            self.G.remove_vertex(highlighted.vertex)
-
-        elif self.tool == 'Add Edge':
-            if highlighted is None:
-                self.source = None
-            else:
-                if self.source is None:
-                    self.source = highlighted
-                else:
-                    if self.multigraph or self.G.edge(self.source.vertex, self.highlighted.vertex) is None:
-                        self.G.add_edge(self.source.vertex, self.highlighted.vertex)
-                    self.source = None
-
-        elif self.tool == 'Delete Edge':
-            if highlighted is None:
-                self.source = None
-            else:
-                if self.source is None:
-                    self.source = highlighted
-                else:
-                    edge = self.G.edge(self.source.vertex, self.highlighted.vertex)
-                    if edge is not None:
-                        self.G.remove_edge(edge)
-                    self.source = None
-
+        self.touch_down_dict[self.tool]()
         return True
 
     def on_touch_up(self, touch):
