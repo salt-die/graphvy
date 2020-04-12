@@ -6,7 +6,7 @@ SFDP_SETTINGS = dict(init_step=0.005,  # move step; increase for sfdp to converg
                      p=2.0,            # repulsive force exponent
                      max_iter=2)
 
-TOOLS = ("Grab", "Select", "Pin", "Show Path", "Add Node", "Delete Node", "Add Edge", "Delete Edge")
+TOOLS = 'Grab', 'Select', 'Pin', 'Show Path', 'Add Node', 'Delete Node', 'Add Edge', 'Delete Edge'
 
 UPDATE_INTERVAL = 1/60
 

@@ -93,6 +93,7 @@ class GraphCanvas(Widget):
         self.touch_down_dict = {'Grab': lambda touch: None,
                                 'Select': self.select_touch_down,
                                 'Pin': self.pin_touch_down,
+                                'Show Path': lambda touch: None,
                                 'Add Node': self.add_node_touch_down,
                                 'Delete Node': self.delete_node_touch_down,
                                 'Add Edge': self.add_edge_touch_down,
