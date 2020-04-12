@@ -117,14 +117,10 @@ class GraphCanvas(Widget):
 
     def load_graph(self, G=None, random=(50, 80)):
         # Halt layout and graph_rule
-        layout_needs_unpause = False
-        callback_needs_unpause = False
-        if hasattr(self, 'update_layout') and not self._layout_paused:
+        if (layout_needs_unpause := hasattr(self, 'update_layout') and not self._layout_paused):
             self.pause_layout()
-            layout_needs_unpause = True
-        if hasattr(self, 'rule_callback') and not self._callback_paused:
+        if (callback_needs_unpause := hasattr(self, 'rule_callback') and not self._callback_paused):
             self.pause_callback()
-            callback_needs_unpause = True
 
         # Setup interface
         none_attrs = ['_highlighted', 'edges', 'nodes', 'background_color', '_background', 'select_rect',
