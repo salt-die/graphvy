@@ -506,6 +506,9 @@ class GraphCanvas(Widget):
 
 
 if __name__ == "__main__":
+    # For testing purposes, a lot of canvas functionality won't be available without the ui ---
+    # Pin with ctrl, Select with shift, ctrl+Space to toggle callback, Space to toggle layout
+
     from dynamic_graph import EdgeCentricGASEP, EdgeFlipGASEP, Gravity
 
     LSHIFT, RSHIFT = 304, 13
@@ -516,7 +519,6 @@ if __name__ == "__main__":
     class GraphApp(MDApp):
         def build(self):
             # self.graph_canvas = GraphCanvas(rule=EdgeCentricGASEP)
-
             # self.graph_canvas = GraphCanvas(rule=EdgeFlipGASEP)
 
             G = gt.Graph()
