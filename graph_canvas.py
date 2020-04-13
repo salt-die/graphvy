@@ -166,6 +166,7 @@ class GraphCanvas(Widget):
         for node in self.nodes.values():
             self.adjacency_list.add_widget(node.make_list_item())
 
+    @redraw_canvas_after
     def set_node_colormap(self, property_=None, states=1, end=None):
         if property_ is None:
             self.node_colors = self.G.vp.default = self.G.new_vertex_property('bool')
@@ -173,6 +174,7 @@ class GraphCanvas(Widget):
             self.node_colors = property_
         self.node_colormap = get_colormap(states=states, end=end, for_nodes=True)
 
+    @redraw_canvas_after
     def set_edge_colormap(self, property_=None, states=1, end=None):
         if property_ is None:
             self.edge_colors = self.G.ep.default = self.G.new_edge_property('bool')
