@@ -48,7 +48,7 @@ class Node(Line):
 
     def collides(self, mx, my):
         x, y = self.canvas.coords[int(self.vertex)]
-        return x - BOUNDS <= mx <= x + BOUNDS and y - BOUNDS <= my <= y + BOUNDS
+        return abs(x - mx) <= BOUNDS and abs(y - my) <= BOUNDS
 
     def make_list_item(self):
         self.list_item = AdjacencyListItem(self)
