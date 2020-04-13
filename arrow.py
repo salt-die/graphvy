@@ -21,7 +21,7 @@ class ArrowHead(Triangle):
 
                         |
                o        |
-            ---------o--O---
+            ----------o-O---
                o        |
                         |
 
