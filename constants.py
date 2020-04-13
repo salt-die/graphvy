@@ -1,4 +1,4 @@
-"""Constants for graph widget."""
+"""Constants for Graphvy"""
 
 SFDP_SETTINGS = dict(init_step=0.005,  # move step; increase for sfdp to converge more quickly
                      K=0.5,            # preferred edge length

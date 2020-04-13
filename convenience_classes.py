@@ -120,9 +120,7 @@ class Selection(Line):
 
 class NodeSet(set):
     """Set that correctly colors nodes that are added to/removed from it."""
-    def __init__(self, *args, color, **kwargs):
-        self.color = color
-        super().__init__(*args, **kwargs)
+    color = NODE_COLOR
 
     def add(self, node):
         super().add(node)
@@ -130,8 +128,7 @@ class NodeSet(set):
 
 
 class SelectedSet(NodeSet):
-    def __init__(self, *args, **kwargs):
-        super().__init__(*args, color=SELECTED_COLOR, **kwargs)
+    color = SELECTED_COLOR
 
     def remove(self, node):
         super().remove(node)
@@ -139,8 +136,7 @@ class SelectedSet(NodeSet):
 
 
 class PinnedSet(NodeSet):
-    def __init__(self, *args, **kwargs):
-        super().__init__(*args, color=PINNED_COLOR, **kwargs)
+    color = PINNED_COLOR
 
     def remove(self, node, unfreeze=False):
         super().remove(node)
