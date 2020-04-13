@@ -25,9 +25,8 @@ class Node(Line):
         self.list_item = None  # Set in make_list_item
 
     def update_out_edges(self):
-        edges = self.canvas.edges
         for edge in self.vertex.out_edges():
-            edges[edge].update()
+            self.canvas.edges[edge].update()
 
     def freeze(self, color=None):
         self.canvas.G.vp.pinned[self.vertex] = 1
