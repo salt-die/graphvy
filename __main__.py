@@ -353,7 +353,7 @@ class Graphvy(MDApp):
         properties = gc.G.vp if nodes else gc.G.ep
         self.prop_menu.items = [{'text': property_} for property_ in properties if property_ not in ('pos', 'pinned')]
 
-        self.prop_menu.set_menu_properties(0)
+        self.prop_menu.set_menu_properties(1)
         self.prop_menu.open()
 
 
