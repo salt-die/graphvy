@@ -18,3 +18,4 @@ range of the states (if continuous-valued).  These attributes are only needed fo
 * degree histogram
 * hide/filter nodes
 * recycleview for adjacencylist
+* legend for colors/states
