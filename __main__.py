@@ -73,19 +73,19 @@ FloatLayout:
                     icon: 'graph-outline'
                     text: 'Load graph...'
                     top: self.parent.top - self.height * 2
-                    on_release: app.load_graph()
+                    on_release: app.show_file_chooser('graphs', False, '.gt')
 
                 MenuItem:
                     icon: 'floppy'
                     text: 'Save graph...'
                     top: self.parent.top - self.height * 3
-                    on_release: app.save_graph()
+                    on_release: app.show_file_chooser('graphs', True, '.gt')
 
                 MenuItem:
                     icon: 'language-python'
                     text: 'Load rule...'
                     top: self.parent.top - self.height * 4
-                    on_release: app.load_rule()
+                    on_release: app.show_file_chooser('rules', False, '.py')
 
             PanelTabBase:
                 title: 'Adjacency List'
@@ -255,7 +255,7 @@ class Graphvy(MDApp):
             child.text_color_active = HIGHLIGHTED_NODE
             child.text_color_normal = SELECTED_COLOR
 
-        self.file_manager = FileChooser(exit_chooser=self.exit_chooser,
+        self.file_chooser = FileChooser(exit_chooser=self.exit_chooser,
                                         select_path=self.select_path,
                                         size_hint=(.8, .8))
 
@@ -288,7 +288,7 @@ class Graphvy(MDApp):
 
     def exit_chooser(self, *args):
         self.is_file_selecting = False
-        self.file_manager.dismiss()
+        self.file_chooser.dismiss()
 
     def select_path(self, path, is_save):
         self.is_file_selecting = False
@@ -309,17 +309,9 @@ class Graphvy(MDApp):
 
         gc.G.save(path, fmt='gt')
 
-    def load_graph(self):
+    def show_file_chooser(self, dir_, save, ext):
         self.is_file_selecting = True
-        self.file_manager.show(path=os.path.join(os.getcwd(), 'graphs'), save=False, ext=['.gt'])
-
-    def save_graph(self):
-        self.is_file_selecting = True
-        self.file_manager.show(path=os.path.join(os.getcwd(), 'graphs'), save=True, ext=['.gt'])
-
-    def load_rule(self):
-        self.is_file_selecting = True
-        self.file_manager.show(path=os.path.join(os.getcwd(), 'rules'), save=False, ext=['.py'])
+        self.file_chooser.show(path=os.path.join(os.getcwd(), dir_), save=save, ext=[ext])
 
     def open_property_menu(self, instance, nodes=True):
         gc = self.root.ids.graph_canvas
