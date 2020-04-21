@@ -87,13 +87,13 @@ class GraphCanvas(Widget):
     _callback_paused = True
     _layout_paused = False
 
-    delay = .05
+    delay = .3
 
     def __init__(self, *args, G=None, rule=None, multigraph=False, **kwargs):
-        self.touch_down_dict = {'Grab': lambda touch: None,
+        self.touch_down_dict = {'Grab': lambda touch=None: None,
                                 'Select': self.select_touch_down,
                                 'Pin': self.pin_touch_down,
-                                'Show Path': lambda touch: None,
+                                'Show Path': lambda touch=None: None,
                                 'Add Node': self.add_node_touch_down,
                                 'Delete Node': self.delete_node_touch_down,
                                 'Add Edge': self.add_edge_touch_down,
@@ -143,11 +143,13 @@ class GraphCanvas(Widget):
             self.G.vp.pos = random_layout(self.G, (1, 1))
         self.G.vp.pinned = self.G.new_vertex_property('bool')
 
-        self.set_node_colormap()
-        self.set_edge_colormap()
+
+        self.set_node_colormap(update=False)
+        self.set_edge_colormap(update=False)
 
         self.setup_canvas()
         self.update_canvas()
+
         self.populate_adjacency_list()
 
         # Resume layout and graph rule
@@ -159,28 +161,33 @@ class GraphCanvas(Widget):
                 self.pause_callback()
 
     def populate_adjacency_list(self, *args):
-        if self.adjacency_list is None:
+        adj = self.adjacency_list
+        if adj is None:
             return
 
-        self.adjacency_list.clear_widgets()
+        adj.clear_widgets()
         for node in self.nodes.values():
-            self.adjacency_list.add_widget(node.make_list_item())
+            node.make_list_item(adj)
 
-    @redraw_canvas_after
-    def set_node_colormap(self, property_=None, states=1, end=None):
+    def set_node_colormap(self, property_=None, states=1, end=None, update=True):
         if property_ is None:
             self.node_colors = self.G.vp.default = self.G.new_vertex_property('bool')
         else:
             self.node_colors = property_
         self.node_colormap = get_colormap(states=states, end=end, for_nodes=True)
 
-    @redraw_canvas_after
-    def set_edge_colormap(self, property_=None, states=1, end=None):
+        if update:
+            self.update_canvas()
+
+    def set_edge_colormap(self, property_=None, states=1, end=None, update=True):
         if property_ is None:
             self.edge_colors = self.G.ep.default = self.G.new_edge_property('bool')
         else:
             self.edge_colors =  property_
         self.edge_colormap = get_colormap(states=states, end=end, for_nodes=False)
+
+        if update:
+            self.update_canvas()
 
     def load_rule(self, rule):
         self.rule = rule

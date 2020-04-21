@@ -34,7 +34,7 @@ class Node(Line):
             self.color.rgba = color
 
             if self.list_item is not None:
-                self.list_item.md_bg_color = tuple(min(c * 1.2, 1) for c in color)
+                self.list_item.md_bg_color = ALT_SELECTED_COLOR if color == SELECTED_COLOR else color
 
         self.update_out_edges()
 
@@ -50,9 +50,9 @@ class Node(Line):
         x, y = self.canvas.coords[int(self.vertex)]
         return abs(x - mx) <= BOUNDS and abs(y - my) <= BOUNDS
 
-    def make_list_item(self):
+    def make_list_item(self, adj):
         self.list_item = AdjacencyListItem(self)
-        return self.list_item
+        adj.add_widget(self.list_item)
 
     def update(self):
         canvas = self.canvas

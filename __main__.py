@@ -173,9 +173,6 @@ FloatLayout:
     text_color: NODE_COLOR
     on_press: app.select_tool(self.label)
 
-<PanelTabBase>:
-    md_bg_color: SELECTED_COLOR
-
 <MenuItem>:
     width: self.parent.width
     theme_text_color: 'Custom'
@@ -237,6 +234,7 @@ FloatLayout:
 
 <PanelTabBase@FloatLayout+MDTabsBase+BackgroundColorBehavior>:
     title: ''
+    md_bg_color: SELECTED_COLOR
 '''
 
 
@@ -303,11 +301,7 @@ class Graphvy(MDApp):
             gc.load_rule(l['rule'])
             return
 
-        if not is_save:
-            gc.load_graph(G=path)
-            return
-
-        gc.G.save(path, fmt='gt')
+        gc.G.save(path, fmt='gt') if is_save else gc.load_graph(G=path)
 
     def show_file_chooser(self, dir_, save, ext):
         self.is_file_selecting = True

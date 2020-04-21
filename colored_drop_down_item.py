@@ -7,8 +7,6 @@ from kivy.uix.behaviors import ButtonBehavior
 from kivymd.uix.behaviors import RectangularRippleBehavior
 from kivymd.uix.boxlayout import MDBoxLayout
 
-from constants import *
-
 Builder.load_string("""
 #:import NODE_COLOR constants.NODE_COLOR
 
