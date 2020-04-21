@@ -103,7 +103,11 @@ FloatLayout:
         MDToolbar:
             md_bg_color: NODE_COLOR
             specific_text_color: HIGHLIGHTED_NODE
-            left_action_items: [['play-circle-outline', lambda _: graph_canvas.pause_callback()], ['play-box-outline', lambda _: graph_canvas.pause_layout()]]
+            left_action_items:
+                [
+                ['play-circle-outline', lambda _: graph_canvas.pause_callback()],
+                ['play-box-outline', lambda _: graph_canvas.pause_layout()]
+                ]
             right_action_items: [['backburger', lambda _: app.animate_panel(-side_panel.width/root.width)]]
 
     BoxLayout:
