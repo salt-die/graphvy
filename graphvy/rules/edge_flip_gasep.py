@@ -1,1 +1,1 @@
-from dynamic_graph import EdgeFlipGASEP as rule
+from .rules.bases.dynamic_graph import EdgeFlipGASEP as rule

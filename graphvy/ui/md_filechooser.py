@@ -19,8 +19,8 @@ from kivy.uix.modalview import ModalView
 from kivymd.uix.behaviors import BackgroundColorBehavior
 
 KV = """
-#: import SELECTED_COLOR constants.SELECTED_COLOR
-#: import NODE_COLOR constants.NODE_COLOR
+#: import SELECTED_COLOR __main__.SELECTED_COLOR
+#: import NODE_COLOR __main__.NODE_COLOR
 
 <FileChooser>
     id: fc

@@ -8,7 +8,7 @@ from kivymd.uix.behaviors import RectangularRippleBehavior
 from kivymd.uix.boxlayout import MDBoxLayout
 
 Builder.load_string("""
-#:import NODE_COLOR constants.NODE_COLOR
+#:import NODE_COLOR __main__.NODE_COLOR
 
 <_Triangle@Widget>:
     canvas:

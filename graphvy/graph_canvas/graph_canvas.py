@@ -21,9 +21,9 @@ import graph_tool as gt
 from graph_tool.draw import random_layout, sfdp_layout
 import numpy as np
 
-from convenience_classes import Node, Edge, Selection, SelectedSet, PinnedSet, GraphInterface
-from colormap import get_colormap
-from constants import *
+from .convenience_classes import Node, Edge, Selection, SelectedSet, PinnedSet, GraphInterface
+from .colormap import get_colormap
+from ..constants import *
 
 Config.set('input', 'mouse', 'mouse,multitouch_on_demand')
 
@@ -161,13 +161,12 @@ class GraphCanvas(Widget):
                 self.pause_callback()
 
     def populate_adjacency_list(self, *args):
-        adj = self.adjacency_list
-        if adj is None:
+        if self.adjacency_list is None:
             return
 
-        adj.clear_widgets()
+        self.adjacency_list.clear_widgets()
         for node in self.nodes.values():
-            node.make_list_item(adj)
+            node.make_list_item(self.adjacency_list)
 
     def set_node_colormap(self, property_=None, states=1, end=None, update=True):
         if property_ is None:
@@ -498,8 +497,7 @@ class GraphCanvas(Widget):
         if self._mouse_pos_disabled or self.coords is None or not self.collide_point(mx, my):
             return
 
-        if (self.adjacency_list
-            and not self.adjacency_list.is_hidden
+        if (not self.adjacency_list.is_hidden
             and any(widget.collide_point(mx, my) for widget in self.walk()
                     if widget is not self and not isinstance(widget, Layout))):
             return
@@ -513,47 +511,3 @@ class GraphCanvas(Widget):
         collisions = np.argwhere(np.all(np.isclose(self.coords, (mx, my), atol=BOUNDS), axis=1))
         if len(collisions):
             self.highlighted = self.nodes[self.G.vertex(collisions[0][0])]
-
-
-if __name__ == "__main__":
-    # For testing purposes, a lot of canvas functionality won't be available without the ui ---
-    # Pin with ctrl, Select with shift, ctrl+Space to toggle callback, Space to toggle layout
-
-    from dynamic_graph import EdgeCentricGASEP, EdgeFlipGASEP, Gravity
-
-    LSHIFT, RSHIFT = 304, 13
-    LCTRL, RCTRL   = 305, 306
-    SPACE          = 32
-
-
-    class GraphApp(MDApp):
-        def build(self):
-            # self.graph_canvas = GraphCanvas(rule=EdgeCentricGASEP)
-            # self.graph_canvas = GraphCanvas(rule=EdgeFlipGASEP)
-
-            G = gt.Graph()
-            G.add_vertex(2)
-            G.add_edge(0, 1)
-            G.add_edge(1, 0)
-            self.graph_canvas = GraphCanvas(G=G, rule=Gravity)
-
-            Window.bind(on_key_down=self.on_key_down, on_key_up=self.on_key_up)
-            return self.graph_canvas
-
-        def on_key_down(self, *args):
-            if args[1] in (LSHIFT, RSHIFT):
-                self.graph_canvas.tool = 'Select'
-            elif args[1] in (LCTRL, RCTRL):
-                self.graph_canvas.tool = 'Pin'
-            elif args[1] == SPACE:
-                if self.graph_canvas.tool == 'Pin':
-                    self.graph_canvas.pause_callback()
-                else:
-                    self.graph_canvas.pause_layout()
-
-        def on_key_up(self, *args):
-            if args[1] in (RSHIFT, LSHIFT, LCTRL, RCTRL):
-                self.graph_canvas.tool = 'Grab'
-
-
-    GraphApp().run()

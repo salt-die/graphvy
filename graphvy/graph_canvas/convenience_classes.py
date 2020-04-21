@@ -4,9 +4,9 @@ from random import random
 from graph_tool import Graph
 from kivy.graphics import Color, Line
 
-from arrow import Arrow
-from constants import *
-from ui_widgets import AdjacencyListItem
+from .arrow import Arrow
+from ..constants import *
+from ..ui.ui_widgets import AdjacencyListItem
 
 
 class Node(Line):
@@ -165,8 +165,7 @@ class GraphInterface(Graph):
 
         self.vp.pos[node][:] = random(), random()
 
-        if self.canvas.adjacency_list:
-            self.canvas.adjacency_list.add_widget(self.canvas.nodes[node].make_list_item())
+        self.canvas.nodes[node].make_list_item(self.canvas.adjacency_list)
 
         return node
 
@@ -196,8 +195,7 @@ class GraphInterface(Graph):
         else:
             last_vertex = None
 
-        if canvas.adjacency_list:
-            canvas.adjacency_list.remove_widget(canvas.nodes[node].list_item)
+        canvas.adjacency_list.remove_widget(canvas.nodes[node].list_item)
         canvas._node_instructions.remove_group(instruction.group_name)
         del canvas.nodes[node]
         #
@@ -221,10 +219,9 @@ class GraphInterface(Graph):
             edge_instruction.s, edge_instruction.t = edge  # Update descriptor
             canvas.edges[edge] = edge_instruction          # Update edge dict
 
-        if canvas.adjacency_list:  # Reposition the adjacency list item
-            canvas.adjacency_list.remove_widget(last_node.list_item)
-            last_node.list_item.update_text()
-            canvas.adjacency_list.add_widget(last_node.list_item, index=self.num_vertices() - pos - 1)
+        canvas.adjacency_list.remove_widget(last_node.list_item)
+        last_node.list_item.update_text()
+        canvas.adjacency_list.add_widget(last_node.list_item, index=self.num_vertices() - pos - 1)
 
     def add_edge(self, *args, **kwargs):
         edge = super().add_edge(*args, **kwargs)
@@ -232,8 +229,7 @@ class GraphInterface(Graph):
         # Make a new canvas instruction corresponding to edge.
         with self.canvas._edge_instructions:
             self.canvas.edges[edge] = Edge(edge, self.canvas)
-        if self.canvas.adjacency_list:
-            self.canvas.nodes[self.canvas.edges[edge].s].list_item.update_text()
+        self.canvas.nodes[self.canvas.edges[edge].s].list_item.update_text()
 
         return edge
 
@@ -245,5 +241,4 @@ class GraphInterface(Graph):
 
         super().remove_edge(edge)
 
-        if self.canvas.adjacency_list:
-            self.canvas.nodes[source].list_item.update_text()
+        self.canvas.nodes[source].list_item.update_text()

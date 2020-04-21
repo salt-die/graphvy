@@ -8,7 +8,7 @@ from kivymd.uix.list import OneLineListItem
 from kivymd.uix.menu import MDDropdownMenu
 from kivymd.uix.tooltip import MDTooltip
 
-from constants import HIGHLIGHTED_NODE, NODE_COLOR, SELECTED_COLOR
+from ..constants import HIGHLIGHTED_NODE, NODE_COLOR, SELECTED_COLOR
 
 
 class AdjacencyListItem(OneLineListItem, BackgroundColorBehavior, HoverBehavior):

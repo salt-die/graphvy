@@ -1,6 +1,6 @@
 import palettable
 import numpy as np
-from constants import NODE_COLOR, EDGE_COLOR
+from ..constants import NODE_COLOR, EDGE_COLOR
 
 
 class ContinuousMap:
