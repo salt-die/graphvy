@@ -90,22 +90,3 @@ class GraphvyConsole(CodeInput):
         self._history_index += -1 if reverse else 1
         self._history_index = min(max(0, self._history_index), len(self.history) - 1)
         self.text = self.text[: self._home_pos] + self.history[self._history_index]
-
-
-if __name__ == "__main__":
-    from textwrap import dedent
-    from kivy.app import App
-    from kivy.lang import Builder
-
-    KV = """
-    GraphvyConsole:
-        background_color: 0,         0,     0, 1
-        cursor_color:     0.760, 0.235, 0.239, 1
-    """
-
-    class GraphvyInterpreter(App):
-        def build(self):
-            return Builder.load_string(dedent(KV))
-
-
-    GraphvyInterpreter().run()
