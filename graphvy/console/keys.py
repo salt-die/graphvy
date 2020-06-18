@@ -1,5 +1,5 @@
 from itertools import chain
-from key import Key
+from .key import Key
 
 SHIFT, CTRL = (303, 304), (305, 306)
 

@@ -1,4 +1,4 @@
-from keys import *
+from .keys import *
 
 class InputHandler:
     def __init__(self, text_input):

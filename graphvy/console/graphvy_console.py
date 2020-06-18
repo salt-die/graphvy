@@ -10,10 +10,12 @@ import sys
 from kivy.uix.codeinput import CodeInput
 from pygments.lexers import PythonConsoleLexer
 
-from keys import *
-from console import Console
-from input_handler import InputHandler
-from style import GraphvyStyle
+from .keys import *
+from .console import Console
+from .input_handler import InputHandler
+from .style import GraphvyStyle
+
+from ..constants import HIGHLIGHTED_EDGE
 
 
 class GraphvyConsole(CodeInput):
@@ -25,7 +27,7 @@ class GraphvyConsole(CodeInput):
     _history_index = 0
 
     def __init__(self, *args, locals=None, **kwargs):
-        super().__init__(*args, **kwargs)
+        super().__init__(*args, background_color=(0, 0, 0, 1), cursor_color=HIGHLIGHTED_EDGE, **kwargs)
         self.style         = GraphvyStyle
         self.lexer         = PythonConsoleLexer()
         self.font_name     = './UbuntuMono-R.ttf'

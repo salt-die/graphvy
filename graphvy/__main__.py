@@ -1,14 +1,14 @@
 import os
 
 from kivy.animation import Animation
-from kivy.lang import Builder
-
 from kivy.properties import NumericProperty
 from kivymd.app import MDApp
+from kivy.core.window import Window
 
 from .constants import *
 
 from .graph_canvas.graph_canvas import GraphCanvas
+from .console.graphvy_console import GraphvyConsole
 from .ui.colored_drop_down_item import ColoredDropdownItem
 from .ui.md_filechooser import FileChooser
 from .ui.ui_widgets import ToolIcon, MenuItem, BurgerButton, RandomGraphDialogue, ColoredMenu
@@ -16,6 +16,7 @@ from .ui.ui_widgets import ToolIcon, MenuItem, BurgerButton, RandomGraphDialogue
 
 class Graphvy(MDApp):
     _anim_progress = NumericProperty(-PANEL_WIDTH)
+    _console_top = NumericProperty(0)
     is_file_selecting = False
 
     def on_start(self):
@@ -32,7 +33,11 @@ class Graphvy(MDApp):
 
         self.prop_menu = ColoredMenu(caller=self.root, position='auto', width_mult=2, background_color=SELECTED_COLOR)
 
-        self.root.bind(width=self._resize)
+        self.console = GraphvyConsole(locals={'G': self.root.ids.graph_canvas.G})
+        self.root.add_widget(self.console)
+
+        self.root.bind(size=self._resize)
+        Window.bind(on_key_down=self.animate_console)
 
     def on_tab_switch(self, tabs, tab, label, text):
         self.root.ids.header.title = tab.title
@@ -46,9 +51,18 @@ class Graphvy(MDApp):
             self.root.ids.adjacency_list.is_hidden = True
         Animation(_anim_progress=x, duration=.7, t='out_cubic').start(self)
 
+    def animate_console(self, *args):
+        if not args[1] == 293:
+            return
+
+        self.console.focus, x = (False, 0) if self._console_top else (True, PANEL_HEIGHT)
+        Animation(_console_top=x, duration=.7, t='out_cubic').start(self)
+
     def _resize(self, *args):
         if self._anim_progress:
             self._anim_progress = -self.root.ids.side_panel.width / self.root.width
+        if self._console_top:
+            self._console_top = 1 - self.console.height / self.root.height
 
     def select_tool(self, tool):
         self.root.ids.graph_canvas.tool = tool

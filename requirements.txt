@@ -2,3 +2,4 @@ Kivy>=2.0.0rc1
 git+https://github.com/HeaTTheatR/KivyMD.git
 numpy>=1.18.1
 palettable>=3.3.0
+pygments
