@@ -11,6 +11,8 @@ To allow proper coloring of edge/node states, rules should have attributes `node
 with keys being the names of the node/edge properties and values being 1 or 2-tuples of either number of states or the
 range of the states (if continuous-valued).  These attributes are only needed for coloring; optional otherwise.
 
+Press F12 to reveal console.
+
 #TODO
 
 * path highlighter
