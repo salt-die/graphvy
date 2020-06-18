@@ -34,6 +34,7 @@ class Graphvy(MDApp):
         self.prop_menu = ColoredMenu(caller=self.root, position='auto', width_mult=2, background_color=SELECTED_COLOR)
 
         self.console = GraphvyConsole(locals={'G': self.root.ids.graph_canvas.G})
+        self.root.ids.graph_canvas.console = self.console
         self.root.add_widget(self.console)
 
         self.root.bind(size=self._resize)

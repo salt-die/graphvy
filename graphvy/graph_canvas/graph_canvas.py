@@ -89,6 +89,8 @@ class GraphCanvas(Widget):
 
     delay = .3
 
+    console = None
+
     def __init__(self, *args, G=None, rule=None, multigraph=False, **kwargs):
         self.touch_down_dict = {'Grab': lambda touch=None: None,
                                 'Select': self.select_touch_down,
@@ -138,6 +140,8 @@ class GraphCanvas(Widget):
         else:
             self.G = GraphInterface(self, G)
         self.G.set_fast_edge_removal()
+        if self.console is not None:
+            self.console.console.locals['G'] = self.G
 
         if 'pos' not in self.G.vp:
             self.G.vp.pos = random_layout(self.G, (1, 1))
